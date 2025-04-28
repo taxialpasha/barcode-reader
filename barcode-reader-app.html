@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قارئ بطاقات المستثمرين</title>
+    
+    <!-- Font Awesome للأيقونات -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    
+    <!-- Google Fonts - Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- مكتبة Quagga لقراءة الباركود -->
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
+    
+    <style>
+        /* الأنماط الأساسية */
+        * {
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #333;
+            direction: rtl;
+        }
+        
+        /* الألوان الأساسية */
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #1d4ed8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --gray-color: #6b7280;
+            --light-gray: #e5e7eb;
+            --dark-color: #1f2937;
+        }
+        
+        /* تنسيق الهيدر */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .app-title {
+            margin: 0;
+            padding: 0.5rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .app-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin: 0;
+            padding-bottom: 0.5rem;
+        }
+        
+        /* تنسيق جسم التطبيق */
+        .app-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        /* حاوية الماسح الضوئي */
+        .scanner-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .scanner-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .scanner-title {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scanner-title i {
+            margin-left: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .scanner-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        /* منطقة المسح */
+        #barcode-scanner-region {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 8px;
+            margin: 0 auto;
+            background-color: #000;
+        }
+        
+        .scanner-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .scanner-reticle {
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(0, 255, 0, 0.5);
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        .scanner-reticle::before,
+        .scanner-reticle::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: #00ff00;
+            border-style: solid;
+            border-width: 0;
+        }
+        
+        .scanner-reticle::before {
+            top: -2px;
+            left: -2px;
+            border-top-width: 2px;
+            border-left-width: 2px;
+        }
+        
+        .scanner-reticle::after {
+            bottom: -2px;
+            right: -2px;
+            border-bottom-width: 2px;
+            border-right-width: 2px;
+        }
+        
+        .scanner-instructions {
+            position: absolute;
+            bottom: 20px;
+            color: #fff;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .scanner-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+        }
+        
+        .scan-result {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .scan-result.success {
+            display: block;
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .scan-result.error {
+            display: block;
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* عرض معلومات المستثمر */
+        .investor-details {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+        
+        .investor-details.active {
+            display: block;
+        }
+        
+        .investor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .investor-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+        }
+        
+        .investor-id {
+            font-size: 0.8rem;
+            color: var(--gray-color);
+        }
+        
+        .investor-card {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 1.5rem;
+            aspect-ratio: 1.586;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #0a1128 0%, #16213e 100%);
+            color: white;
+            padding: 1rem;
+        }
+        
+        .investor-card-logo {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .mastercard-logo {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .mastercard-logo .circle {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+        }
+        
+        .mastercard-logo .circle-red {
+            background-color: #eb001b;
+            margin-right: -8px;
+            z-index: 1;
+        }
+        
+        .mastercard-logo .circle-yellow {
+            background-color: #f79e1b;
+            z-index: 0;
+        }
+        
+        .investor-card-number {
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin-top: 45px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .investor-card-name {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .investor-card-expiry {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 14px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .info-item {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
+            border-right: 3px solid var(--primary-color);
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--gray-color);
+            margin-bottom: 0.3rem;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .info-item.investment {
+            border-right-color: var(--success-color);
+        }
+        
+        .info-item.profit {
+            border-right-color: var(--warning-color);
+        }
+        
+        .info-item.status {
+            border-right-color: var(--danger-color);
+        }
+        
+        .info-value.active {
+            color: var(--success-color);
+        }
+        
+        .info-value.inactive {
+            color: var(--danger-color);
+        }
+        
+        .empty-result {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-color);
+        }
+        
+        .empty-result i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--light-gray);
+        }
+        
+        .empty-result p {
+            margin: 0.5rem 0;
+        }
+        
+        /* الأزرار */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .btn i {
+            margin-left: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--gray-color);
+            color: var(--gray-color);
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--dark-color);
+            color: var(--dark-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #0b966d;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        
+        /* رسائل التنبيه */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert i {
+            margin-left: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .alert-info {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border-right: 4px solid #0ea5e9;
+        }
+        
+        .alert-error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border-right: 4px solid #ef4444;
+        }
+        
+        .alert-success {
+            background-color: #dcfce7;
+            color: #15803d;
+            border-right: 4px solid #10b981;
+        }
+        
+        /* وضع الهاتف المحمول */
+        @media (max-width: 600px) {
+            .app-header {
+                padding: 0.75rem;
+            }
+            
+            .app-title {
+                font-size: 1.2rem;
+            }
+            
+            .app-container {
+                padding: 0.75rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .scanner-controls {
+                flex-wrap: wrap;
+            }
+            
+            #barcode-scanner-region {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- هيدر التطبيق -->
+    <header class="app-header">
+        <h1 class="app-title">قارئ بطاقات المستثمرين</h1>
+        <p class="app-subtitle">امسح بطاقة المستثمر للوصول إلى معلوماته</p>
+    </header>
+    
+    <!-- حاوية التطبيق -->
+    <div class="app-container">
+        <!-- قسم الماسح -->
+        <div class="scanner-container">
+            <div class="scanner-header">
+                <h2 class="scanner-title">
+                    <i class="fas fa-qrcode"></i>
+                    ماسح الباركود
+                </h2>
+                <div class="scanner-actions">
+                    <button id="manual-entry-btn" class="btn btn-outline">
+                        <i class="fas fa-keyboard"></i>
+                        إدخال يدوي
+                    </button>
+                    <button id="upload-barcode-btn" class="btn btn-outline">
+                        <i class="fas fa-upload"></i>
+                        رفع صورة
+                    </button>
+                </div>
+            </div>
+            
+            <div id="barcode-scanner-region">
+                <div class="scanner-overlay">
+                    <div class="scanner-reticle"></div>
+                    <div class="scanner-instructions">ضع الباركود أو QR كود في هذه المنطقة</div>
+                </div>
+                <video id="scanner-video" class="scanner-video"></video>
+            </div>
+            
+            <div class="scanner-controls">
+                <button id="toggle-camera-btn" class="btn btn-outline">
+                    <i class="fas fa-camera"></i>
+                    تبديل الكاميرا
+                </button>
+                <button id="toggle-flash-btn" class="btn btn-outline">
+                    <i class="fas fa-bolt"></i>
+                    الفلاش
+                </button>
+                <button id="start-scan-btn" class="btn btn-primary">
+                    <i class="fas fa-play"></i>
+                    بدء المسح
+                </button>
+            </div>
+            
+            <div id="scan-result" class="scan-result"></div>
+        </div>
+        
+        <!-- قسم معلومات المستثمر -->
+        <div id="investor-details" class="investor-details">
+            <div class="investor-header">
+                <div>
+                    <h2 id="investor-name" class="investor-name">-</h2>
+                    <div id="investor-id" class="investor-id">-</div>
+                </div>
+                <button id="print-details-btn" class="btn btn-outline">
+                    <i class="fas fa-print"></i>
+                    طباعة
+                </button>
+            </div>
+            
+            <div id="investor-card" class="investor-card">
+                <div class="investor-card-logo">MASTERCARD</div>
+                <div class="mastercard-logo">
+                    <div class="circle circle-red"></div>
+                    <div class="circle circle-yellow"></div>
+                </div>
+                <div id="investor-card-number" class="investor-card-number">0000 0000 0000 0000</div>
+                <div id="investor-card-name" class="investor-card-name">INVESTOR NAME</div>
+                <div id="investor-card-expiry" class="investor-card-expiry">VALID 00/00</div>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">رقم الهاتف</div>
+                    <div id="investor-phone" class="info-value">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">العنوان</div>
+                    <div id="investor-address" class="info-value">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">البريد الإلكتروني</div>
+                    <div id="investor-email" class="info-value">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">تاريخ الانضمام</div>
+                    <div id="investor-join-date" class="info-value">-</div>
+                </div>
+                <div class="info-item investment">
+                    <div class="info-label">إجمالي الاستثمار</div>
+                    <div id="investor-total-investment" class="info-value">-</div>
+                </div>
+                <div class="info-item profit">
+                    <div class="info-label">الربح الشهري</div>
+                    <div id="investor-monthly-profit" class="info-value">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">تاريخ آخر استثمار</div>
+                    <div id="investor-last-investment-date" class="info-value">-</div>
+                </div>
+                <div class="info-item status">
+                    <div class="info-label">الحالة</div>
+                    <div id="investor-status" class="info-value">-</div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <span>تم مسح البطاقة بنجاح وعرض بيانات المستثمر</span>
+            </div>
+        </div>
+    </div>
+
+    
+      <script src="99999999999-1.js"></script>
+    </script>
+</body>
+</html>
