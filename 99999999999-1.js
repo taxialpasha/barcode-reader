@@ -1046,3 +1046,680 @@ function tryAlternativeCameraConfig(facingMode) {
         console.error('فشلت المحاولة البديلة للكاميرا بشكل غير متوقع:', error);
     }
 }
+
+
+/**
+ * معالجة الإدخال اليدوي للرمز
+ */
+function handleManualEntry() {
+    // إيقاف الماسح الضوئي إذا كان نشطًا
+    if (scannerInitialized) {
+        Quagga.stop();
+        scannerInitialized = false;
+    }
+    
+    // طلب الإدخال اليدوي للرمز
+    const code = prompt('يرجى إدخال رمز البطاقة أو رقم البطاقة يدويًا:');
+    if (code && code.trim() !== '') {
+        // البحث عن المستثمر بالرمز المدخل
+        findInvestorByBarcode(code.trim());
+    } else {
+        // إعادة تشغيل الماسح
+        startScanner();
+    }
+}
+
+/**
+ * معالجة الباركود المكتشف
+ */
+function onBarcodeDetected(result) {
+    console.log('تم اكتشاف رمز:', result);
+    
+    // التحقق من معدل الثقة في القراءة
+    const confidence = result.codeResult.confidence;
+    const code = result.codeResult.code;
+    
+    // سجل التفاصيل للتشخيص
+    console.log(`الرمز: ${code}, الثقة: ${confidence}`);
+    
+    // نقبل فقط الباركود بمستوى ثقة أعلى من 75 بالنسبة لأجهزة الكمبيوتر
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const minimumConfidence = isMobile ? 65 : 75; // مستوى ثقة أقل للأجهزة المحمولة
+    
+    if (code && confidence > minimumConfidence) {
+        // إيقاف المسح بعد اكتشاف الرمز
+        Quagga.stop();
+        scannerInitialized = false;
+        
+        // عرض نتيجة المسح
+        const resultElement = document.getElementById('scan-result');
+        if (resultElement) {
+            resultElement.textContent = `تم العثور على الرمز: ${code} (الثقة: ${confidence.toFixed(1)}%)`;
+            resultElement.classList.add('success');
+            resultElement.style.display = 'block';
+        }
+        
+        // تشغيل صوت النجاح إذا كان متاحًا
+        playSuccessSound();
+        
+        // اهتزاز الجهاز إذا كان مدعومًا (للأجهزة المحمولة)
+        if (navigator.vibrate && isMobile) {
+            navigator.vibrate(100);
+        }
+        
+        // البحث عن بيانات المستثمر
+        findInvestorByBarcode(code);
+    } else if (code) {
+        // الباركود تم اكتشافه ولكن مستوى الثقة منخفض - استمر في المسح
+        console.log(`تم اكتشاف باركود بمستوى ثقة منخفض: ${confidence}`);
+        
+        // يمكن إضافة إشارة بصرية هنا لإظهار أن الماسح اكتشف شيئًا ولكنه يحتاج إلى وضوح أفضل
+        const resultElement = document.getElementById('scan-result');
+        if (resultElement) {
+            resultElement.textContent = `تم اكتشاف رمز - يرجى الإمساك بثبات للحصول على قراءة أفضل`;
+            resultElement.className = 'scan-result';
+            resultElement.style.display = 'block';
+            
+            // إخفاء الرسالة بعد فترة قصيرة
+            setTimeout(() => {
+                resultElement.style.display = 'none';
+            }, 1500);
+        }
+    }
+}
+
+/**
+ * معالجة صور الماسح الضوئي
+ */
+function onBarcodeProcessed(result) {
+    const drawingCtx = Quagga.canvas.ctx.overlay;
+    const drawingCanvas = Quagga.canvas.dom.overlay;
+    
+    if (result && drawingCtx && drawingCanvas) {
+        // مسح المنطقة قبل الرسم
+        drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+        
+        // رسم جميع الصناديق المكتشفة
+        if (result.boxes) {
+            result.boxes.filter(function(box) {
+                return box !== result.box;
+            }).forEach(function(box) {
+                Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "rgba(0, 255, 0, 0.3)", lineWidth: 2});
+            });
+        }
+        
+        // رسم الصندوق الرئيسي الذي تم اكتشافه بلون مختلف
+        if (result.box) {
+            Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "rgba(0, 0, 255, 0.7)", lineWidth: 2});
+        }
+        
+        // رسم خط على الرمز المكتشف
+        if (result.codeResult && result.codeResult.code) {
+            const confidence = result.codeResult.confidence;
+            
+            // تغيير لون الخط بناءً على مستوى الثقة
+            let lineColor = "rgba(255, 0, 0, 0.7)"; // أحمر افتراضي
+            
+            if (confidence > 90) {
+                lineColor = "rgba(0, 255, 0, 0.7)"; // أخضر لمستوى ثقة عالي
+            } else if (confidence > 70) {
+                lineColor = "rgba(255, 255, 0, 0.7)"; // أصفر لمستوى ثقة متوسط
+            }
+            
+            Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: lineColor, lineWidth: 3});
+            
+            // إضافة نص يعرض مستوى الثقة
+            if (result.box) {
+                drawingCtx.font = "14px Arial";
+                drawingCtx.fillStyle = lineColor;
+                drawingCtx.fillText(`${confidence.toFixed(1)}%`, result.box[0][0] + 10, result.box[0][1] - 10);
+            }
+        }
+        
+        // رسم مربع التركيز في منتصف المنطقة للمساعدة في التوجيه
+        const canvas_width = drawingCanvas.width;
+        const canvas_height = drawingCanvas.height;
+        const focus_size = Math.min(canvas_width, canvas_height) * 0.6;
+        
+        drawingCtx.beginPath();
+        drawingCtx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+        drawingCtx.lineWidth = 2;
+        drawingCtx.rect(
+            (canvas_width - focus_size) / 2,
+            (canvas_height - focus_size) / 2,
+            focus_size,
+            focus_size
+        );
+        drawingCtx.stroke();
+    }
+}
+
+/**
+ * تشغيل صوت نجاح عند اكتشاف الباركود
+ */
+function playSuccessSound() {
+    try {
+        // إنشاء سياق الصوت
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // إنشاء مذبذب
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // إعداد المذبذب
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(2200, audioContext.currentTime + 0.1);
+        
+        // تعديل الصوت للحصول على صفير قصير
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        // توصيل وتشغيل
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (error) {
+        console.log('لم يتمكن من تشغيل صوت النجاح', error);
+    }
+}
+
+/**
+ * البحث عن بيانات المستثمر بواسطة رمز الباركود
+ */
+function findInvestorByBarcode(code) {
+    console.log('البحث عن بيانات المستثمر برمز:', code);
+    
+    // محاولة استخراج معرف المستثمر من الرمز
+    let investorId = '';
+    let cardNumber = '';
+    
+    if (code.includes('INVESTOR:')) {
+        // استخراج معرف المستثمر من الرمز المنسق
+        const parts = code.split('|');
+        for (const part of parts) {
+            if (part.startsWith('INVESTOR:')) {
+                investorId = part.replace('INVESTOR:', '');
+            }
+            if (part.startsWith('CARD:')) {
+                cardNumber = part.replace('CARD:', '');
+            }
+        }
+    } else {
+        // محاولة استخدام الرمز مباشرة
+        investorId = code;
+    }
+    
+    // محاولة العثور على بيانات المستثمر في المخزن المحلي
+    const storedInvestors = getLocalInvestors();
+    const storedCards = getLocalCards();
+    
+    let investor = null;
+    let card = null;
+    
+    // البحث عن المستثمر بالمعرف
+    if (investorId) {
+        investor = storedInvestors.find(inv => inv.id === investorId);
+    }
+    
+    // البحث عن البطاقة برقم البطاقة أو الرمز الشريطي
+    if (cardNumber || code) {
+        card = storedCards.find(c => 
+            c.cardNumber === cardNumber || 
+            c.barcode === code ||
+            (c.cardNumber && code.includes(c.cardNumber))
+        );
+        
+        // إذا وجدنا البطاقة ولم نجد المستثمر، نبحث عن المستثمر بواسطة معرف البطاقة
+        if (card && !investor) {
+            investor = storedInvestors.find(inv => inv.id === card.investorId);
+        }
+    }
+    
+    // عرض نتيجة البحث
+    if (investor) {
+        displayInvestorDetails(investor, card);
+    } else {
+        showNotFound(code);
+        
+        // إعادة تشغيل الماسح بعد فترة
+        setTimeout(() => {
+            startScanner();
+        }, 5000);
+    }
+}
+
+/**
+ * عرض تفاصيل المستثمر
+ */
+function displayInvestorDetails(investor, card) {
+    currentInvestor = investor;
+    currentCard = card;
+    
+    console.log('عرض بيانات المستثمر:', investor);
+    
+    // تحديث عناصر واجهة المستخدم
+    document.getElementById('investor-name').textContent = investor.name || '-';
+    document.getElementById('investor-id').textContent = `معرف المستثمر: ${investor.id}`;
+    document.getElementById('investor-phone').textContent = investor.phone || '-';
+    document.getElementById('investor-address').textContent = investor.address || '-';
+    document.getElementById('investor-email').textContent = investor.email || '-';
+    document.getElementById('investor-join-date').textContent = formatDate(investor.joinDate || investor.createdAt);
+    
+    // حساب إجمالي الاستثمار والربح
+    const totalInvestment = investor.amount || 0;
+    document.getElementById('investor-total-investment').textContent = formatCurrency(totalInvestment);
+    
+    // حساب الربح المتوقع
+    let monthlyProfit = 0;
+    if (investor.investments && Array.isArray(investor.investments)) {
+        monthlyProfit = investor.investments.reduce((total, inv) => {
+            const rate = 0.175; // معدل الربح الشهري الافتراضي (17.5%)
+            return total + (inv.amount * rate);
+        }, 0);
+    } else {
+        // استخدام إجمالي الاستثمار لحساب الربح
+        monthlyProfit = totalInvestment * 0.175; // 17.5% شهريًا
+    }
+    document.getElementById('investor-monthly-profit').textContent = formatCurrency(monthlyProfit);
+    
+    // تاريخ آخر استثمار
+    let lastInvestmentDate = '-';
+    if (investor.investments && investor.investments.length > 0) {
+        const sortedInvestments = [...investor.investments].sort((a, b) => new Date(b.date) - new Date(a.date));
+        lastInvestmentDate = formatDate(sortedInvestments[0].date);
+    }
+    document.getElementById('investor-last-investment-date').textContent = lastInvestmentDate;
+    
+    // حالة المستثمر
+    const statusElement = document.getElementById('investor-status');
+    statusElement.textContent = investor.active !== false ? 'نشط' : 'غير نشط';
+    statusElement.className = 'info-value ' + (investor.active !== false ? 'active' : 'inactive');
+    
+    // عرض بيانات البطاقة إذا كانت متاحة
+    if (card) {
+        // تحويل تاريخ الانتهاء إلى الصيغة المناسبة
+        const expiryDate = new Date(card.expiryDate);
+        const expMonth = (expiryDate.getMonth() + 1).toString().padStart(2, '0');
+        const expYear = expiryDate.getFullYear().toString().substr(2);
+        
+        document.getElementById('investor-card-number').textContent = formatCardNumber(card.cardNumber);
+        document.getElementById('investor-card-name').textContent = card.englishName || 'INVESTOR NAME';
+        document.getElementById('investor-card-expiry').textContent = `VALID ${expMonth}/${expYear}`;
+        
+        // تغيير نوع البطاقة (اللون والنمط)
+        const cardElement = document.getElementById('investor-card');
+        cardElement.className = `investor-card ${card.cardType || 'default'}`;
+    }
+    
+    // إظهار قسم التفاصيل
+    document.getElementById('investor-details').classList.add('active');
+}
+
+/**
+ * عرض رسالة عدم العثور على المستثمر
+ */
+function showNotFound(code) {
+    const resultElement = document.getElementById('scan-result');
+    if (resultElement) {
+        resultElement.textContent = `لم يتم العثور على مستثمر بالرمز: ${code}`;
+        resultElement.classList.remove('success');
+        resultElement.classList.add('error');
+        resultElement.style.display = 'block';
+    }
+    
+    // إخفاء تفاصيل المستثمر السابقة
+    document.getElementById('investor-details').classList.remove('active');
+}
+
+/**
+ * طباعة تفاصيل المستثمر
+ */
+function printInvestorDetails() {
+    if (!currentInvestor) {
+        return;
+    }
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('يرجى السماح بفتح النوافذ المنبثقة للطباعة');
+        return;
+    }
+    
+    const investor = currentInvestor;
+    const card = currentCard;
+    
+    // إجمالي الاستثمار والربح
+    const totalInvestment = investor.amount || 0;
+    let monthlyProfit = totalInvestment * 0.175; // 17.5% شهريًا
+    
+    // تاريخ آخر استثمار
+    let lastInvestmentDate = '-';
+    if (investor.investments && investor.investments.length > 0) {
+        const sortedInvestments = [...investor.investments].sort((a, b) => new Date(b.date) - new Date(a.date));
+        lastInvestmentDate = formatDate(sortedInvestments[0].date);
+    }
+    
+    // معلومات البطاقة
+    let cardInfo = '';
+    if (card) {
+        const expiryDate = new Date(card.expiryDate);
+        const expMonth = (expiryDate.getMonth() + 1).toString().padStart(2, '0');
+        const expYear = expiryDate.getFullYear().toString().substr(2);
+        
+        cardInfo = `
+            <div class="print-card-info">
+                <div class="info-row">
+                    <div class="info-label">رقم البطاقة:</div>
+                    <div class="info-value">${formatCardNumber(card.cardNumber)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">تاريخ الإصدار:</div>
+                    <div class="info-value">${formatDate(card.createdAt)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">تاريخ الانتهاء:</div>
+                    <div class="info-value">${formatDate(card.expiryDate)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">نوع البطاقة:</div>
+                    <div class="info-value">${getCardTypeArabic(card.cardType)}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // إعداد محتوى صفحة الطباعة
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+            <meta charset="UTF-8">
+            <title>بيانات المستثمر - ${investor.name}</title>
+            <style>
+                body {
+                    font-family: Arial, Tahoma, sans-serif;
+                    direction: rtl;
+                    line-height: 1.6;
+                    color: #333;
+                    padding: 20px;
+                }
+                .print-header {
+                    text-align: center;
+                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    border-bottom: 2px solid #3b82f6;
+                }
+                .print-title {
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin: 0;
+                    color: #1e3a8a;
+                }
+                .print-date {
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 5px;
+                }
+                .print-container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+                .print-section {
+                    margin-bottom: 20px;
+                    padding: 15px;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                }
+                .print-section-title {
+                    font-size: 18px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
+                    color: #1e3a8a;
+                    border-bottom: 1px solid #e5e7eb;
+                    padding-bottom: 5px;
+                }
+                .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                }
+                .info-row {
+                    display: flex;
+                    margin-bottom: 8px;
+                }
+                .info-label {
+                    font-weight: bold;
+                    width: 40%;
+                    color: #4b5563;
+                }
+                .info-value {
+                    width: 60%;
+                }
+                .status-active {
+                    color: #10b981;
+                    font-weight: bold;
+                }
+                .status-inactive {
+                    color: #ef4444;
+                    font-weight: bold;
+                }
+                .print-footer {
+                    text-align: center;
+                    margin-top: 30px;
+                    font-size: 12px;
+                    color: #6b7280;
+                    border-top: 1px solid #e5e7eb;
+                    padding-top: 10px;
+                }
+                
+                @media print {
+                    body {
+                        padding: 0;
+                        margin: 0;
+                    }
+                    .print-section {
+                        break-inside: avoid;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-container">
+                <div class="print-header">
+                    <h1 class="print-title">بيانات المستثمر</h1>
+                    <div class="print-date">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}</div>
+                </div>
+                
+                <div class="print-section">
+                    <h2 class="print-section-title">المعلومات الشخصية</h2>
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <div class="info-label">الاسم:</div>
+                            <div class="info-value">${investor.name || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">رقم الهاتف:</div>
+                            <div class="info-value">${investor.phone || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">العنوان:</div>
+                            <div class="info-value">${investor.address || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">البريد الإلكتروني:</div>
+                            <div class="info-value">${investor.email || '-'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">معرف المستثمر:</div>
+                            <div class="info-value">${investor.id}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">تاريخ الانضمام:</div>
+                            <div class="info-value">${formatDate(investor.joinDate || investor.createdAt)}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">الحالة:</div>
+                            <div class="info-value ${investor.active !== false ? 'status-active' : 'status-inactive'}">${investor.active !== false ? 'نشط' : 'غير نشط'}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="print-section">
+                    <h2 class="print-section-title">معلومات الاستثمار</h2>
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <div class="info-label">إجمالي الاستثمار:</div>
+                            <div class="info-value">${formatCurrency(totalInvestment)}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">الربح الشهري:</div>
+                            <div class="info-value">${formatCurrency(monthlyProfit)}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">تاريخ آخر استثمار:</div>
+                            <div class="info-value">${lastInvestmentDate}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${card ? `
+                <div class="print-section">
+                    <h2 class="print-section-title">معلومات البطاقة</h2>
+                    ${cardInfo}
+                </div>
+                ` : ''}
+                
+                <div class="print-footer">
+                    تم إنشاء هذا التقرير بواسطة نظام قارئ بطاقات المستثمرين
+                </div>
+            </div>
+            
+            <script>
+                // طباعة تلقائية
+                window.onload = function() {
+                    window.print();
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+}
+
+/**
+ * الحصول على قائمة المستثمرين من التخزين المحلي
+ * @returns {Array} قائمة المستثمرين
+ */
+function getLocalInvestors() {
+    try {
+        // محاولة قراءة البيانات من التخزين المحلي
+        const investorsData = localStorage.getItem('investors');
+        if (investorsData) {
+            return JSON.parse(investorsData);
+        }
+        
+        // عودة بمصفوفة فارغة إذا لم تكن هناك بيانات
+        return [];
+    } catch (error) {
+        console.error('خطأ في قراءة بيانات المستثمرين:', error);
+        return [];
+    }
+}
+
+/**
+ * الحصول على قائمة البطاقات من التخزين المحلي
+ * @returns {Array} قائمة البطاقات
+ */
+function getLocalCards() {
+    try {
+        // محاولة قراءة البيانات من التخزين المحلي
+        const cardsData = localStorage.getItem('investorCards');
+        if (cardsData) {
+            return JSON.parse(cardsData);
+        }
+        
+        // عودة بمصفوفة فارغة إذا لم تكن هناك بيانات
+        return [];
+    } catch (error) {
+        console.error('خطأ في قراءة بيانات البطاقات:', error);
+        return [];
+    }
+}
+
+/**
+ * تنسيق رقم البطاقة للعرض
+ * @param {string} cardNumber رقم البطاقة
+ * @returns {string} رقم البطاقة المنسق
+ */
+function formatCardNumber(cardNumber) {
+    // التحقق من صحة الرقم
+    if (!cardNumber || typeof cardNumber !== 'string') {
+        return '•••• •••• •••• ••••';
+    }
+    
+    // تقسيم الرقم إلى مجموعات من 4 أرقام
+    return cardNumber.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
+ * الحصول على اسم نوع البطاقة بالعربية
+ * @param {string} cardType نوع البطاقة
+ * @returns {string} اسم النوع بالعربية
+ */
+function getCardTypeArabic(cardType) {
+    switch (cardType) {
+        case 'default':
+            return 'قياسية';
+        case 'gold':
+            return 'ذهبية';
+        case 'platinum':
+            return 'بلاتينية';
+        case 'premium':
+            return 'بريميوم';
+        default:
+            return cardType || 'قياسية';
+    }
+}
+
+/**
+ * تنسيق التاريخ للعرض
+ * @param {string} dateString تاريخ
+ * @returns {string} التاريخ المنسق
+ */
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    
+    const date = new Date(dateString);
+    
+    // التحقق من صحة التاريخ
+    if (isNaN(date.getTime())) {
+        return dateString;
+    }
+    
+    // تنسيق التاريخ بالصيغة المحلية
+    return date.toLocaleDateString('ar-SA');
+}
+
+/**
+ * تنسيق المبلغ المالي للعرض
+ * @param {number} amount المبلغ
+ * @returns {string} المبلغ المنسق
+ */
+function formatCurrency(amount) {
+    if (typeof amount !== 'number') {
+        amount = parseFloat(amount) || 0;
+    }
+    
+    // تنسيق افتراضي
+    const formattedAmount = amount.toLocaleString('ar-SA', {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 0
+    });
+    
+    // إضافة العملة
+    return `${formattedAmount} دينار`;
+}
