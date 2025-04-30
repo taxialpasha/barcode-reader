@@ -2,623 +2,551 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قارئ بطاقات المستثمرين</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>بطاقة المستثمر</title>
     
-    <!-- Font Awesome للأيقونات -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- إضافة Manifest و الأيقونات للـ PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <!-- Google Fonts - Tajawal -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
-    <!-- مكتبة Quagga لقراءة الباركود -->
-    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.2/dist/quagga.min.js"></script>
+    <!-- CSS الأساسي -->
+    <link rel="stylesheet" href="css/styles.css">
     
-    <style>
-        /* الأنماط الأساسية */
-        * {
-            box-sizing: border-box;
-            font-family: 'Tajawal', sans-serif;
-        }
-        
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-            color: #333;
-            direction: rtl;
-        }
-        
-        /* الألوان الأساسية */
-        :root {
-            --primary-color: #3b82f6;
-            --secondary-color: #1d4ed8;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --gray-color: #6b7280;
-            --light-gray: #e5e7eb;
-            --dark-color: #1f2937;
-        }
-        
-        /* تنسيق الهيدر */
-        .app-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .app-title {
-            margin: 0;
-            padding: 0.5rem 0;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .app-subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin: 0;
-            padding-bottom: 0.5rem;
-        }
-        
-        /* تنسيق جسم التطبيق */
-        .app-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-        
-        /* حاوية الماسح الضوئي */
-        .scanner-container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .scanner-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--light-gray);
-        }
-        
-        .scanner-title {
-            font-size: 1.2rem;
-            color: var(--dark-color);
-            margin: 0;
-            display: flex;
-            align-items: center;
-        }
-        
-        .scanner-title i {
-            margin-left: 0.5rem;
-            color: var(--primary-color);
-        }
-        
-        .scanner-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        /* منطقة المسح */
-        #barcode-scanner-region {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            overflow: hidden;
-            border-radius: 8px;
-            margin: 0 auto;
-            background-color: #000;
-        }
-        
-        .scanner-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .scanner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1;
-            pointer-events: none;
-        }
-        
-        .scanner-reticle {
-            width: 200px;
-            height: 200px;
-            border: 2px solid rgba(0, 255, 0, 0.5);
-            border-radius: 5px;
-            position: relative;
-        }
-        
-        .scanner-reticle::before,
-        .scanner-reticle::after {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border-color: #00ff00;
-            border-style: solid;
-            border-width: 0;
-        }
-        
-        .scanner-reticle::before {
-            top: -2px;
-            left: -2px;
-            border-top-width: 2px;
-            border-left-width: 2px;
-        }
-        
-        .scanner-reticle::after {
-            bottom: -2px;
-            right: -2px;
-            border-bottom-width: 2px;
-            border-right-width: 2px;
-        }
-        
-        .scanner-instructions {
-            position: absolute;
-            bottom: 20px;
-            color: #fff;
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-        
-        .scanner-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-            width: 100%;
-        }
-        
-        .scan-result {
-            margin-top: 15px;
-            padding: 10px;
-            width: 100%;
-            border-radius: 5px;
-            text-align: center;
-            display: none;
-        }
-        
-        .scan-result.success {
-            display: block;
-            color: #155724;
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .scan-result.error {
-            display: block;
-            color: #721c24;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-        }
-        
-        /* عرض معلومات المستثمر */
-        .investor-details {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 1rem;
-            margin-top: 1.5rem;
-            display: none;
-        }
-        
-        .investor-details.active {
-            display: block;
-        }
-        
-        .investor-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--light-gray);
-        }
-        
-        .investor-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--dark-color);
-            margin: 0;
-        }
-        
-        .investor-id {
-            font-size: 0.8rem;
-            color: var(--gray-color);
-        }
-        
-        .investor-card {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto 1.5rem;
-            aspect-ratio: 1.586;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            background: linear-gradient(135deg, #0a1128 0%, #16213e 100%);
-            color: white;
-            padding: 1rem;
-        }
-        
-        .investor-card-logo {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        
-        .mastercard-logo {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .mastercard-logo .circle {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-        }
-        
-        .mastercard-logo .circle-red {
-            background-color: #eb001b;
-            margin-right: -8px;
-            z-index: 1;
-        }
-        
-        .mastercard-logo .circle-yellow {
-            background-color: #f79e1b;
-            z-index: 0;
-        }
-        
-        .investor-card-number {
-            font-size: 18px;
-            letter-spacing: 2px;
-            margin-top: 45px;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-        }
-        
-        .investor-card-name {
-            position: absolute;
-            bottom: 40px;
-            right: 20px;
-            font-size: 16px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        
-        .investor-card-expiry {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            font-size: 14px;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .info-item {
-            background-color: #f9fafb;
-            border-radius: 8px;
-            padding: 1rem;
-            border-right: 3px solid var(--primary-color);
-        }
-        
-        .info-label {
-            font-size: 0.8rem;
-            color: var(--gray-color);
-            margin-bottom: 0.3rem;
-        }
-        
-        .info-value {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--dark-color);
-        }
-        
-        .info-item.investment {
-            border-right-color: var(--success-color);
-        }
-        
-        .info-item.profit {
-            border-right-color: var(--warning-color);
-        }
-        
-        .info-item.status {
-            border-right-color: var(--danger-color);
-        }
-        
-        .info-value.active {
-            color: var(--success-color);
-        }
-        
-        .info-value.inactive {
-            color: var(--danger-color);
-        }
-        
-        .empty-result {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray-color);
-        }
-        
-        .empty-result i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--light-gray);
-        }
-        
-        .empty-result p {
-            margin: 0.5rem 0;
-        }
-        
-        /* الأزرار */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-        
-        .btn i {
-            margin-left: 0.5rem;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--gray-color);
-            color: var(--gray-color);
-        }
-        
-        .btn-outline:hover {
-            border-color: var(--dark-color);
-            color: var(--dark-color);
-        }
-        
-        .btn-success {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background-color: #0b966d;
-        }
-        
-        .btn-sm {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.8rem;
-        }
-        
-        /* رسائل التنبيه */
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-        }
-        
-        .alert i {
-            margin-left: 0.5rem;
-            font-size: 1.2rem;
-        }
-        
-        .alert-info {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            border-right: 4px solid #0ea5e9;
-        }
-        
-        .alert-error {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            border-right: 4px solid #ef4444;
-        }
-        
-        .alert-success {
-            background-color: #dcfce7;
-            color: #15803d;
-            border-right: 4px solid #10b981;
-        }
-        
-        /* وضع الهاتف المحمول */
-        @media (max-width: 600px) {
-            .app-header {
-                padding: 0.75rem;
-            }
-            
-            .app-title {
-                font-size: 1.2rem;
-            }
-            
-            .app-container {
-                padding: 0.75rem;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .scanner-controls {
-                flex-wrap: wrap;
-            }
-            
-            #barcode-scanner-region {
-                height: 250px;
-            }
-        }
-    </style>
+    <!-- CSS لأنماط الرسوم المتحركة -->
+    <link rel="stylesheet" href="animations.css">
 </head>
 <body>
-    <!-- هيدر التطبيق -->
-    <header class="app-header">
-        <h1 class="app-title">قارئ بطاقات المستثمرين</h1>
-        <p class="app-subtitle">امسح بطاقة المستثمر للوصول إلى معلوماته</p>
-    </header>
-    
-    <!-- حاوية التطبيق -->
-    <div class="app-container">
-        <!-- قسم الماسح -->
-        <div class="scanner-container">
-            <div class="scanner-header">
-                <h2 class="scanner-title">
-                    <i class="fas fa-qrcode"></i>
-                    ماسح الباركود
-                </h2>
-                <div class="scanner-actions">
-                    <button id="manual-entry-btn" class="btn btn-outline">
-                        <i class="fas fa-keyboard"></i>
-                        إدخال يدوي
-                    </button>
-                    <button id="upload-barcode-btn" class="btn btn-outline">
-                        <i class="fas fa-upload"></i>
-                        رفع صورة
-                    </button>
+   
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-screen" class="screen">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-logo">
+                    <i class="fas fa-credit-card"></i>
                 </div>
+                <h1 class="login-title">بطاقة المستثمر</h1>
+                <p class="login-subtitle">قم بتسجيل الدخول للوصول إلى بطاقتك</p>
             </div>
             
-            <div id="barcode-scanner-region">
-                <div class="scanner-overlay">
-                    <div class="scanner-reticle"></div>
-                    <div class="scanner-instructions">ضع الباركود أو QR كود في هذه المنطقة</div>
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="card-login">الدخول برقم البطاقة</button>
+                    <button class="tab-btn" data-tab="phone-login">الدخول برقم الهاتف</button>
                 </div>
-                <video id="scanner-video" class="scanner-video"></video>
-            </div>
-            
-            <div class="scanner-controls">
-                <button id="toggle-camera-btn" class="btn btn-outline">
-                    <i class="fas fa-camera"></i>
-                    تبديل الكاميرا
-                </button>
-                <button id="toggle-flash-btn" class="btn btn-outline">
-                    <i class="fas fa-bolt"></i>
-                    الفلاش
-                </button>
-                <button id="start-scan-btn" class="btn btn-primary">
-                    <i class="fas fa-play"></i>
-                    بدء المسح
-                </button>
-            </div>
-            
-            <div id="scan-result" class="scan-result"></div>
-        </div>
-        
-        <!-- قسم معلومات المستثمر -->
-        <div id="investor-details" class="investor-details">
-            <div class="investor-header">
-                <div>
-                    <h2 id="investor-name" class="investor-name">-</h2>
-                    <div id="investor-id" class="investor-id">-</div>
+                
+                <!-- تسجيل الدخول برقم البطاقة -->
+                <div id="card-login-tab" class="tab-content active">
+                    <form id="card-login-form" class="login-form">
+                        <div class="form-group">
+                            <label for="card-number">رقم البطاقة</label>
+                            <input type="text" id="card-number" class="form-input" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" autocomplete="off">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="card-expiry">تاريخ الانتهاء</label>
+                            <input type="text" id="card-expiry" class="form-input" placeholder="MM/YY" maxlength="5" autocomplete="off">
+                        </div>
+                        
+                        <div class="form-group" id="cvv-group">
+                            <label for="card-cvv">رمز الحماية (CVV)</label>
+                            <input type="password" id="card-cvv" class="form-input" placeholder="XXX" maxlength="3" autocomplete="off">
+                        </div>
+                        
+                        <div class="form-group" id="pin-group" style="display: none;">
+                            <label for="card-pin">رمز PIN</label>
+                            <div class="pin-input-container">
+                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
+                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
+                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
+                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
+                            </div>
+                            <input type="hidden" id="card-pin">
+                        </div>
+                        
+                        <div id="login-error" class="error-message"></div>
+                        
+                        <button type="submit" id="card-login-btn" class="btn btn-primary btn-block">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>تسجيل الدخول</span>
+                        </button>
+                    </form>
                 </div>
-                <button id="print-details-btn" class="btn btn-outline">
-                    <i class="fas fa-print"></i>
-                    طباعة
-                </button>
-            </div>
-            
-            <div id="investor-card" class="investor-card">
-                <div class="investor-card-logo">MASTERCARD</div>
-                <div class="mastercard-logo">
-                    <div class="circle circle-red"></div>
-                    <div class="circle circle-yellow"></div>
-                </div>
-                <div id="investor-card-number" class="investor-card-number">0000 0000 0000 0000</div>
-                <div id="investor-card-name" class="investor-card-name">INVESTOR NAME</div>
-                <div id="investor-card-expiry" class="investor-card-expiry">VALID 00/00</div>
-            </div>
-            
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">رقم الهاتف</div>
-                    <div id="investor-phone" class="info-value">-</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">العنوان</div>
-                    <div id="investor-address" class="info-value">-</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">البريد الإلكتروني</div>
-                    <div id="investor-email" class="info-value">-</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">تاريخ الانضمام</div>
-                    <div id="investor-join-date" class="info-value">-</div>
-                </div>
-                <div class="info-item investment">
-                    <div class="info-label">إجمالي الاستثمار</div>
-                    <div id="investor-total-investment" class="info-value">-</div>
-                </div>
-                <div class="info-item profit">
-                    <div class="info-label">الربح الشهري</div>
-                    <div id="investor-monthly-profit" class="info-value">-</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">تاريخ آخر استثمار</div>
-                    <div id="investor-last-investment-date" class="info-value">-</div>
-                </div>
-                <div class="info-item status">
-                    <div class="info-label">الحالة</div>
-                    <div id="investor-status" class="info-value">-</div>
+                
+                <!-- تسجيل الدخول برقم الهاتف -->
+                <div id="phone-login-tab" class="tab-content">
+                    <form id="phone-login-form" class="login-form">
+                        <div class="form-group">
+                            <label for="phone-number">رقم الهاتف</label>
+                            <input type="tel" id="phone-number" class="form-input" placeholder="أدخل رقم هاتفك" autocomplete="off">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="investor-name">الاسم بالكامل</label>
+                            <input type="text" id="investor-name" class="form-input" placeholder="أدخل اسمك كما هو مسجل" autocomplete="off">
+                        </div>
+                        
+                        <div id="phone-login-error" class="error-message"></div>
+                        
+                        <button type="submit" id="phone-login-btn" class="btn btn-primary btn-block">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>تسجيل الدخول</span>
+                        </button>
+                    </form>
                 </div>
             </div>
-            
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i>
-                <span>تم مسح البطاقة بنجاح وعرض بيانات المستثمر</span>
+
+            <div class="login-help">
+                <p>مشكلة في تسجيل الدخول؟</p>
+                <a href="#" id="contact-support-btn">تواصل مع الدعم</a>
             </div>
         </div>
     </div>
 
+    <!-- شاشة البطاقة الرئيسية -->
+    <div id="card-dashboard" class="screen">
+        <!-- شريط التنقل العلوي -->
+        <div class="top-navbar">
+            <div class="user-welcome">
+                <div class="user-avatar">
+                    <span id="user-initial">م</span>
+                </div>
+                <span id="welcome-text">مرحباً، <span id="user-name">المستثمر</span></span>
+            </div>
+            <div class="top-actions">
+                <button id="notifications-btn" class="icon-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">0</span>
+                </button>
+                <button id="logout-btn" class="icon-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- محتوى الصفحة الرئيسية -->
+        <div class="dashboard-content">
+            <!-- عرض البطاقة -->
+            <div id="card-container" class="card-container">
+                <div class="investor-card">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="card-brand">بلاتينية</div>
+                            <div class="card-logo">
+                                <div class="card-logo-circle red"></div>
+                                <div class="card-logo-circle yellow"></div>
+                            </div>
+                            
+                            <div class="card-chip">
+                                <div class="chip-line"></div>
+                                <div class="chip-line"></div>
+                                <div class="chip-line"></div>
+                                <div class="chip-line"></div>
+                                <div class="chip-line"></div>
+                                <div class="chip-line"></div>
+                                <div class="chip-line"></div>
+                            </div>
+                            
+                            <div class="card-hologram"></div>
+                            
+                            <div class="card-qrcode">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=preview" alt="QR Code">
+                            </div>
+                            
+                            <div class="card-number" id="display-card-number">XXXX XXXX XXXX XXXX</div>
+                            <div class="card-details">
+                                <div class="card-validity">
+                                    <div class="card-valid-text">VALID THRU</div>
+                                    <div id="display-card-expiry">MM/YY</div>
+                                </div>
+                                <div class="card-name" id="display-card-name">اسم المستثمر</div>
+                            </div>
+                            
+                            <div class="card-status-badge" id="card-status-badge"></div>
+                        </div>
+                        
+                        <div class="card-back">
+                            <div class="card-back-strip"></div>
+                            <div class="card-cvv">CVV: <span id="display-cvv">***</span></div>
+                            <div class="card-issuer-info">
+                                نظام الاستثمار المتكامل<br>
+                                بطاقة المستثمر<br>
+                                <span id="display-phone"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-actions">
+                    <button id="flip-card-btn" class="card-action-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>عرض الخلف</span>
+                    </button>
+                    <button id="show-qr-btn" class="card-action-btn">
+                        <i class="fas fa-qrcode"></i>
+                        <span>عرض QR</span>
+                    </button>
+                    <button id="share-card-btn" class="card-action-btn">
+                        <i class="fas fa-share-alt"></i>
+                        <span>مشاركة</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- ملخص مالي -->
+            <div class="financial-summary">
+                <div class="balance-card">
+                    <div class="balance-header">
+                        <div class="balance-title">الرصيد الإجمالي</div>
+                        <div class="balance-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="balance-amount" id="total-balance">0 دينار</div>
+                    <div class="balance-updated">آخر تحديث: <span id="last-update-date">اليوم</span></div>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="monthly-profit">0 دينار</div>
+                            <div class="stat-label">الربح الشهري</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="investment-days">0</div>
+                            <div class="stat-label">أيام الاستثمار</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="next-profit-date">-</div>
+                            <div class="stat-label">موعد الربح القادم</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- تبويبات المعلومات -->
+            <div class="info-tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="investments">الاستثمارات</button>
+                    <button class="tab-btn" data-tab="transactions">العمليات</button>
+                    <button class="tab-btn" data-tab="profits">الأرباح</button>
+                    <button class="tab-btn" data-tab="info">معلومات</button>
+                </div>
+                
+                <!-- تبويب الاستثمارات -->
+                <div id="investments-tab" class="tab-content active">
+                    <div class="investment-history">
+                        <h3>استثماراتك الحالية</h3>
+                        <div id="investments-list" class="data-list">
+                            <!-- سيتم ملؤها ديناميكياً -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تبويب العمليات -->
+                <div id="transactions-tab" class="tab-content">
+                    <div class="transaction-filters">
+                        <button class="filter-btn active" data-filter="all">الكل</button>
+                        <button class="filter-btn" data-filter="deposit">إيداع</button>
+                        <button class="filter-btn" data-filter="withdraw">سحب</button>
+                        <button class="filter-btn" data-filter="profit">أرباح</button>
+                    </div>
+                    <div id="transactions-list" class="data-list">
+                        <!-- سيتم ملؤها ديناميكياً -->
+                    </div>
+                </div>
+                
+                <!-- تبويب الأرباح -->
+                <div id="profits-tab" class="tab-content">
+                    <div class="profit-summary">
+                        <div class="profit-header">
+                            <div class="profit-title">إجمالي الأرباح المستلمة</div>
+                            <div class="profit-amount" id="total-received-profits">0 دينار</div>
+                        </div>
+                        <div class="profit-progress">
+                            <div class="progress-title">
+                                <span>الربح الحالي</span>
+                                <span id="profit-percentage">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span id="current-profit">0 دينار</span>
+                                <span id="target-profit">0 دينار</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="profits-list" class="data-list">
+                        <!-- سيتم ملؤها ديناميكياً -->
+                    </div>
+                </div>
+                
+                <!-- تبويب المعلومات -->
+                <div id="info-tab" class="tab-content">
+                    <div class="investor-info">
+                        <h3>معلومات المستثمر</h3>
+                        <div class="info-item">
+                            <div class="info-label">الاسم</div>
+                            <div class="info-value" id="investor-full-name">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">رقم الهاتف</div>
+                            <div class="info-value" id="investor-phone-number">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">العنوان</div>
+                            <div class="info-value" id="investor-address">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">تاريخ الانضمام</div>
+                            <div class="info-value" id="investor-join-date">-</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-info">
+                        <h3>معلومات البطاقة</h3>
+                        <div class="info-item">
+                            <div class="info-label">نوع البطاقة</div>
+                            <div class="info-value" id="card-type">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">تاريخ الإصدار</div>
+                            <div class="info-value" id="card-issue-date">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">تاريخ الانتهاء</div>
+                            <div class="info-value" id="card-expiry-date">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">حالة البطاقة</div>
+                            <div class="info-value">
+                                <span id="card-status-badge-info" class="badge badge-success">نشطة</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-benefits">
+                        <h3>مزايا البطاقة</h3>
+                        <ul id="benefits-list">
+                            <!-- سيتم ملؤها ديناميكياً -->
+                        </ul>
+                    </div>
+                    
+                    <div class="contact-support">
+                        <h3>الدعم الفني</h3>
+                        <p>للمساعدة أو الاستفسارات، يرجى التواصل مع فريق الدعم الفني</p>
+                        <button id="contact-btn" class="btn btn-primary">
+                            <i class="fas fa-headset"></i>
+                            <span>التواصل مع الدعم</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- شريط التنقل السفلي -->
+        <div class="bottom-navbar">
+            <a href="#home" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>الرئيسية</span>
+            </a>
+            <a href="#transactions" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>العمليات</span>
+            </a>
+            <a href="#profits" class="nav-item">
+                <i class="fas fa-coins"></i>
+                <span>الأرباح</span>
+            </a>
+            <a href="#profile" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>الملف</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- عناصر النافذة المنبثقة -->
+    <!-- نافذة عرض QR Code -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>QR Code البطاقة</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="qr-code-container">
+                    <div id="card-qr-code"></div>
+                </div>
+                <p class="qr-code-info">قم بمسح هذا الرمز لمشاركة معلومات البطاقة</p>
+            </div>
+            <div class="modal-footer">
+                <button id="save-qr-btn" class="btn btn-primary">حفظ الصورة</button>
+                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة مشاركة البطاقة -->
+    <div id="share-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>مشاركة البطاقة</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-options">
+                    <button class="share-option" data-method="whatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>واتساب</span>
+                    </button>
+                    <button class="share-option" data-method="email">
+                        <i class="fas fa-envelope"></i>
+                        <span>البريد الإلكتروني</span>
+                    </button>
+                    <button class="share-option" data-method="copy">
+                        <i class="fas fa-copy"></i>
+                        <span>نسخ النص</span>
+                    </button>
+                </div>
+                <div class="share-text-container">
+                    <textarea id="share-text" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الإشعارات -->
+    <div id="notifications-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>الإشعارات</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="notifications-list">
+                    <!-- سيتم ملؤها ديناميكياً -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="mark-read-btn" class="btn btn-primary">تعيين الكل كمقروء</button>
+                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الاتصال بالدعم -->
+    <div id="support-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>اتصل بالدعم</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="support-options">
+                    <a href="tel:+9647800000000" class="support-option">
+                        <i class="fas fa-phone"></i>
+                        <span>اتصل بنا: +964 780 000 0000</span>
+                    </a>
+                    <a href="mailto:support@investment-system.com" class="support-option">
+                        <i class="fas fa-envelope"></i>
+                        <span>البريد الإلكتروني: support@investment-system.com</span>
+                    </a>
+                    <a href="https://wa.me/9647800000000" class="support-option">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>واتساب: +964 780 000 0000</span>
+                    </a>
+                </div>
+                <div class="support-form">
+                    <h4>أرسل رسالة</h4>
+                    <div class="form-group">
+                        <label for="support-subject">الموضوع</label>
+                        <input type="text" id="support-subject" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="support-message">الرسالة</label>
+                        <textarea id="support-message" class="form-input" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="send-support-message" class="btn btn-primary">إرسال</button>
+                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- إشعار منبثق -->
+    <div id="toast-notification" class="toast">
+        <div class="toast-icon">
+            <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title">عنوان الإشعار</div>
+            <div class="toast-message">نص الإشعار يظهر هنا</div>
+        </div>
+        <div class="toast-close">&times;</div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     
-      <script src="99999999999-1.js"></script>
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+    
+    <!-- Service Worker -->
+    <script>
+        // تسجيل Service Worker للـ PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker تم التسجيل بنجاح:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('فشل تسجيل ServiceWorker:', error);
+                    });
+            });
+        }
     </script>
+    
+    <!-- توصيل بـ Firebase -->
+    <script src="js/firebase-config.js"></script>
+    
+    <!-- JS الرئيسي -->
+    <script src="app.js"></script>
+    <script src="card-utils.js"></script>
+    <script src="animation.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="login.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="investor-card-system"></script>
+
 </body>
 </html>

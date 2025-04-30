@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق المحادثة الذكي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #eef2ff;
+            --primary-dark: #3a56d4;
+            --secondary-color: #f8faff;
+            --text-color: #2b3445;
+            --text-light: #64748b;
+            --light-gray: #f1f5f9;
+            --mid-gray: #e2e8f0;
+            --dark-gray: #94a3b8;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --border-radius-sm: 12px;
+            --border-radius-md: 16px;
+            --border-radius-lg: 24px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --font-main: 'Segoe UI', 'Dubai', 'Tahoma', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+        }
+        
+        body {
+            background-color: var(--primary-light);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            direction: rtl;
+        }
+        
+        .app-container {
+            max-width: 500px;
+            width: 100%;
+            height: 100vh;
+            margin: 0 auto;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            border-radius: 0;
+        }
+        
+        /* ===== رأس التطبيق ===== */
+        .app-header {
+            background-color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--light-gray);
+            z-index: 10;
+        }
+        
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .app-icon {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .app-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        /* ===== منطقة المحادثة ===== */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+        
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-width: 85%;
+            position: relative;
+        }
+        
+        .message-row.user {
+            align-self: flex-end;
+        }
+        
+        .message-row.assistant {
+            align-self: flex-start;
+        }
+        
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: var(--border-radius-md);
+            position: relative;
+            word-break: break-word;
+            line-height: 1.5;
+            font-size: 15px;
+            animation: fadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-row.user .message-bubble {
+            background-color: var(--primary-color);
+            color: white;
+            border-top-left-radius: var(--border-radius-md);
+            border-top-right-radius: var(--border-radius-md);
+            border-bottom-left-radius: var(--border-radius-md);
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-row.assistant .message-bubble {
+            background-color: white;
+            color: var(--text-color);
+            box-shadow: var(--shadow-sm);
+            border-top-left-radius: var(--border-radius-md);
+            border-top-right-radius: var(--border-radius-md);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: var(--border-radius-md);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: white;
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .message-row.assistant .message-avatar {
+            right: -40px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .message-info {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-light);
+            padding: 0 8px;
+            gap: 5px;
+        }
+        
+        .message-time {
+            flex-shrink: 0;
+        }
+        
+        .message-status {
+            display: flex;
+            align-items: center;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            width: 28px;
+            height: 28px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--primary-color);
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            opacity: 0.7;
+            z-index: 5;
+        }
+        
+        .copy-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .message-row.user .copy-btn {
+            left: 8px;
+            color: var(--primary-color);
+        }
+        
+        .message-row.assistant .copy-btn {
+            right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .message-status i {
+            font-size: 12px;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 16px;
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+            max-width: fit-content;
+            margin-right: 40px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--dark-gray);
+            animation: typingAnimation 1.5s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-5px); opacity: 1; }
+        }
+        
+        /* ===== شريط الحالة ===== */
+        .status-bar {
+            padding: 10px 15px;
+            font-size: 13px;
+            color: var(--text-light);
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.95);
+            transition: var(--transition);
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-top: 1px solid var(--light-gray);
+        }
+        
+        .status-bar.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--dark-gray);
+            display: inline-block;
+        }
+        
+        .status-bar.active .status-dot {
+            background-color: white;
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* ===== منطقة الإدخال ===== */
+        .input-container {
+            padding: 16px;
+            background-color: white;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+        }
+        
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius-lg);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+        
+        .input-wrapper.focus {
+            background-color: white;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+        
+        .input-wrapper.listening {
+            background-color: rgba(67, 97, 238, 0.1);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(67, 97, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+        
+        .text-input {
+            width: 100%;
+            padding: 14px 46px 14px 16px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            outline: none;
+            resize: none;
+            overflow-y: auto;
+            min-height: 24px;
+            max-height: 150px;
+            color: var(--text-color);
+        }
+        
+        .text-input::placeholder {
+            color: var(--dark-gray);
+        }
+        
+        .input-actions {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .mic-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .mic-btn:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .mic-btn.listening {
+            color: var(--error-color);
+            animation: micAnimation 1.5s infinite;
+        }
+        
+        @keyframes micAnimation {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 18px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .send-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .send-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .send-btn:disabled {
+            background-color: var(--mid-gray);
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .action-btn {
+            background: transparent;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+        
+        .action-btn:hover {
+            background-color: var(--light-gray);
+            color: var(--primary-color);
+        }
+        
+        /* ===== النوافذ المنبثقة ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            backdrop-filter: blur(3px);
+        }
+        
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius-lg);
+            width: 85%;
+            max-width: 350px;
+            padding: 25px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: var(--transition);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        .modal-title {
+            color: var(--text-color);
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .modal-message {
+            color: var(--text-light);
+            margin-bottom: 24px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: var(--border-radius-sm);
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .modal-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--text-color);
+        }
+        
+        .modal-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        /* ===== الإشعارات ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .toast {
+            background-color: white;
+            color: var(--text-color);
+            padding: 12px 20px;
+            border-radius: var(--border-radius-md);
+            font-size: 14px;
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+        }
+        
+        .toast.success {
+            border-right: 4px solid var(--success-color);
+        }
+        
+        .toast.error {
+            border-right: 4px solid var(--error-color);
+        }
+        
+        .toast.info {
+            border-right: 4px solid var(--info-color);
+        }
+        
+        .toast.warning {
+            border-right: 4px solid var(--warning-color);
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-icon {
+            font-size: 18px;
+        }
+        
+        .toast.success .toast-icon {
+            color: var(--success-color);
+        }
+        
+        .toast.error .toast-icon {
+            color: var(--error-color);
+        }
+        
+        .toast.info .toast-icon {
+            color: var(--info-color);
+        }
+        
+        .toast.warning .toast-icon {
+            color: var(--warning-color);
+        }
+        
+        /* ===== المزيد من التنسيقات ===== */
+        .context-menu {
+            position: absolute;
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-md);
+            padding: 8px 0;
+            min-width: 150px;
+            z-index: 20;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            transform: scale(0.95);
+        }
+        
+        .context-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+        
+        .context-menu-item {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-color);
+        }
+        
+        .context-menu-item:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .context-menu-item i {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .welcome-message {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .welcome-icon {
+            font-size: 40px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .welcome-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+        
+        .welcome-text {
+            font-size: 15px;
+            line-height: 1.6;
+            max-width: 350px;
+            margin-bottom: 16px;
+        }
+        
+        .welcome-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-width: 400px;
+            margin-top: 10px;
+        }
+        
+        .suggestion-chip {
+            padding: 8px 16px;
+            background-color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--mid-gray);
+        }
+        
+        .suggestion-chip:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* ===== تعديلات للأجهزة المحمولة ===== */
+        @media (max-width: 500px) {
+            .app-container {
+                max-width: none;
+                box-shadow: none;
+                height: 100%;
+                border-radius: 0;
+            }
+            
+            .message-row {
+                max-width: 90%;
+            }
+            
+            .input-container {
+                padding: 12px;
+            }
+            
+            .welcome-suggestions {
+                max-width: 100%;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .app-container {
+                margin: 20px auto;
+                height: calc(100vh - 40px);
+                border-radius: var(--border-radius-lg);
+                max-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- رأس التطبيق -->
+        <header class="app-header">
+            <div class="app-logo">
+                <div class="app-icon"><i class="fas fa-robot"></i></div>
+                <div class="app-title">المحادثة الذكية</div>
+            </div>
+            <div class="header-actions">
+                <button id="theme-btn" class="action-btn" title="تغيير المظهر">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="clear-btn" class="action-btn" title="مسح المحادثة">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- شريط الحالة -->
+        <div id="status-bar" class="status-bar">
+            <span class="status-dot"></span>
+            <span id="status-text">جاهز للمحادثة</span>
+        </div>
+        
+        <!-- منطقة المحادثة -->
+        <div id="chat-container" class="chat-container">
+            <!-- رسالة الترحيب -->
+            <div class="welcome-message">
+                <div class="welcome-icon"><i class="fas fa-comments"></i></div>
+                <h2 class="welcome-title">مرحباً بك في المحادثة الذكية</h2>
+                <p class="welcome-text">يمكنك بدء المحادثة من خلال كتابة رسالة أو استخدام ميزة التحدث. جرب إحدى الاقتراحات التالية:</p>
+                <div class="welcome-suggestions">
+                    <div class="suggestion-chip">ما هو الطقس اليوم؟</div>
+                    <div class="suggestion-chip">أخبرني نكتة مضحكة</div>
+                    <div class="suggestion-chip">ما هي أفضل الوجهات السياحية؟</div>
+                    <div class="suggestion-chip">كيف يمكنني تعلم لغة جديدة؟</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- منطقة الإدخال -->
+        <div class="input-container">
+            <div id="input-wrapper" class="input-wrapper">
+                <textarea id="text-input" class="text-input" placeholder="اكتب رسالة..."></textarea>
+                <div class="input-actions">
+                    <button id="mic-btn" class="mic-btn" title="تسجيل صوتي">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+            <button id="send-btn" class="send-btn" disabled>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        
+        <!-- نافذة تأكيد المسح -->
+        <div id="clear-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-icon">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3 class="modal-title">مسح المحادثة</h3>
+                <p class="modal-message">هل أنت متأكد من رغبتك في مسح جميع الرسائل؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                <div class="modal-actions">
+                    <button id="confirm-clear" class="modal-btn primary">مسح</button>
+                    <button id="cancel-clear" class="modal-btn secondary">إلغاء</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- حاوية الإشعارات -->
+        <div class="toast-container" id="toast-container">
+            <!-- سيتم إضافة الإشعارات هنا ديناميكياً -->
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // عناصر الواجهة
+            const chatContainer = document.getElementById('chat-container');
+            const textInput = document.getElementById('text-input');
+            const inputWrapper = document.getElementById('input-wrapper');
+            const micBtn = document.getElementById('mic-btn');
+            const sendBtn = document.getElementById('send-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const statusBar = document.getElementById('status-bar');
+            const statusText = document.getElementById('status-text');
+            const clearModal = document.getElementById('clear-modal');
+            const confirmClear = document.getElementById('confirm-clear');
+            const cancelClear = document.getElementById('cancel-clear');
+            const toastContainer = document.getElementById('toast-container');
+            const themeBtn = document.getElementById('theme-btn');
+            const suggestionChips = document.querySelectorAll('.suggestion-chip');
+            
+            // متغيرات الحالة
+            let recognition;
+            let isListening = false;
+            let silenceTimer;
+            const silenceTimeout = 5000; // 5 ثوانٍ من الصمت
+            let currentFinalTranscript = ''; // النص النهائي الحالي
+            let currentInterimTranscript = ''; // النص المؤقت الحالي
+            let darkTheme = false;
+            let isAssistantTyping = false;
+            
+            // ردود افتراضية للمساعد
+            const assistantResponses = [
+                "أهلاً! كيف يمكنني مساعدتك اليوم؟",
+                "هذا سؤال رائع. دعني أفكر في إجابة مناسبة...",
+                "بالتأكيد، يمكنني مساعدتك في ذلك!",
+                "من الممكن النظر إلى الموضوع من عدة زوايا. دعني أشارك معك بعض الأفكار.",
+                "شكراً لمشاركة هذه المعلومات معي. هل هناك شيء محدد تود معرفته حول هذا الموضوع؟",
+                "هذا مثير للاهتمام. هل يمكنك إخباري المزيد عن ما تحاول تحقيقه؟",
+                "أتفهم ما تقصده. هناك عدة خيارات يمكننا استكشافها..."
+            ];
+            
+            // تهيئة التعرف على الكلام
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'ar-SA'; // تعيين اللغة العربية
+                
+                recognition.onstart = () => {
+                    isListening = true;
+                    updateStatus(true, "جاري الاستماع...");
+                    micBtn.classList.add('listening');
+                    micBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                    inputWrapper.classList.add('listening');
+                    textInput.placeholder = "أتحدث الآن...";
+                    
+                    // لا نقوم بمسح النص الحالي
+                    currentFinalTranscript = textInput.value;
+                    currentInterimTranscript = '';
+                    
+                    // إعادة تعيين مؤقت الصمت
+                    resetSilenceTimer();
+                };
+                
+                recognition.onresult = (event) => {
+                    // تحديد النص المؤقت الجديد
+                    let newInterimTranscript = '';
+                    let newFinalTranscript = '';
+                    
+                    // تجميع كل نتائج التعرف على الكلام
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        
+                        if (event.results[i].isFinal) {
+                            newFinalTranscript += transcript + ' ';
+                        } else {
+                            newInterimTranscript += transcript;
+                        }
+                    }
+                    
+                    // تحديث النص النهائي والمؤقت
+                    if (newFinalTranscript) {
+                        currentFinalTranscript += newFinalTranscript;
+                    }
+                    currentInterimTranscript = newInterimTranscript;
+                    
+                    // عرض كل من النص النهائي والمؤقت معًا
+                    textInput.value = currentFinalTranscript + currentInterimTranscript;
+                    
+                    // تحديث ارتفاع حقل النص
+                    updateTextareaHeight();
+                    
+                    // تفعيل زر الإرسال إذا كان هناك نص
+                    toggleSendButton();
+                    
+                    // إعادة تعيين مؤقت الصمت عند كل نتيجة
+                    resetSilenceTimer();
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('حدث خطأ في التعرف على الكلام:', event.error);
+                    
+                    // تجاهل أخطاء "no-speech" لأنها تحدث بشكل طبيعي
+                    if (event.error !== 'no-speech') {
+                        showToast('error', 'خطأ', `حدث خطأ في التعرف على الكلام: ${event.error}`);
+                        stopListening();
+                    }
+                };
+                
+                recognition.onend = () => {
+                    // إذا تم إيقاف الاستماع بشكل متعمد، لا تقم بإعادة تشغيله
+                    if (isListening) {
+                        try {
+                            // إعادة تشغيل التعرف على الكلام (للاستمرار في الاستماع)
+                            recognition.start();
+                        } catch (e) {
+                            console.warn('لم يتم إعادة تشغيل التعرف على الكلام:', e);
+                            stopListening();
+                        }
+                    }
+                };
+                
+            } else {
+                updateStatus(false, "متصفحك لا يدعم ميزة التعرف على الكلام");
+                micBtn.disabled = true;
+                micBtn.style.color = "#aaa";
+                micBtn.style.cursor = "not-allowed";
+                showToast('warning', 'تنبيه', 'متصفحك لا يدعم ميزة التعرف على الكلام');
+            }
+            
+            // إعادة تعيين مؤقت الصمت
+            function resetSilenceTimer() {
+                clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(() => {
+                    if (isListening) {
+                        stopListening();
+                        updateStatus(false, "توقف الاستماع بسبب الصمت");
+                    }
+                }, silenceTimeout);
+            }
+            
+            // وظيفة إيقاف الاستماع
+            function stopListening() {
+                try {
+                    recognition.stop();
+                } catch (e) {
+                    console.warn('حدث خطأ أثناء إيقاف التعرف على الكلام:', e);
+                }
+                
+                isListening = false;
+                micBtn.classList.remove('listening');
+                micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                inputWrapper.classList.remove('listening');
+                textInput.placeholder = "اكتب رسالة...";
+                clearTimeout(silenceTimer);
+                
+                // ضمان أن النص المؤقت يتم إضافته إلى النص النهائي
+                if (currentInterimTranscript) {
+                    textInput.value = textInput.value.trim();
+                    currentInterimTranscript = '';
+                }
+            }
+            
+            // تحديث حالة شريط الحالة
+            function updateStatus(active, message) {
+                statusText.textContent = message;
+                if (active) {
+                    statusBar.classList.add('active');
+                } else {
+                    statusBar.classList.remove('active');
+                }
+                setTimeout(() => {
+                    if (!isListening && !isAssistantTyping) {
+                        statusBar.classList.remove('active');
+                        statusText.textContent = "جاهز للمحادثة";
+                    }
+                }, 3000);
+            }
+            
+            // إضافة رسالة المستخدم إلى المحادثة
+            function addUserMessage(text) {
+                if (!text.trim()) return;
+                
+                // إزالة رسالة الترحيب إذا كانت موجودة
+                const welcomeMessage = document.querySelector('.welcome-message');
+                if (welcomeMessage) {
+                    welcomeMessage.remove();
+                }
+                
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                // إنشاء صف الرسالة
+                const messageRow = document.createElement('div');
+                messageRow.className = 'message-row user';
+                
+                // إنشاء فقاعة الرسالة
+                const messageBubble = document.createElement('div');
+                messageBubble.className = 'message-bubble';
+                messageBubble.textContent = text;
+                
+                // إنشاء معلومات الرسالة
+                const messageInfo = document.createElement('div');
+                messageInfo.className = 'message-info';
+                
+                // إضافة وقت الرسالة
+                const messageTime = document.createElement('span');
+                messageTime.className = 'message-time';
+                messageTime.textContent = timeStr;
+                
+                // إضافة حالة الرسالة
+                const messageStatus = document.createElement('span');
+                messageStatus.className = 'message-status';
+                messageStatus.innerHTML = '<i class="fas fa-check-double"></i>';
+                
+                // تجميع عناصر الرسالة
+                messageInfo.appendChild(messageTime);
+                messageInfo.appendChild(messageStatus);
+                
+                messageRow.appendChild(messageBubble);
+                messageRow.appendChild(messageInfo);
+                
+                chatContainer.appendChild(messageRow);
+                
+                // مسح نص الإدخال
+                textInput.value = '';
+                updateTextareaHeight();
+                toggleSendButton();
+                
+                // التمرير إلى أسفل المحادثة
+                scrollToBottom();
+                
+                // محاكاة رد المساعد
+                showAssistantTyping();
+                
+                // تأخير لمحاكاة وقت التفكير
+                const thinkingTime = Math.floor(Math.random() * 2000) + 1000; // 1-3 ثواني
+                setTimeout(() => {
+                    // اختيار رد عشوائي من المساعد
+                    const randomResponse = assistantResponses[Math.floor(Math.random() * assistantResponses.length)];
+                    addAssistantMessage(randomResponse);
+                    hideAssistantTyping();
+                }, thinkingTime);
+            }
+            
+            // إضافة رسالة المساعد إلى المحادثة
+            function addAssistantMessage(text) {
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                // إنشاء صف الرسالة
+                const messageRow = document.createElement('div');
+                messageRow.className = 'message-row assistant';
+                
+                // إنشاء فقاعة الرسالة
+                const messageBubble = document.createElement('div');
+                messageBubble.className = 'message-bubble';
+                
+                // إنشاء محتوى الرسالة
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.textContent = text;
+                
+                // إضافة زر النسخ
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                copyBtn.title = 'نسخ الرسالة';
+                copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(text)
+                        .then(() => showToast('success', 'تم النسخ', 'تم نسخ النص إلى الحافظة'))
+                        .catch(err => console.error('خطأ أثناء نسخ النص:', err));
+                });
+                
+                // إنشاء الصورة الرمزية للمساعد
+                const messageAvatar = document.createElement('div');
+                messageAvatar.className = 'message-avatar';
+                messageAvatar.innerHTML = '<i class="fas fa-robot"></i>';
+                
+                // إنشاء معلومات الرسالة
+                const messageInfo = document.createElement('div');
+                messageInfo.className = 'message-info';
+                
+                // إضافة وقت الرسالة
+                const messageTime = document.createElement('span');
+                messageTime.className = 'message-time';
+                messageTime.textContent = timeStr;
+                
+                // تجميع عناصر الرسالة
+                messageInfo.appendChild(messageTime);
+                
+                messageBubble.appendChild(messageContent);
+                messageRow.appendChild(messageBubble);
+                messageRow.appendChild(messageInfo);
+                messageRow.appendChild(messageAvatar);
+                messageRow.appendChild(copyBtn);
+                
+                chatContainer.appendChild(messageRow);
+                
+                // إضافة الاستماع لحدث النقر المزدوج لنسخ الرسالة
+                messageBubble.addEventListener('dblclick', () => {
+                    navigator.clipboard.writeText(text)
+                        .then(() => showToast('success', 'تم النسخ', 'تم نسخ النص إلى الحافظة'))
+                        .catch(err => console.error('خطأ أثناء نسخ النص:', err));
+                });
+                
+                // إضافة الاستماع لحدث النقر الطويل (للأجهزة المحمولة)
+                let longPressTimer;
+                messageBubble.addEventListener('touchstart', () => {
+                    longPressTimer = setTimeout(() => {
+                        navigator.clipboard.writeText(text)
+                            .then(() => showToast('success', 'تم النسخ', 'تم نسخ النص إلى الحافظة'))
+                            .catch(err => console.error('خطأ أثناء نسخ النص:', err));
+                    }, 800); // 800 مللي ثانية
+                });
+                
+                messageBubble.addEventListener('touchend', () => {
+                    clearTimeout(longPressTimer);
+                });
+                
+                // التمرير إلى أسفل المحادثة
+                scrollToBottom();
+            }
+            
+            // إظهار مؤشر كتابة المساعد
+            function showAssistantTyping() {
+                isAssistantTyping = true;
+                updateStatus(true, "المساعد يكتب...");
+                
+                // إنشاء عنصر مؤشر الكتابة
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'typing-indicator';
+                typingIndicator.id = 'typing-indicator';
+                
+                // إضافة النقاط المتحركة
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'typing-dot';
+                    typingIndicator.appendChild(dot);
+                }
+                
+                chatContainer.appendChild(typingIndicator);
+                scrollToBottom();
+            }
+            
+            // إخفاء مؤشر كتابة المساعد
+            function hideAssistantTyping() {
+                isAssistantTyping = false;
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+                updateStatus(false, "جاهز للمحادثة");
+            }
+            
+            // عرض إشعار
+            function showToast(type, title, message) {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                let iconClass = 'fa-info-circle';
+                switch (type) {
+                    case 'success':
+                        iconClass = 'fa-check-circle';
+                        break;
+                    case 'error':
+                        iconClass = 'fa-exclamation-circle';
+                        break;
+                    case 'warning':
+                        iconClass = 'fa-exclamation-triangle';
+                        break;
+                }
+                
+                toast.innerHTML = `
+                    <div class="toast-icon"><i class="fas ${iconClass}"></i></div>
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                // إظهار الإشعار بعد لحظة قصيرة (للحصول على تأثير متدرج)
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+                
+                // إزالة الإشعار بعد 3 ثوانٍ
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300); // انتظر حتى تكتمل الرسوم المتحركة
+                }, 3000);
+            }
+            
+            // التمرير إلى أسفل المحادثة
+            function scrollToBottom() {
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
+            }
+            
+            // تحديث ارتفاع حقل النص
+            function updateTextareaHeight() {
+                // حفظ موضع التمرير الحالي
+                const scrollTop = textInput.scrollTop;
+                
+                // إعادة تعيين الارتفاع
+                textInput.style.height = 'auto';
+                
+                // تعيين الارتفاع الجديد بناءً على المحتوى، مع حد أقصى
+                textInput.style.height = `${Math.min(textInput.scrollHeight, 150)}px`;
+                
+                // استعادة موضع التمرير
+                textInput.scrollTop = scrollTop;
+            }
+            
+            // تفعيل/تعطيل زر الإرسال
+            function toggleSendButton() {
+                if (textInput.value.trim()) {
+                    sendBtn.disabled = false;
+                } else {
+                    sendBtn.disabled = true;
+                }
+            }
+            
+            // تغيير وضع السمة (الداكن/الفاتح)
+            function toggleTheme() {
+                darkTheme = !darkTheme;
+                if (darkTheme) {
+                    document.documentElement.style.setProperty('--primary-color', '#7289da');
+                    document.documentElement.style.setProperty('--primary-light', '#2b2d31');
+                    document.documentElement.style.setProperty('--primary-dark', '#5865f2');
+                    document.documentElement.style.setProperty('--secondary-color', '#313338');
+                    document.documentElement.style.setProperty('--text-color', '#eeeeee');
+                    document.documentElement.style.setProperty('--text-light', '#b5bac1');
+                    document.documentElement.style.setProperty('--light-gray', '#1e1f22');
+                    document.documentElement.style.setProperty('--mid-gray', '#2e3035');
+                    document.documentElement.style.setProperty('--dark-gray', '#949ba4');
+                    document.body.style.backgroundColor = '#1e1f22';
+                    themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                    showToast('info', 'تغيير المظهر', 'تم تفعيل الوضع الداكن');
+                } else {
+                    document.documentElement.style.setProperty('--primary-color', '#4361ee');
+                    document.documentElement.style.setProperty('--primary-light', '#eef2ff');
+                    document.documentElement.style.setProperty('--primary-dark', '#3a56d4');
+                    document.documentElement.style.setProperty('--secondary-color', '#f8faff');
+                    document.documentElement.style.setProperty('--text-color', '#2b3445');
+                    document.documentElement.style.setProperty('--text-light', '#64748b');
+                    document.documentElement.style.setProperty('--light-gray', '#f1f5f9');
+                    document.documentElement.style.setProperty('--mid-gray', '#e2e8f0');
+                    document.documentElement.style.setProperty('--dark-gray', '#94a3b8');
+                    document.body.style.backgroundColor = '#eef2ff';
+                    themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                    showToast('info', 'تغيير المظهر', 'تم تفعيل الوضع الفاتح');
+                }
+            }
+            
+            // فتح النافذة المنبثقة
+            function openModal(modal) {
+                modal.classList.add('show');
+            }
+            
+            // إغلاق النافذة المنبثقة
+            function closeModal(modal) {
+                modal.classList.remove('show');
+            }
+            
+            // ===== أحداث المستخدم =====
+            
+            // زر الميكروفون
+            micBtn.addEventListener('click', () => {
+                if (isListening) {
+                    stopListening();
+                    updateStatus(false, "تم إيقاف الاستماع");
+                } else {
+                    // بدء الاستماع دون مسح النص الحالي
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error('خطأ في بدء التعرف على الكلام:', e);
+                        showToast('error', 'خطأ', 'فشل في بدء التعرف على الكلام');
+                    }
+                }
+            });
+            
+            // زر الإرسال
+            sendBtn.addEventListener('click', () => {
+                if (isListening) {
+                    stopListening();
+                }
+                const text = textInput.value.trim();
+                if (text) {
+                    addUserMessage(text);
+                }
+            });
+            
+            // مربع النص
+            textInput.addEventListener('input', () => {
+                updateTextareaHeight();
+                toggleSendButton();
+            });
+            
+            textInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!sendBtn.disabled) {
+                        sendBtn.click();
+                    }
+                }
+            });
+            
+            textInput.addEventListener('focus', () => {
+                inputWrapper.classList.add('focus');
+            });
+            
+            textInput.addEventListener('blur', () => {
+                inputWrapper.classList.remove('focus');
+            });
+            
+            // زر تغيير السمة
+            themeBtn.addEventListener('click', toggleTheme);
+            
+            // زر مسح المحادثة
+            clearBtn.addEventListener('click', () => {
+                openModal(clearModal);
+            });
+            
+            // أزرار النافذة المنبثقة
+            confirmClear.addEventListener('click', () => {
+                chatContainer.innerHTML = '';
+                
+                // إعادة إضافة رسالة الترحيب
+                const welcomeHTML = `
+                    <div class="welcome-message">
+                        <div class="welcome-icon"><i class="fas fa-comments"></i></div>
+                        <h2 class="welcome-title">مرحباً بك في المحادثة الذكية</h2>
+                        <p class="welcome-text">يمكنك بدء المحادثة من خلال كتابة رسالة أو استخدام ميزة التحدث. جرب إحدى الاقتراحات التالية:</p>
+                        <div class="welcome-suggestions">
+                            <div class="suggestion-chip">ما هو الطقس اليوم؟</div>
+                            <div class="suggestion-chip">أخبرني نكتة مضحكة</div>
+                            <div class="suggestion-chip">ما هي أفضل الوجهات السياحية؟</div>
+                            <div class="suggestion-chip">كيف يمكنني تعلم لغة جديدة؟</div>
+                        </div>
+                    </div>
+                `;
+                chatContainer.innerHTML = welcomeHTML;
+                
+                // إعادة ربط أحداث الاقتراحات
+                document.querySelectorAll('.suggestion-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        textInput.value = chip.textContent;
+                        toggleSendButton();
+                        updateTextareaHeight();
+                    });
+                });
+                
+                closeModal(clearModal);
+                showToast('success', 'تم المسح', 'تم مسح المحادثة بنجاح');
+            });
+            
+            cancelClear.addEventListener('click', () => {
+                closeModal(clearModal);
+            });
+            
+            // ربط أحداث اقتراحات الرسائل
+            suggestionChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    textInput.value = chip.textContent;
+                    toggleSendButton();
+                    updateTextareaHeight();
+                });
+            });
+            
+            // إغلاق النوافذ المنبثقة عند النقر خارجها
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    closeModal(e.target);
+                }
+            });
+            
+            // تهيئة الواجهة
+            updateTextareaHeight();
+            toggleSendButton();
+            
+            // محاكاة رسالة ترحيب من المساعد بعد تحميل الصفحة
+            setTimeout(() => {
+                addAssistantMessage("مرحباً! أنا المساعد الذكي الخاص بك. كيف يمكنني مساعدتك اليوم؟");
+                
+                // إضافة التعليق التوضيحي للمستخدم حول ميزة النسخ
+                showToast('info', 'تلميح', 'يمكنك نسخ أي رسالة بالنقر على أيقونة النسخ');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
