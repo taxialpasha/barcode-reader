@@ -1,1962 +1,1663 @@
-/**
- * نظام بطاقة المستثمر
- * ملف رئيسي لإدارة وظائف التطبيق والتكامل مع Firebase
- */
+// ================= Firebase Authentication & Database Module =================
+// هذا الملف يحتوي على الوظائف المتعلقة بالتحقق من المستخدمين وقاعدة البيانات
 
-// ==================== متغيرات عامة ====================
-let currentUser = null; // المستخدم الحالي
-let investors = []; // قائمة المستثمرين
-let cards = []; // قائمة البطاقات
-let transactions = []; // قائمة العمليات
-let profits = []; // قائمة الأرباح
-let isInitialized = false; // حالة تهيئة التطبيق
+const InvestorCardFirebase = (function() {
+    // تكوين Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+        authDomain: "messageemeapp.firebaseapp.com",
+        databaseURL: "https://messageemeapp-default-rtdb.firebaseio.com",
+        projectId: "messageemeapp",
+        storageBucket: "messageemeapp.appspot.com",
+        messagingSenderId: "255034474844",
+        appId: "1:255034474844:web:5e3b7a6bc4b2fb94cc4199"
+    };
 
-// ==================== تهيئة Firebase ====================
-function initializeFirebase() {
-    try {
-        // التحقق من تهيئة Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        console.log("تم تهيئة Firebase بنجاح");
-        return true;
-    } catch (error) {
-        console.error("خطأ في تهيئة Firebase:", error);
-        showError("حدث خطأ في الاتصال بقاعدة البيانات");
-        return false;
-    }
-}
-
-// ==================== تهيئة التطبيق ====================
-function initializeApp() {
-    console.log("جاري تهيئة التطبيق...");
+    // متغيرات النظام
+    let isInitialized = false;
+    let firebaseInstance = null;
+    let currentUserData = null;
+    let currentCardData = null;
     
     // تهيئة Firebase
-    if (!initializeFirebase()) {
-        console.error("فشل في تهيئة التطبيق بسبب مشكلة في Firebase");
-        return;
+    function initializeFirebase() {
+        return new Promise((resolve, reject) => {
+            if (isInitialized) {
+                resolve(true);
+                return;
+            }
+            
+            try {
+                if (typeof firebase !== 'undefined') {
+                    // تهيئة التطبيق إذا لم تكن مهيأة بالفعل
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    } else {
+                        firebase.app(); // استخدام التطبيق المُهيأ مسبقاً
+                    }
+                    
+                    firebaseInstance = firebase;
+                    isInitialized = true;
+                    console.log('تم تهيئة Firebase بنجاح');
+                    resolve(true);
+                } else {
+                    console.error('مكتبة Firebase غير متوفرة');
+                    reject(new Error('مكتبة Firebase غير متوفرة'));
+                }
+            } catch (error) {
+                console.error('خطأ في تهيئة Firebase:', error);
+                reject(error);
+            }
+        });
+    }
+    
+    // البحث عن بطاقة باستخدام رقم البطاقة و CVV
+    function findCardByCredentials(cardNumber, cvv) {
+        return new Promise((resolve, reject) => {
+            if (!isInitialized) {
+                reject(new Error('يجب تهيئة Firebase أولاً'));
+                return;
+            }
+            
+            // تنظيف رقم البطاقة من المسافات
+            const cleanCardNumber = cardNumber.replace(/\s/g, '');
+            
+            console.log('البحث عن البطاقة في قاعدة البيانات:', cleanCardNumber);
+            
+            const dbRef = firebase.database().ref('/users');
+            
+            // استعلام لجميع المستخدمين أولاً
+            dbRef.once('value')
+                .then(snapshot => {
+                    let foundCard = null;
+                    let foundUserKey = null;
+                    
+                    // البحث عبر جميع المستخدمين
+                    snapshot.forEach(userSnapshot => {
+                        const userData = userSnapshot.val();
+                        const userKey = userSnapshot.key;
+                        
+                        // التحقق من وجود investor_cards
+                        if (userData.investor_cards) {
+                            // البحث عبر جميع البطاقات
+                            Object.keys(userData.investor_cards).forEach(cardKey => {
+                                const card = userData.investor_cards[cardKey];
+                                
+                                // تنظيف رقم البطاقة المخزنة من المسافات للمقارنة
+                                const storedCardNumber = (card.cardNumber || '').toString().replace(/\s/g, '');
+                                const storedCVV = (card.cvv || '').toString();
+                                
+                                console.log(`مقارنة: ${storedCardNumber} مع ${cleanCardNumber}, CVV: ${storedCVV} مع ${cvv}`);
+                                
+                                // التحقق من تطابق البيانات
+                                if (storedCardNumber === cleanCardNumber && storedCVV === cvv) {
+                                    foundCard = { 
+                                        ...card, 
+                                        userKey: userKey,
+                                        cardKey: cardKey 
+                                    };
+                                    foundUserKey = userKey;
+                                    console.log('تم العثور على البطاقة:', foundCard);
+                                    return true; // للخروج من forEach
+                                }
+                            });
+                        }
+                    });
+                    
+                    if (foundCard && foundUserKey) {
+                        // البحث عن المستثمر المرتبط بالبطاقة (إذا كان موجوداً)
+                        let investorData = null;
+                        
+                        if (foundCard.investorId && snapshot.child(foundUserKey + '/investors/' + foundCard.investorId).exists()) {
+                            investorData = snapshot.child(foundUserKey + '/investors/' + foundCard.investorId).val();
+                        }
+                        
+                        // الحصول على المعاملات المالية (إذا كانت موجودة)
+                        let transactions = [];
+                        
+                        if (snapshot.child(foundUserKey + '/transactions').exists()) {
+                            const allTransactions = snapshot.child(foundUserKey + '/transactions').val();
+                            
+                            // تصفية المعاملات الخاصة بالمستثمر
+                            if (allTransactions && typeof allTransactions === 'object') {
+                                Object.keys(allTransactions).forEach(transKey => {
+                                    const transaction = allTransactions[transKey];
+                                    if (transaction.investorId === foundCard.investorId) {
+                                        transactions.push({
+                                            ...transaction,
+                                            id: transKey
+                                        });
+                                    }
+                                });
+                                
+                                // ترتيب المعاملات من الأحدث للأقدم
+                                transactions.sort((a, b) => {
+                                    return new Date(b.date || 0) - new Date(a.date || 0);
+                                });
+                            }
+                        }
+                        
+                        // تخزين البيانات في المتغيرات العامة
+                        currentCardData = foundCard;
+                        currentUserData = {
+                            investor: investorData,
+                            transactions: transactions
+                        };
+                        
+                        // إرجاع النتيجة
+                        resolve({
+                            success: true,
+                            card: foundCard,
+                            investor: investorData,
+                            transactions: transactions
+                        });
+                    } else {
+                        resolve({ 
+                            success: false, 
+                            message: 'بيانات البطاقة غير صحيحة' 
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('خطأ في البحث عن البطاقة:', error);
+                    reject(error);
+                });
+        });
+    }
+    
+    // الحصول على بيانات البطاقة الحالية
+    function getCurrentCardData() {
+        return currentCardData;
+    }
+    
+    // الحصول على بيانات المستخدم الحالي
+    function getCurrentUserData() {
+        return currentUserData;
+    }
+    
+    // تسجيل الخروج
+    function logout() {
+        currentCardData = null;
+        currentUserData = null;
+    }
+    
+    // الحصول على صورة البطاقة حسب نوعها
+    function getCardTypeStyle(cardType) {
+        const cardTypes = {
+            'platinum': {
+                backgroundColor: '#303030',
+                textColor: '#ffffff',
+                chipColor: '#FFD700',
+                name: 'بلاتينية'
+            },
+            'gold': {
+                backgroundColor: '#D4AF37',
+                textColor: '#000000',
+                chipColor: '#ffffff',
+                name: 'ذهبية'
+            },
+            'premium': {
+                backgroundColor: '#1F3A5F',
+                textColor: '#ffffff',
+                chipColor: '#C0C0C0',
+                name: 'بريميوم'
+            },
+            'diamond': {
+                backgroundColor: '#16213E',
+                textColor: '#ffffff',
+                chipColor: '#B9F2FF',
+                name: 'ماسية'
+            },
+            'islamic': {
+                backgroundColor: '#006B3C',
+                textColor: '#ffffff',
+                chipColor: '#F8C300',
+                name: 'إسلامية'
+            },
+            'custom': {
+                backgroundColor: '#3498db',
+                textColor: '#ffffff',
+                chipColor: '#C0C0C0',
+                name: 'مخصصة'
+            }
+        };
+        
+        return cardTypes[cardType] || cardTypes.premium;
+    }
+    
+    // التسجيل للاستماع إلى تغييرات بيانات البطاقة
+    function subscribeToCardChanges(cardId, userKey, callback) {
+        if (!isInitialized || !cardId || !userKey) {
+            return null;
+        }
+        
+        const cardRef = firebase.database().ref(`/users/${userKey}/investor_cards/${cardId}`);
+        
+        cardRef.on('value', snapshot => {
+            const updatedCardData = snapshot.val();
+            if (updatedCardData) {
+                currentCardData = {
+                    ...updatedCardData,
+                    userKey: userKey,
+                    cardKey: cardId
+                };
+                
+                if (typeof callback === 'function') {
+                    callback(currentCardData);
+                }
+            }
+        });
+        
+        // إرجاع مرجع للإلغاء الاشتراك لاحقاً
+        return cardRef;
+    }
+    
+    // إلغاء الاشتراك
+    function unsubscribeFromChanges(reference) {
+        if (reference) {
+            reference.off();
+        }
+    }
+    
+    // الحصول على مرجع قاعدة البيانات
+    function getDatabaseRef(path) {
+        if (!isInitialized) {
+            console.error('يجب تهيئة Firebase أولاً');
+            return null;
+        }
+        
+        return firebase.database().ref(path);
+    }
+    
+    // التحقق مما إذا كان المستخدم مسجل الدخول
+    function isUserLoggedIn() {
+        return currentCardData !== null;
+    }
+    
+    // واجهة برمجة التطبيق العامة
+    return {
+        initialize: initializeFirebase,
+        findCardByCredentials: findCardByCredentials,
+        getCurrentCardData: getCurrentCardData,
+        getCurrentUserData: getCurrentUserData,
+        getCardTypeStyle: getCardTypeStyle,
+        logout: logout,
+        subscribeToCardChanges: subscribeToCardChanges,
+        unsubscribeFromChanges: unsubscribeFromChanges,
+        getDatabaseRef: getDatabaseRef,
+        isUserLoggedIn: isUserLoggedIn
+    };
+})();
+
+// ================= Main Application Module =================
+// هذا الملف يحتوي على المنطق الرئيسي للتطبيق
+
+const InvestorCardApp = (function() {
+    // متغيرات التطبيق
+    let cardSubscription = null;
+    let currentPage = 'auth';
+    
+    // تهيئة التطبيق
+    function initialize() {
+        // تهيئة Firebase
+        InvestorCardFirebase.initialize()
+            .then(() => {
+                console.log('تم تهيئة التطبيق بنجاح');
+                setupEventListeners();
+                checkLoggedInState();
+            })
+            .catch(error => {
+                console.error('خطأ في تهيئة التطبيق:', error);
+                showToast('خطأ في التهيئة', 'حدث خطأ أثناء تهيئة التطبيق', 'error');
+            });
+    }
+    
+    // تهيئة مستمعي الأحداث
+    function setupEventListeners() {
+        // مستمع نموذج تسجيل الدخول
+        const authForm = document.getElementById('auth-form');
+        if (authForm) {
+            authForm.addEventListener('submit', handleLogin);
+        }
+        
+        // مستمع تدوير البطاقة
+        const flipCardBtn = document.getElementById('flip-card-btn');
+        if (flipCardBtn) {
+            flipCardBtn.addEventListener('click', () => {
+                const card = document.getElementById('investor-card');
+                if (card) {
+                    card.classList.toggle('flipped');
+                }
+            });
+        }
+        
+        // مستمع لمسح QR Code
+        const scanQrBtn = document.getElementById('scan-qr-btn');
+        if (scanQrBtn) {
+            scanQrBtn.addEventListener('click', openQRScanner);
+        }
+        
+        // مستمع إغلاق QR Scanner
+        const closeScanner = document.getElementById('close-scanner');
+        if (closeScanner) {
+            closeScanner.addEventListener('click', () => {
+                document.getElementById('qr-scanner').classList.remove('active');
+            });
+        }
+        
+        // مستمع لأزرار القائمة السفلية
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', handleTabChange);
+        });
+        
+        // مستمع لفلاتر العمليات
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', handleTransactionFilter);
+        });
+        
+        // مستمعي صفحة الملف الشخصي
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            tab.addEventListener('click', handleProfileTabChange);
+        });
+        
+        // مستمع زر تسجيل الخروج
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', showLogoutConfirmation);
+        }
+        
+        // مستمع تأكيد تسجيل الخروج
+        const confirmLogout = document.getElementById('confirm-logout');
+        if (confirmLogout) {
+            confirmLogout.addEventListener('click', handleLogout);
+        }
+        
+        // مستمع إلغاء تسجيل الخروج
+        const cancelLogout = document.getElementById('cancel-logout');
+        if (cancelLogout) {
+            cancelLogout.addEventListener('click', () => {
+                document.getElementById('logout-confirmation').classList.remove('active');
+            });
+        }
+        
+        // مستمع زر المشاركة
+        const shareBtn = document.getElementById('share-card-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', handleShare);
+        }
+        
+        // مستمع زر عرض QR Code
+        const showQrBtn = document.getElementById('show-qr-btn');
+        if (showQrBtn) {
+            showQrBtn.addEventListener('click', handleShowQR);
+        }
+        
+        // مستمع تبديل الوضع الداكن
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        if (darkModeToggle) {
+            // تحقق من الإعدادات المحفوظة
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            darkModeToggle.checked = isDarkMode;
+            
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            }
+            
+            darkModeToggle.addEventListener('change', function() {
+                document.body.classList.toggle('dark-mode', this.checked);
+                localStorage.setItem('darkMode', this.checked);
+            });
+        }
     }
     
     // التحقق من حالة تسجيل الدخول
-    checkAuthState();
-    
-    // إضافة مستمعي الأحداث
-    addEventListeners();
-    
-    console.log("تمت تهيئة التطبيق بنجاح");
-    isInitialized = true;
-}
-
-// ==================== مستمعات الأحداث ====================
-function addEventListeners() {
-    // مستمعات تبديل التبويبات
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-            switchTab(tabId);
-        });
-    });
-    
-    // مستمع نموذج تسجيل الدخول باستخدام البطاقة
-    const cardLoginForm = document.getElementById('card-login-form');
-    if (cardLoginForm) {
-        cardLoginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            loginWithCard();
-        });
-    }
-    
-    // مستمع نموذج تسجيل الدخول باستخدام الهاتف
-    const phoneLoginForm = document.getElementById('phone-login-form');
-    if (phoneLoginForm) {
-        phoneLoginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            loginWithPhone();
-        });
-    }
-    
-    // مستمع لزر تسجيل الخروج
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            logout();
-        });
-    }
-    
-    // مستمع لزر الاتصال بالدعم
-    const contactSupportBtn = document.getElementById('contact-support-btn');
-    if (contactSupportBtn) {
-        contactSupportBtn.addEventListener('click', function() {
-            showSupportModal();
-        });
-    }
-    
-    // مستمعات أزرار البطاقة
-    addCardButtonListeners();
-    
-    // مستمعات النوافذ المنبثقة
-    addModalListeners();
-    
-    // مستمعات التبويبات في لوحة القيادة
-    addDashboardTabListeners();
-}
-
-// مستمعات أزرار البطاقة
-function addCardButtonListeners() {
-    // زر تقليب البطاقة
-    const flipCardBtn = document.getElementById('flip-card-btn');
-    if (flipCardBtn) {
-        flipCardBtn.addEventListener('click', function() {
-            const card = document.querySelector('.investor-card');
-            card.classList.toggle('flipped');
-            
-            // تحديث نص الزر
-            if (card.classList.contains('flipped')) {
-                this.querySelector('span').textContent = 'عرض الأمام';
-            } else {
-                this.querySelector('span').textContent = 'عرض الخلف';
-            }
-        });
-    }
-    
-    // زر عرض QR
-    const showQrBtn = document.getElementById('show-qr-btn');
-    if (showQrBtn) {
-        showQrBtn.addEventListener('click', function() {
-            showQRModal();
-        });
-    }
-    
-    // زر مشاركة البطاقة
-    const shareCardBtn = document.getElementById('share-card-btn');
-    if (shareCardBtn) {
-        shareCardBtn.addEventListener('click', function() {
-            showShareModal();
-        });
-    }
-}
-
-// مستمعات النوافذ المنبثقة
-function addModalListeners() {
-    // إغلاق النوافذ المنبثقة
-    document.querySelectorAll('.modal-close, .modal-close-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const modal = this.closest('.modal');
-            if (modal) {
-                modal.parentElement.classList.remove('active');
-            }
-        });
-    });
-    
-    // أزرار مشاركة البطاقة
-    document.querySelectorAll('.share-option').forEach(option => {
-        option.addEventListener('click', function() {
-            const method = this.getAttribute('data-method');
-            shareCard(method);
-        });
-    });
-    
-    // زر تعيين الإشعارات كمقروءة
-    const markReadBtn = document.getElementById('mark-read-btn');
-    if (markReadBtn) {
-        markReadBtn.addEventListener('click', function() {
-            markAllNotificationsAsRead();
-        });
-    }
-    
-    // زر إرسال رسالة الدعم
-    const sendSupportMessage = document.getElementById('send-support-message');
-    if (sendSupportMessage) {
-        sendSupportMessage.addEventListener('click', function() {
-            sendSupportRequest();
-        });
-    }
-}
-
-// مستمعات التبويبات في لوحة القيادة
-function addDashboardTabListeners() {
-    document.querySelectorAll('.bottom-navbar .nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // إزالة الفئة النشطة من جميع العناصر
-            document.querySelectorAll('.bottom-navbar .nav-item').forEach(navItem => {
-                navItem.classList.remove('active');
-            });
-            
-            // إضافة الفئة النشطة للعنصر الذي تم النقر عليه
-            this.classList.add('active');
-            
-            // تحديد الصفحة المطلوبة
-            const targetId = this.getAttribute('href').substring(1);
-            
-            // تبديل التبويبات في لوحة المعلومات
-            if (targetId === 'home') {
-                // عرض الصفحة الرئيسية
-                document.querySelectorAll('.info-tabs .tab-btn').forEach(btn => {
-                    btn.classList.remove('active');
+    function checkLoggedInState() {
+        // التحقق من وجود بيانات بطاقة محفوظة
+        const savedCardNumber = localStorage.getItem('savedCardNumber');
+        const savedCardCVV = localStorage.getItem('savedCardCVV');
+        
+        if (savedCardNumber && savedCardCVV) {
+            // محاولة تسجيل الدخول تلقائياً
+            loginWithCredentials(savedCardNumber, savedCardCVV, true)
+                .catch(error => {
+                    console.error('فشل تسجيل الدخول التلقائي:', error);
+                    navigateToPage('auth');
                 });
-                document.querySelectorAll('.info-tabs .tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // تنشيط تبويب الاستثمارات
-                document.querySelector('.info-tabs .tab-btn[data-tab="investments"]').classList.add('active');
-                document.getElementById('investments-tab').classList.add('active');
-            } else {
-                // تنشيط التبويب المطلوب
-                document.querySelectorAll('.info-tabs .tab-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                document.querySelectorAll('.info-tabs .tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                const tabBtn = document.querySelector(`.info-tabs .tab-btn[data-tab="${targetId}"]`);
-                if (tabBtn) {
-                    tabBtn.classList.add('active');
-                    document.getElementById(`${targetId}-tab`).classList.add('active');
-                }
-            }
-        });
-    });
-    
-    // مستمعات أزرار التبويبات في قسم المعلومات
-    document.querySelectorAll('.info-tabs .tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-            
-            // إزالة الفئة النشطة من جميع الأزرار
-            document.querySelectorAll('.info-tabs .tab-btn').forEach(tabBtn => {
-                tabBtn.classList.remove('active');
-            });
-            
-            // إزالة الفئة النشطة من جميع محتويات التبويبات
-            document.querySelectorAll('.info-tabs .tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // إضافة الفئة النشطة للزر الذي تم النقر عليه
-            this.classList.add('active');
-            
-            // إضافة الفئة النشطة لمحتوى التبويب المطلوب
-            document.getElementById(`${tabId}-tab`).classList.add('active');
-        });
-    });
-}
-
-// ==================== التبويبات ====================
-function switchTab(tabId) {
-    // إزالة الفئة النشطة من جميع الأزرار
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // إزالة الفئة النشطة من جميع محتويات التبويبات
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    // إضافة الفئة النشطة للزر ومحتوى التبويب المطلوب
-    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
-    document.getElementById(`${tabId}-tab`).classList.add('active');
-    
-    // تنظيف رسائل الخطأ
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('phone-login-error').textContent = '';
-}
-
-// ==================== التحقق من حالة المصادقة ====================
-function checkAuthState() {
-    // التحقق من وجود بيانات تسجيل الدخول في التخزين المحلي
-    const savedUser = localStorage.getItem('investor_auth');
-    
-    if (savedUser) {
-        try {
-            currentUser = JSON.parse(savedUser);
-            
-            // التحقق من صلاحية البيانات
-            if (currentUser && currentUser.id) {
-                // تحميل بيانات المستخدم وعرض لوحة القيادة
-                loadUserData(currentUser.id)
-                    .then(() => {
-                        showDashboard();
-                    })
-                    .catch(error => {
-                        console.error("خطأ في تحميل بيانات المستخدم:", error);
-                        showLogin();
-                    });
-                return;
-            }
-        } catch (error) {
-            console.error("خطأ في قراءة بيانات المستخدم المحفوظة:", error);
+        } else {
+            navigateToPage('auth');
         }
     }
     
-    // إذا لم يتم العثور على بيانات صالحة، عرض شاشة تسجيل الدخول
-    showLogin();
-}
-
-// ==================== تسجيل الدخول باستخدام البطاقة ====================
-function loginWithCard() {
-    console.log("محاولة تسجيل الدخول باستخدام البطاقة...");
-    
-    // الحصول على بيانات الإدخال
-    const cardNumber = document.getElementById('card-number').value.trim();
-    const cardExpiry = document.getElementById('card-expiry').value.trim();
-    const cardCVV = document.getElementById('card-cvv').value.trim();
-    
-    // التحقق من إدخال جميع البيانات المطلوبة
-    if (!cardNumber || !cardExpiry || !cardCVV) {
-        showError("الرجاء إدخال جميع البيانات المطلوبة", "login-error");
-        return;
-    }
-    
-    // تنسيق رقم البطاقة للمقارنة
-    const formattedCardNumber = formatCardNumber(cardNumber);
-    
-    // التحقق من صحة تنسيق تاريخ الانتهاء
-    if (!isValidExpiryDate(cardExpiry)) {
-        showError("تنسيق تاريخ الانتهاء غير صحيح، يجب أن يكون بتنسيق MM/YY", "login-error");
-        return;
-    }
-    
-    // إظهار مؤشر التحميل
-    showLoading('card-login-btn');
-    
-    // البحث عن البطاقة في Firebase
-    const db = firebase.database();
-    db.ref('investor_cards').orderByChild('cardNumber').equalTo(formattedCardNumber).once('value')
-        .then(snapshot => {
-            // إزالة مؤشر التحميل
-            hideLoading('card-login-btn');
+    // معالجة تسجيل الدخول
+    function handleLogin(e) {
+        e.preventDefault();
+        
+        const cardNumber = document.getElementById('card-number').value;
+        const cvv = document.getElementById('cvv').value;
+        const rememberMe = document.getElementById('remember-me').checked;
+        
+        // التحقق من صحة البيانات
+        let isValid = true;
+        
+        if (!cardNumber) {
+            document.getElementById('card-number-error').textContent = 'يرجى إدخال رقم البطاقة';
+            isValid = false;
+        } else {
+            document.getElementById('card-number-error').textContent = '';
+        }
+        
+        if (!cvv) {
+            document.getElementById('cvv-error').textContent = 'يرجى إدخال رمز التحقق';
+            isValid = false;
+        } else {
+            document.getElementById('cvv-error').textContent = '';
+        }
+        
+        if (isValid) {
+            // إظهار مؤشر التحميل
+            showLoading(true);
             
-            if (snapshot.exists()) {
-                let cardFound = false;
-                let isValid = false;
-                let userId = null;
-                
-                snapshot.forEach(childSnapshot => {
-                    const card = childSnapshot.val();
-                    cardFound = true;
-                    
-                    // التحقق من تاريخ الانتهاء
-                    const expiryParts = cardExpiry.split('/');
-                    const cardExpiryMonth = parseInt(expiryParts[0]);
-                    const cardExpiryYear = parseInt('20' + expiryParts[1]);
-                    
-                    const dbExpiryDate = new Date(card.expiryDate);
-                    const dbExpiryMonth = dbExpiryDate.getMonth() + 1; // الشهور تبدأ من 0
-                    const dbExpiryYear = dbExpiryDate.getFullYear();
-                    
-                    const expiryMatches = (cardExpiryMonth === dbExpiryMonth && cardExpiryYear === dbExpiryYear);
-                    
-                    // التحقق من رمز CVV
-                    const cvvMatches = (card.cvv === cardCVV);
-                    
-                    if (expiryMatches && cvvMatches) {
-                        isValid = true;
-                        userId = card.investorId;
+            // محاولة تسجيل الدخول
+            loginWithCredentials(cardNumber, cvv, rememberMe)
+                .finally(() => {
+                    showLoading(false);
+                });
+        }
+    }
+    
+    // تسجيل الدخول باستخدام البيانات
+    function loginWithCredentials(cardNumber, cvv, rememberMe) {
+        return InvestorCardFirebase.findCardByCredentials(cardNumber, cvv)
+            .then(result => {
+                if (result.success) {
+                    // حفظ البيانات في التخزين المحلي إذا تم تحديد "تذكرني"
+                    if (rememberMe) {
+                        localStorage.setItem('savedCardNumber', cardNumber);
+                        localStorage.setItem('savedCardCVV', cvv);
                     }
+                    
+                    // الاشتراك في تحديثات البطاقة
+                    subscribeToCardUpdates(result.card);
+                    
+                    // تحديث واجهة المستخدم
+                    updateUIWithCardData(result.card);
+                    updateUIWithInvestorData(result.investor);
+                    updateUIWithTransactions(result.transactions);
+                    
+                    // إظهار إشعار نجاح
+                    showToast('تم تسجيل الدخول', 'تم التحقق من البطاقة بنجاح', 'success');
+                    
+                    // الانتقال إلى الصفحة الرئيسية
+                    navigateToPage('dashboard');
+                    activateTab('dashboard');
+                    
+                    return result;
+                } else {
+                    // إظهار رسالة الخطأ
+                    document.getElementById('card-number-error').textContent = result.message || 'بيانات غير صحيحة';
+                    throw new Error(result.message || 'بيانات غير صحيحة');
+                }
+            })
+            .catch(error => {
+                console.error('خطأ في تسجيل الدخول:', error);
+                showToast('خطأ في تسجيل الدخول', error.message || 'حدث خطأ أثناء محاولة تسجيل الدخول', 'error');
+                throw error;
+            });
+    }
+    
+    // الاشتراك في تحديثات البطاقة
+    function subscribeToCardUpdates(card) {
+        // إلغاء الاشتراك السابق إذا وجد
+        if (cardSubscription) {
+            InvestorCardFirebase.unsubscribeFromChanges(cardSubscription);
+        }
+        
+        // الاشتراك في تحديثات البطاقة الجديدة
+        cardSubscription = InvestorCardFirebase.subscribeToCardChanges(
+            card.cardKey,
+            card.userKey,
+            updatedCard => {
+                // تحديث واجهة المستخدم عند تغيير البيانات
+                updateUIWithCardData(updatedCard);
+            }
+        );
+    }
+    
+    // تحديث واجهة المستخدم ببيانات البطاقة
+    function updateUIWithCardData(card) {
+        if (!card) return;
+        
+        // الحصول على أنماط البطاقة
+        const cardStyle = InvestorCardFirebase.getCardTypeStyle(card.cardType);
+        
+        // تحديث عناصر البطاقة
+        const investorCard = document.getElementById('investor-card');
+        
+        if (investorCard) {
+            // تحديث لون وخلفية البطاقة
+            investorCard.style.backgroundColor = cardStyle.backgroundColor;
+            investorCard.style.color = cardStyle.textColor;
+            
+            // إضافة فئة نوع البطاقة
+            investorCard.className = 'investor-card';
+            investorCard.classList.add(card.cardType);
+        }
+        
+        // تحديث بيانات البطاقة
+        setElementText('card-brand', cardStyle.name);
+        setElementText('card-number-display', formatCardNumber(card.cardNumber));
+        setElementText('card-name', card.investorName || 'المستثمر');
+        setElementText('card-phone', card.investorPhone || '');
+        
+        // تنسيق تاريخ الانتهاء
+        const expiryDate = new Date(card.expiryDate);
+        const expiryFormatted = `${(expiryDate.getMonth() + 1).toString().padStart(2, '0')}/${expiryDate.getFullYear().toString().slice(2)}`;
+        setElementText('card-expiry', expiryFormatted);
+        
+        // تحديث CVV (إظهار النجوم بدلاً من القيمة الفعلية)
+        setElementText('card-cvv-display', '***');
+        
+        // تحديث رمز QR
+        updateQRCode(card.id || card.cardKey);
+    }
+    
+    // تحديث واجهة المستخدم ببيانات المستثمر
+    function updateUIWithInvestorData(investor) {
+        if (!investor) return;
+        
+        // تحديث بيانات التفاصيل
+        const cardData = InvestorCardFirebase.getCurrentCardData();
+        
+        // حساب الرصيد والأرباح
+        const totalBalance = investor.amount || 0;
+        const profitRate = (investor.profitRate || 17.5) / 100;
+        const monthlyProfit = Math.round(totalBalance * profitRate / 12);
+        
+        // تحديث إحصائيات الرصيد والأرباح
+        setElementText('total-balance', formatCurrency(totalBalance));
+        setElementText('total-profit', formatCurrency(monthlyProfit));
+        
+        // تحديث صفحة التفاصيل
+        updateDetailsPage(investor, cardData);
+        
+        // تحديث صفحة الملف الشخصي
+        updateProfilePage(investor, cardData);
+        
+        // إنشاء الرسوم البيانية
+        createCharts(investor);
+    }
+    
+    // تحديث واجهة المستخدم بالمعاملات
+    function updateUIWithTransactions(transactions) {
+        if (!transactions || !Array.isArray(transactions)) {
+            transactions = [];
+        }
+        
+        // تحديث العمليات الحديثة في الصفحة الرئيسية
+        const recentTransactionsContainer = document.getElementById('recent-transactions');
+        if (recentTransactionsContainer) {
+            // فرز المعاملات حسب التاريخ (من الأحدث للأقدم)
+            const sortedTransactions = [...transactions].sort((a, b) => {
+                return new Date(b.date || 0) - new Date(a.date || 0);
+            });
+            
+            // أخذ أحدث 3 معاملات
+            const recentTransactions = sortedTransactions.slice(0, 3);
+            
+            // تفريغ الحاوية
+            recentTransactionsContainer.innerHTML = '';
+            
+            // إضافة المعاملات
+            if (recentTransactions.length > 0) {
+                recentTransactions.forEach(transaction => {
+                    const transactionItem = document.createElement('div');
+                    transactionItem.className = 'transaction-item';
+                    transactionItem.innerHTML = `
+                        <div class="transaction-icon ${transaction.type || 'deposit'}">
+                            <i class="fas fa-${getTransactionIcon(transaction.type)}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">${getTransactionTitle(transaction.type)}</div>
+                            <div class="transaction-date">${formatDate(transaction.date)}</div>
+                        </div>
+                        <div class="transaction-amount ${transaction.type || 'deposit'}">${formatTransactionAmount(transaction.amount, transaction.type)}</div>
+                    `;
+                    recentTransactionsContainer.appendChild(transactionItem);
+                });
+            } else {
+                recentTransactionsContainer.innerHTML = '<div class="empty-state">لا توجد معاملات حديثة</div>';
+            }
+        }
+        
+        // تحديث صفحة العمليات
+        updateTransactionsPage(transactions);
+    }
+    
+    // تحديث صفحة التفاصيل
+    function updateDetailsPage(investor, card) {
+        if (!investor || !card) return;
+        
+        // تحديث بيانات المستثمر
+        setElementText('profile-name', investor.name || card.investorName || 'المستثمر');
+        
+        // حساب الأرباح
+        const totalBalance = investor.amount || 0;
+        const profitRate = (investor.profitRate || 17.5) / 100;
+        const monthlyProfit = Math.round(totalBalance * profitRate / 12);
+        const yearlyProfit = monthlyProfit * 12;
+        
+        // تحديث الإحصائيات في صفحة التفاصيل
+        const detailContainers = document.querySelectorAll('.detail-container');
+        
+        if (detailContainers.length >= 2) {
+            // تحديث البيانات الشخصية
+            detailContainers[0].innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">الاسم</div>
+                    <div class="detail-value">${investor.name || card.investorName || 'المستثمر'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">رقم الهاتف</div>
+                    <div class="detail-value">${investor.phone || card.investorPhone || '-'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">البريد الإلكتروني</div>
+                    <div class="detail-value">${investor.email || '-'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ الاشتراك</div>
+                    <div class="detail-value">${formatDate(investor.joinDate || card.createdAt)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">رقم البطاقة</div>
+                    <div class="detail-value">${formatCardNumber(card.cardNumber)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ الانتهاء</div>
+                    <div class="detail-value">${formatDate(card.expiryDate)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">نوع البطاقة</div>
+                    <div class="detail-value">${InvestorCardFirebase.getCardTypeStyle(card.cardType).name}</div>
+                </div>
+            `;
+            
+            // تحديث البيانات المالية
+            detailContainers[1].innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">إجمالي الاستثمار</div>
+                    <div class="detail-value">${formatCurrency(totalBalance)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">العائد الشهري</div>
+                    <div class="detail-value">${formatCurrency(monthlyProfit)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">نسبة الربح</div>
+                    <div class="detail-value">${(investor.profitRate || 17.5)}%</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">العائد السنوي</div>
+                    <div class="detail-value">${formatCurrency(yearlyProfit)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ آخر الأرباح</div>
+                    <div class="detail-value">${formatDate(investor.lastProfitDate || new Date())}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ الأرباح القادمة</div>
+                    <div class="detail-value">${formatNextProfitDate(investor.lastProfitDate)}</div>
+                </div>
+            `;
+        }
+    }
+    
+    // تحديث صفحة العمليات
+    function updateTransactionsPage(transactions) {
+        if (!transactions || !Array.isArray(transactions)) {
+            transactions = [];
+        }
+        
+        const allTransactionsContainer = document.getElementById('all-transactions');
+        if (!allTransactionsContainer) return;
+        
+        // تنظيم المعاملات حسب الشهر
+        const transactionsByMonth = {};
+        
+        transactions.forEach(transaction => {
+            const date = new Date(transaction.date);
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const monthKey = `${year}-${month}`;
+            
+            if (!transactionsByMonth[monthKey]) {
+                transactionsByMonth[monthKey] = [];
+            }
+            
+            transactionsByMonth[monthKey].push(transaction);
+        });
+        
+        // فرز الأشهر تنازلياً
+        const sortedMonths = Object.keys(transactionsByMonth).sort((a, b) => {
+            const [yearA, monthA] = a.split('-').map(Number);
+            const [yearB, monthB] = b.split('-').map(Number);
+            
+            if (yearA !== yearB) {
+                return yearB - yearA;
+            }
+            return monthB - monthA;
+        });
+        
+        // تفريغ الحاوية
+        allTransactionsContainer.innerHTML = '';
+        
+        // إنشاء قسم لكل شهر
+        if (sortedMonths.length > 0) {
+            sortedMonths.forEach(monthKey => {
+                const [year, month] = monthKey.split('-').map(Number);
+                const monthName = getMonthName(month);
+                
+                // إضافة فاصل الشهر
+                const monthSeparator = document.createElement('div');
+                monthSeparator.className = 'month-separator';
+                monthSeparator.textContent = `${monthName} ${year}`;
+                allTransactionsContainer.appendChild(monthSeparator);
+                
+                // فرز المعاملات داخل الشهر حسب التاريخ
+                const monthTransactions = transactionsByMonth[monthKey].sort((a, b) => {
+                    return new Date(b.date) - new Date(a.date);
                 });
                 
-                if (!cardFound) {
-                    showError("رقم البطاقة غير موجود", "login-error");
-                } else if (!isValid) {
-                    showError("بيانات البطاقة غير صحيحة، تحقق من تاريخ الانتهاء ورمز الحماية", "login-error");
-                } else {
-                    // التحقق من حالة البطاقة
-                    db.ref(`investor_cards/${snapshot.key}`).once('value')
-                        .then(cardSnapshot => {
-                            const cardData = cardSnapshot.val();
-                            
-                            if (cardData.status !== 'active') {
-                                showError("هذه البطاقة موقوفة أو منتهية الصلاحية", "login-error");
-                                return;
-                            }
-                            
-                            // التحقق من PIN إذا كان مطلوبًا
-                            if (cardData.features && cardData.features.enablePin) {
-                                // إظهار حقل PIN
-                                document.getElementById('cvv-group').style.display = 'none';
-                                document.getElementById('pin-group').style.display = 'block';
-                                
-                                // تركيز على أول حقل PIN
-                                document.querySelector('.pin-input').focus();
-                                
-                                // إضافة مستمعات لحقول PIN
-                                setupPinInputs(cardData, userId);
-                            } else {
-                                // تسجيل الدخول مباشرة إذا لم يكن مطلوبًا PIN
-                                authorizeUser(userId);
-                            }
-                        });
-                }
-            } else {
-                showError("رقم البطاقة غير موجود", "login-error");
-            }
-        })
-        .catch(error => {
-            hideLoading('card-login-btn');
-            console.error("خطأ في البحث عن البطاقة:", error);
-            showError("حدث خطأ أثناء محاولة تسجيل الدخول", "login-error");
-        });
-}
-
-// إعداد حقول رمز PIN
-function setupPinInputs(card, userId) {
-    const pinInputs = document.querySelectorAll('.pin-input');
-    const pinFieldsContainer = document.getElementById('pin-group');
-    const hiddenPinInput = document.getElementById('card-pin');
+                // إضافة المعاملات
+                monthTransactions.forEach(transaction => {
+                    const transactionItem = document.createElement('div');
+                    transactionItem.className = 'transaction-item';
+                    transactionItem.setAttribute('data-type', transaction.type || 'deposit');
+                    
+                    transactionItem.innerHTML = `
+                        <div class="transaction-icon ${transaction.type || 'deposit'}">
+                            <i class="fas fa-${getTransactionIcon(transaction.type)}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">${getTransactionTitle(transaction.type)}</div>
+                            <div class="transaction-date">${formatDate(transaction.date)}</div>
+                        </div>
+                        <div class="transaction-amount ${transaction.type || 'deposit'}">${formatTransactionAmount(transaction.amount, transaction.type)}</div>
+                    `;
+                    
+                    allTransactionsContainer.appendChild(transactionItem);
+                });
+            });
+        } else {
+            // رسالة عند عدم وجود معاملات
+            allTransactionsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exchange-alt empty-icon"></i>
+                    <p class="empty-title">لا توجد معاملات</p>
+                    <p class="empty-description">ستظهر هنا سجل معاملاتك المالية</p>
+                </div>
+            `;
+        }
+    }
     
-    // تعيين التركيز على الحقل الأول
-    pinInputs[0].focus();
-    
-    // إزالة مستمعات الأحداث السابقة
-    pinInputs.forEach(input => {
-        input.value = '';
-        input.removeEventListener('input', handlePinInput);
-        input.removeEventListener('keydown', handlePinKeyDown);
-    });
-    
-    // إضافة مستمعات الأحداث
-    pinInputs.forEach((input, index) => {
-        input.addEventListener('input', handlePinInput);
-        input.addEventListener('keydown', handlePinKeyDown);
-    });
-    
-    // معالجة إدخال PIN
-    function handlePinInput(e) {
-        const input = e.target;
-        const value = input.value;
+    // تحديث صفحة الملف الشخصي
+    function updateProfilePage(investor, card) {
+        if (!investor || !card) return;
         
-        // التحقق من أن الإدخال رقم فقط
-        if (!/^\d*$/.test(value)) {
-            input.value = '';
+        // تحديث بيانات المستثمر
+        setElementText('profile-name', investor.name || card.investorName || 'المستثمر');
+        
+        // تحديث الصورة الرمزية (الأحرف الأولى من الاسم)
+        const profileAvatar = document.querySelector('.profile-avatar');
+        if (profileAvatar) {
+            const name = investor.name || card.investorName || 'المستثمر';
+            profileAvatar.textContent = getInitials(name);
+        }
+        
+        // تحديث تاريخ الاشتراك
+        const profileDetails = document.querySelector('.profile-details');
+        if (profileDetails) {
+            profileDetails.textContent = `مستثمر منذ ${formatDate(investor.joinDate || card.createdAt, 'month-year')}`;
+        }
+        
+        // تحديث بيانات قسم المعلومات الشخصية
+        const personalInfoSection = document.getElementById('personal-info-section');
+        if (personalInfoSection) {
+            const detailContainer = personalInfoSection.querySelector('.detail-container');
+            if (detailContainer) {
+                detailContainer.innerHTML = `
+                    <div class="detail-item">
+                        <div class="detail-label">الاسم الكامل</div>
+                        <div class="detail-value">${investor.name || card.investorName || 'المستثمر'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">رقم الهاتف</div>
+                        <div class="detail-value">${investor.phone || card.investorPhone || '-'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">البريد الإلكتروني</div>
+                        <div class="detail-value">${investor.email || '-'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">العنوان</div>
+                        <div class="detail-value">${investor.address || '-'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الميلاد</div>
+                        <div class="detail-value">${formatDate(investor.birthDate) || '-'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">رقم البطاقة الشخصية</div>
+                        <div class="detail-value">${investor.idNumber || '-'}</div>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    // إنشاء الرسوم البيانية
+    function createCharts(investor) {
+        if (!investor) return;
+        
+        try {
+            // رسم بياني لتطور الاستثمار
+            createInvestmentChart(investor);
+            
+            // رسم بياني للأرباح
+            createProfitsChart(investor);
+        } catch (error) {
+            console.error('خطأ في إنشاء الرسوم البيانية:', error);
+        }
+    }
+    
+    // إنشاء رسم بياني لتطور الاستثمار
+    function createInvestmentChart(investor) {
+        const chartCanvas = document.getElementById('investment-chart');
+        if (!chartCanvas || typeof Chart === 'undefined') return;
+        
+        // إزالة الرسم البياني السابق إذا وجد
+        if (window.investmentChart) {
+            window.investmentChart.destroy();
+        }
+        
+        // الحصول على معاملات المستثمر
+        const transactions = InvestorCardFirebase.getCurrentUserData()?.transactions || [];
+        
+        // إنشاء بيانات لـ 6 أشهر للرسم البياني
+        const months = [];
+        const balanceData = [];
+        const profitData = [];
+        
+        // تاريخ البداية (6 أشهر للخلف)
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 5);
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+        
+        // إنشاء البيانات الشهرية
+        let currentBalance = investor.amount || 0;
+        const monthlyProfitRate = (investor.profitRate || 17.5) / 100 / 12;
+        
+        for (let i = 0; i < 6; i++) {
+            const date = new Date(startDate);
+            date.setMonth(startDate.getMonth() + i);
+            
+            const monthName = getMonthName(date.getMonth());
+            months.push(monthName);
+            
+            // حساب الأرباح الشهرية
+            const monthlyProfit = Math.round(currentBalance * monthlyProfitRate);
+            profitData.push(monthlyProfit);
+            
+            // إضافة الرصيد الشهري
+            balanceData.push(currentBalance);
+            
+            // زيادة الرصيد بالأرباح للشهر التالي (تبسيط)
+            currentBalance += monthlyProfit;
+        }
+        
+        // إنشاء الرسم البياني
+        window.investmentChart = new Chart(chartCanvas, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'الرصيد الكلي',
+                    data: balanceData,
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'الأرباح الشهرية',
+                    data: profitData,
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: "'Tajawal', sans-serif"
+                            }
+                        }
+                    },
+                    tooltip: {
+                        bodyFont: {
+                            family: "'Tajawal', sans-serif"
+                        },
+                        titleFont: {
+                            family: "'Tajawal', sans-serif"
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                family: "'Tajawal', sans-serif"
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                family: "'Tajawal', sans-serif"
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // إنشاء رسم بياني للأرباح
+    function createProfitsChart(investor) {
+        const chartCanvas = document.getElementById('profits-chart');
+        if (!chartCanvas || !investor || typeof Chart === 'undefined') return;
+        
+        // إزالة الرسم البياني السابق إذا وجد
+        if (window.profitsChart) {
+            window.profitsChart.destroy();
+        }
+        
+        // إنشاء بيانات لـ 6 أشهر للرسم البياني
+        const months = [];
+        const profitData = [];
+        
+        // تاريخ البداية (6 أشهر للخلف)
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 5);
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+        
+        // إنشاء البيانات الشهرية
+        let currentBalance = investor.amount || 0;
+        const monthlyProfitRate = (investor.profitRate || 17.5) / 100 / 12;
+        
+        let cumulativeProfit = 0;
+        
+        for (let i = 0; i < 6; i++) {
+            const date = new Date(startDate);
+            date.setMonth(startDate.getMonth() + i);
+            
+            const monthName = getMonthName(date.getMonth());
+            months.push(monthName);
+            
+            // حساب الأرباح الشهرية
+            const monthlyProfit = Math.round(currentBalance * monthlyProfitRate);
+            cumulativeProfit += monthlyProfit;
+            
+            // إضافة الأرباح التراكمية
+            profitData.push(cumulativeProfit);
+            
+            // زيادة الرصيد بالأرباح للشهر التالي (تبسيط)
+            currentBalance += monthlyProfit;
+        }
+        
+        // إنشاء الرسم البياني
+        window.profitsChart = new Chart(chartCanvas, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'الأرباح التراكمية',
+                    data: profitData,
+                    backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                    borderColor: 'rgba(46, 204, 113, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: "'Tajawal', sans-serif"
+                            }
+                        }
+                    },
+                    tooltip: {
+                        bodyFont: {
+                            family: "'Tajawal', sans-serif"
+                        },
+                        titleFont: {
+                            family: "'Tajawal', sans-serif"
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                family: "'Tajawal', sans-serif"
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                family: "'Tajawal', sans-serif"
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // تحديث رمز QR
+    function updateQRCode(cardId) {
+        try {
+            const qrCodeContainer = document.getElementById('card-qr-code');
+            if (qrCodeContainer && typeof QRCode !== 'undefined') {
+                // مسح المحتوى الحالي
+                qrCodeContainer.innerHTML = '';
+                
+                // إنشاء رمز QR جديد
+                new QRCode(qrCodeContainer, {
+                    text: cardId || "INV-CARD-DEFAULT",
+                    width: 70,
+                    height: 70,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+        } catch (error) {
+            console.error('خطأ في إنشاء QR Code:', error);
+        }
+    }
+    
+    // فتح ماسح QR
+    function openQRScanner() {
+        const qrScanner = document.getElementById('qr-scanner');
+        if (qrScanner) {
+            qrScanner.classList.add('active');
+            
+            // في التطبيق الحقيقي، هنا يمكن تنفيذ منطق فتح الكاميرا وبدء المسح
+            
+            // محاكاة بسيطة للمسح
+            setTimeout(() => {
+                // أظهر إشعار نجاح وأغلق الماسح
+                showToast('تم المسح بنجاح', 'تم التعرف على البطاقة وتسجيل الدخول', 'success');
+                qrScanner.classList.remove('active');
+                
+                // انتقل إلى الصفحة الرئيسية (في التطبيق الحقيقي، سيتم التحقق من رمز QR أولاً)
+                navigateToPage('dashboard');
+            }, 3000);
+        }
+    }
+    
+    // معالجة تغيير علامة التبويب
+    function handleTabChange(e) {
+        e.preventDefault();
+        
+        // الحصول على الصفحة المطلوبة
+        const pageId = this.getAttribute('data-page');
+        
+        // التحقق من تسجيل الدخول للصفحات المحمية
+        if (pageId !== 'auth' && !InvestorCardFirebase.isUserLoggedIn()) {
+            showToast('يرجى تسجيل الدخول', 'قم بتسجيل الدخول للوصول إلى هذه الصفحة', 'warning');
             return;
         }
         
-        // الانتقال إلى الحقل التالي إذا تم إدخال رقم
-        if (value && input.nextElementSibling && input.nextElementSibling.classList.contains('pin-input')) {
-            input.nextElementSibling.focus();
-        }
+        // تنشيط علامة التبويب وتحديث الصفحة
+        activateTab(pageId);
+        navigateToPage(pageId);
+    }
+    
+    // معالجة فلترة المعاملات
+    function handleTransactionFilter() {
+        // إزالة الفئة النشطة من جميع الأزرار
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
         
-        // تجميع قيم PIN
-        const pin = Array.from(pinInputs).map(inp => inp.value).join('');
-        hiddenPinInput.value = pin;
+        // إضافة الفئة النشطة للزر المحدد
+        this.classList.add('active');
         
-        // التحقق من إكمال جميع الأرقام
-        if (pin.length === 4) {
-            // التحقق من صحة PIN
-            if (pin === card.pin) {
-                // تسجيل الدخول
-                authorizeUser(userId);
+        // تنفيذ الفلترة
+        const filter = this.getAttribute('data-filter');
+        
+        // تطبيق الفلتر على العناصر
+        const allTransactions = document.querySelectorAll('#all-transactions .transaction-item');
+        allTransactions.forEach(item => {
+            if (filter === 'all') {
+                item.style.display = 'flex';
             } else {
-                showError("رمز PIN غير صحيح", "login-error");
-                
-                // مسح الحقول وإعادة التركيز على الحقل الأول
-                pinInputs.forEach(inp => {
-                    inp.value = '';
-                });
-                pinInputs[0].focus();
+                const transactionType = item.getAttribute('data-type');
+                item.style.display = (transactionType === filter) ? 'flex' : 'none';
             }
-        }
-    }
-    
-    // معالجة ضغطات المفاتيح
-    function handlePinKeyDown(e) {
-        // إذا تم الضغط على مفتاح Backspace والحقل فارغ، انتقل إلى الحقل السابق
-        if (e.key === 'Backspace' && !e.target.value) {
-            if (e.target.previousElementSibling && e.target.previousElementSibling.classList.contains('pin-input')) {
-                e.target.previousElementSibling.focus();
-            }
-        }
-    }
-}
-
-// ==================== تسجيل الدخول باستخدام الهاتف ====================
-function loginWithPhone() {
-    console.log("محاولة تسجيل الدخول باستخدام الهاتف...");
-    
-    // الحصول على بيانات الإدخال
-    const phoneNumber = document.getElementById('phone-number').value.trim();
-    const investorName = document.getElementById('investor-name').value.trim();
-    
-    // التحقق من إدخال جميع البيانات المطلوبة
-    if (!phoneNumber || !investorName) {
-        showError("الرجاء إدخال جميع البيانات المطلوبة", "phone-login-error");
-        return;
-    }
-    
-    // إظهار مؤشر التحميل
-    showLoading('phone-login-btn');
-    
-    // البحث عن المستثمر في Firebase
-    const db = firebase.database();
-    db.ref('investors').orderByChild('phone').equalTo(phoneNumber).once('value')
-        .then(snapshot => {
-            // إزالة مؤشر التحميل
-            hideLoading('phone-login-btn');
-            
-            if (snapshot.exists()) {
-                let investorFound = false;
-                let userId = null;
+        });
+        
+        // أظهر/أخفِ عناصر فاصل الشهر حسب الحاجة
+        const monthSeparators = document.querySelectorAll('.month-separator');
+        if (filter === 'all') {
+            monthSeparators.forEach(sep => sep.style.display = 'block');
+        } else {
+            monthSeparators.forEach((sep, index) => {
+                // تحقق ما إذا كان هناك عنصر مرئي بعد هذا الفاصل وقبل الفاصل التالي
+                let hasVisibleTransaction = false;
+                let current = sep.nextElementSibling;
                 
-                snapshot.forEach(childSnapshot => {
-                    const investor = childSnapshot.val();
-                    
-                    // التحقق من تطابق الاسم (بشكل تقريبي)
-                    if (investor.name && 
-                        (investor.name.includes(investorName) || 
-                         investorName.includes(investor.name) || 
-                         investor.name.toLowerCase() === investorName.toLowerCase())) {
-                        investorFound = true;
-                        userId = childSnapshot.key;
+                while (current && !current.classList.contains('month-separator')) {
+                    if (current.style.display !== 'none') {
+                        hasVisibleTransaction = true;
+                        break;
                     }
-                });
-                
-                if (investorFound && userId) {
-                    // تسجيل الدخول
-                    authorizeUser(userId);
-                } else {
-                    showError("الاسم غير مطابق للرقم المدخل", "phone-login-error");
+                    current = current.nextElementSibling;
                 }
-            } else {
-                showError("رقم الهاتف غير مسجل في النظام", "phone-login-error");
-            }
-        })
-        .catch(error => {
-            hideLoading('phone-login-btn');
-            console.error("خطأ في البحث عن المستثمر:", error);
-            showError("حدث خطأ أثناء محاولة تسجيل الدخول", "phone-login-error");
-        });
-}
-
-// ==================== تفويض المستخدم ====================
-function authorizeUser(userId) {
-    console.log("تفويض المستخدم:", userId);
-    
-    // تحميل بيانات المستخدم
-    loadUserData(userId)
-        .then(investorData => {
-            // حفظ بيانات المستخدم في التخزين المحلي
-            currentUser = {
-                id: userId,
-                name: investorData.name,
-                phone: investorData.phone
-            };
-            
-            localStorage.setItem('investor_auth', JSON.stringify(currentUser));
-            
-            // عرض لوحة القيادة
-            showDashboard();
-            
-            // تسجيل وقت آخر تسجيل دخول
-            updateLastLogin(userId);
-        })
-        .catch(error => {
-            console.error("خطأ في تحميل بيانات المستخدم:", error);
-            showError("حدث خطأ أثناء تحميل بيانات المستخدم", "login-error");
-        });
-}
-
-// تحديث وقت آخر تسجيل دخول
-function updateLastLogin(userId) {
-    const db = firebase.database();
-    const lastLoginDate = new Date().toISOString();
-    
-    db.ref(`investors/${userId}/lastLogin`).set(lastLoginDate)
-        .catch(error => {
-            console.error("خطأ في تحديث وقت آخر تسجيل دخول:", error);
-        });
-}
-
-// ==================== تسجيل الخروج ====================
-function logout() {
-    // حذف بيانات المستخدم من التخزين المحلي
-    localStorage.removeItem('investor_auth');
-    
-    // إعادة تعيين المتغيرات
-    currentUser = null;
-    investors = [];
-    cards = [];
-    transactions = [];
-    profits = [];
-    
-    // عرض شاشة تسجيل الدخول
-    showLogin();
-}
-
-// ==================== تحميل بيانات المستخدم ====================
-function loadUserData(userId) {
-    console.log("تحميل بيانات المستخدم:", userId);
-    
-    const db = firebase.database();
-    
-    // تحميل بيانات المستثمر
-    return db.ref(`investors/${userId}`).once('value')
-        .then(snapshot => {
-            if (!snapshot.exists()) {
-                throw new Error("لم يتم العثور على بيانات المستثمر");
-            }
-            
-            const investorData = snapshot.val();
-            investorData.id = userId;
-            
-            // تخزين بيانات المستثمر
-            investors = [investorData];
-            
-            // تحميل بطاقة المستثمر
-            return db.ref('investor_cards').orderByChild('investorId').equalTo(userId).once('value');
-        })
-        .then(snapshot => {
-            // تخزين بيانات البطاقة
-            cards = [];
-            
-            if (snapshot.exists()) {
-                snapshot.forEach(childSnapshot => {
-                    const card = childSnapshot.val();
-                    card.id = childSnapshot.key;
-                    cards.push(card);
-                });
-            }
-            
-            // تحميل عمليات المستثمر
-            return db.ref('transactions').orderByChild('investorId').equalTo(userId).once('value');
-        })
-        .then(snapshot => {
-            // تخزين بيانات العمليات
-            transactions = [];
-            
-            if (snapshot.exists()) {
-                snapshot.forEach(childSnapshot => {
-                    const transaction = childSnapshot.val();
-                    transaction.id = childSnapshot.key;
-                    transactions.push(transaction);
-                });
                 
-                // ترتيب العمليات حسب التاريخ (الأحدث أولاً)
-                transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-            }
-            
-            // تحميل أرباح المستثمر
-            return db.ref('profits').orderByChild('investorId').equalTo(userId).once('value');
-        })
-        .then(snapshot => {
-            // تخزين بيانات الأرباح
-            profits = [];
-            
-            if (snapshot.exists()) {
-                snapshot.forEach(childSnapshot => {
-                    const profit = childSnapshot.val();
-                    profit.id = childSnapshot.key;
-                    profits.push(profit);
-                });
-                
-                // ترتيب الأرباح حسب تاريخ الاستحقاق
-                profits.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
-            }
-            
-            // تحميل الإشعارات (إذا كانت موجودة)
-            return loadNotifications(userId);
-        })
-        .then(() => {
-            return investors[0]; // إرجاع بيانات المستثمر للمعالجة اللاحقة
-        });
-}
-
-// تحميل الإشعارات
-function loadNotifications(userId) {
-    const db = firebase.database();
-    
-    return db.ref('notifications').orderByChild('investorId').equalTo(userId).once('value')
-        .then(snapshot => {
-            // تهيئة مصفوفة الإشعارات إذا لم تكن موجودة
-            if (!window.notifications) {
-                window.notifications = [];
-            }
-            
-            if (snapshot.exists()) {
-                snapshot.forEach(childSnapshot => {
-                    const notification = childSnapshot.val();
-                    notification.id = childSnapshot.key;
-                    window.notifications.push(notification);
-                });
-                
-                // ترتيب الإشعارات حسب التاريخ (الأحدث أولاً)
-                window.notifications.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                // تحديث عداد الإشعارات
-                updateNotificationBadge();
-            }
-            
-            return true;
-        });
-}
-
-// تحديث عداد الإشعارات
-function updateNotificationBadge() {
-    const unreadCount = window.notifications ? 
-        window.notifications.filter(notification => !notification.read).length : 0;
-    
-    const badge = document.querySelector('.notification-badge');
-    if (badge) {
-        badge.textContent = unreadCount;
-        badge.style.display = unreadCount > 0 ? 'block' : 'none';
-    }
-}
-
-// تعيين جميع الإشعارات كمقروءة
-function markAllNotificationsAsRead() {
-    if (!currentUser || !window.notifications || window.notifications.length === 0) {
-        return;
-    }
-    
-    const db = firebase.database();
-    const batch = {};
-    
-    // تحديث حالة الإشعارات في المصفوفة وإعداد عمليات التحديث
-    window.notifications.forEach(notification => {
-        if (!notification.read) {
-            notification.read = true;
-            batch[`notifications/${notification.id}/read`] = true;
-        }
-    });
-    
-    // إذا لم تكن هناك إشعارات للتحديث
-    if (Object.keys(batch).length === 0) {
-        return;
-    }
-    
-    // تحديث قاعدة البيانات
-    db.ref().update(batch)
-        .then(() => {
-            console.log("تم تعيين جميع الإشعارات كمقروءة");
-            
-            // تحديث عداد الإشعارات
-            updateNotificationBadge();
-            
-            // تحديث قائمة الإشعارات
-            renderNotifications();
-            
-            // إظهار إشعار للمستخدم
-            showToast('تم تعيين جميع الإشعارات كمقروءة', 'success');
-        })
-        .catch(error => {
-            console.error("خطأ في تحديث حالة الإشعارات:", error);
-        });
-}
-
-// ==================== عرض لوحة القيادة ====================
-function showDashboard() {
-    console.log("عرض لوحة القيادة للمستخدم:", currentUser ? currentUser.name : 'غير معروف');
-    
-    // إخفاء شاشة تسجيل الدخول
-    document.getElementById('login-screen').style.display = 'none';
-    
-    // إظهار لوحة القيادة
-    document.getElementById('card-dashboard').style.display = 'block';
-    
-    // تحديث بيانات المستخدم في الواجهة
-    updateUserInterface();
-}
-
-// ==================== عرض شاشة تسجيل الدخول ====================
-function showLogin() {
-    console.log("عرض شاشة تسجيل الدخول");
-    
-    // إظهار شاشة تسجيل الدخول
-    document.getElementById('login-screen').style.display = 'flex';
-    
-    // إخفاء لوحة القيادة
-    document.getElementById('card-dashboard').style.display = 'none';
-    
-    // إعادة تعيين نماذج تسجيل الدخول
-    document.getElementById('card-login-form').reset();
-    document.getElementById('phone-login-form').reset();
-    
-    // إخفاء رسائل الخطأ
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('phone-login-error').textContent = '';
-}
-
-// ==================== تحديث واجهة المستخدم ====================
-function updateUserInterface() {
-    if (!currentUser || !investors || investors.length === 0) {
-        console.error("لا توجد بيانات للمستخدم");
-        return;
-    }
-    
-    const investor = investors[0];
-    
-    // تحديث معلومات المستخدم
-    document.getElementById('user-name').textContent = investor.name;
-    document.getElementById('user-initial').textContent = investor.name.charAt(0);
-    
-    // تحديث بيانات البطاقة
-    updateCardDisplay();
-    
-    // تحديث الملخص المالي
-    updateFinancialSummary();
-    
-    // عرض قوائم البيانات
-    renderInvestments();
-    renderTransactions();
-    renderProfits();
-    renderInvestorInfo();
-    
-    // عرض الإشعارات
-    renderNotifications();
-}
-
-// تحديث عرض البطاقة
-function updateCardDisplay() {
-    if (!cards || cards.length === 0) {
-        console.log("لا توجد بطاقة للمستثمر");
-        return;
-    }
-    
-    // استخدام أول بطاقة نشطة أو أحدث بطاقة
-    const card = cards.find(c => c.status === 'active') || cards[0];
-    const investor = investors[0];
-    
-    // تحديث معلومات البطاقة
-    document.getElementById('display-card-number').textContent = card.cardNumber;
-    document.getElementById('display-card-expiry').textContent = formatExpiryDate(card.expiryDate);
-    document.getElementById('display-card-name').textContent = investor.name;
-    document.getElementById('display-cvv').textContent = card.cvv;
-    document.getElementById('display-phone').textContent = investor.phone || '';
-    
-    // تحديث حالة البطاقة
-    updateCardStatus(card);
-    
-    // تحديث QR Code
-    updateCardQRCode(card.id);
-}
-
-// تحديث حالة البطاقة
-function updateCardStatus(card) {
-    const statusBadge = document.getElementById('card-status-badge');
-    const currentDate = new Date();
-    const expiryDate = new Date(card.expiryDate);
-    
-    if (card.status !== 'active') {
-        statusBadge.textContent = 'موقوفة';
-        statusBadge.classList.add('badge-inactive');
-        statusBadge.classList.remove('badge-expired', 'badge-active');
-    } else if (expiryDate < currentDate) {
-        statusBadge.textContent = 'منتهية الصلاحية';
-        statusBadge.classList.add('badge-expired');
-        statusBadge.classList.remove('badge-inactive', 'badge-active');
-    } else {
-        statusBadge.textContent = 'نشطة';
-        statusBadge.classList.add('badge-active');
-        statusBadge.classList.remove('badge-inactive', 'badge-expired');
-    }
-}
-
-// تحديث QR Code للبطاقة
-function updateCardQRCode(cardId) {
-    const qrCode = document.querySelector('.card-qrcode img');
-    
-    if (qrCode) {
-        qrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${cardId}`;
-    }
-}
-
-// تحديث الملخص المالي
-function updateFinancialSummary() {
-    const investor = investors[0];
-    
-    // حساب الرصيد الإجمالي
-    let totalBalance = 0;
-    
-    if (investor.amount) {
-        totalBalance = investor.amount;
-    } else if (investor.investments && Array.isArray(investor.investments)) {
-        investor.investments.forEach(investment => {
-            totalBalance += investment.amount;
-        });
-    }
-    
-    // حساب الربح الشهري
-    const monthlyProfit = calculateMonthlyProfit(totalBalance);
-    
-    // حساب عدد أيام الاستثمار
-    const investmentDays = calculateInvestmentDays(investor);
-    
-    // حساب موعد الربح القادم
-    const nextProfitDate = calculateNextProfitDate(investor);
-    
-    // عرض البيانات في الواجهة
-    document.getElementById('total-balance').textContent = formatCurrency(totalBalance);
-    document.getElementById('monthly-profit').textContent = formatCurrency(monthlyProfit);
-    document.getElementById('investment-days').textContent = investmentDays;
-    document.getElementById('next-profit-date').textContent = formatDate(nextProfitDate);
-    document.getElementById('last-update-date').textContent = formatDate(new Date());
-}
-
-// حساب الربح الشهري
-function calculateMonthlyProfit(amount) {
-    // يمكن تخصيص نسبة الربح حسب الإعدادات
-    const interestRate = 0.175; // 17.5%
-    return amount * interestRate;
-}
-
-// حساب عدد أيام الاستثمار
-function calculateInvestmentDays(investor) {
-    const startDate = investor.joinDate ? new Date(investor.joinDate) : 
-                      investor.createdAt ? new Date(investor.createdAt) : new Date();
-    const currentDate = new Date();
-    
-    const diffTime = Math.abs(currentDate - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    return diffDays;
-}
-
-// حساب موعد الربح القادم
-function calculateNextProfitDate(investor) {
-    // البحث عن أقرب ربح مستحق
-    if (profits && profits.length > 0) {
-        const futureProfits = profits.filter(profit => new Date(profit.dueDate) > new Date());
-        
-        if (futureProfits.length > 0) {
-            // ترتيب الأرباح المستقبلية حسب التاريخ
-            futureProfits.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-            return futureProfits[0].dueDate;
-        }
-    }
-    
-    // إذا لم يتم العثور على أرباح مستقبلية، حساب موعد الربح التالي
-    const startDate = investor.joinDate ? new Date(investor.joinDate) : 
-                      investor.createdAt ? new Date(investor.createdAt) : new Date();
-    
-    // حساب موعد الربح التالي (على أساس شهري)
-    const nextDate = new Date(startDate);
-    while (nextDate <= new Date()) {
-        nextDate.setMonth(nextDate.getMonth() + 1);
-    }
-    
-    return nextDate;
-}
-
-// عرض قائمة الاستثمارات
-function renderInvestments() {
-    const investmentsList = document.getElementById('investments-list');
-    
-    if (!investmentsList) {
-        console.error("لم يتم العثور على عنصر قائمة الاستثمارات");
-        return;
-    }
-    
-    // مسح المحتوى الحالي
-    investmentsList.innerHTML = '';
-    
-    // التحقق من وجود بيانات
-    if (!investors || investors.length === 0) {
-        investmentsList.innerHTML = '<div class="empty-list">لا توجد استثمارات</div>';
-        return;
-    }
-    
-    const investor = investors[0];
-    
-    // إذا كان هناك حقل استثمارات
-    if (investor.investments && Array.isArray(investor.investments) && investor.investments.length > 0) {
-        investor.investments.forEach(investment => {
-            const listItem = document.createElement('div');
-            listItem.className = 'list-item';
-            
-            listItem.innerHTML = `
-                <div class="list-item-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="list-item-content">
-                    <div class="list-item-title">${investment.description || 'استثمار'}</div>
-                    <div class="list-item-subtitle">${formatDate(investment.date)}</div>
-                </div>
-                <div class="list-item-value">${formatCurrency(investment.amount)}</div>
-            `;
-            
-            investmentsList.appendChild(listItem);
-        });
-    } else if (investor.amount) {
-        // إذا كان هناك مبلغ إجمالي فقط
-        const listItem = document.createElement('div');
-        listItem.className = 'list-item';
-        
-        listItem.innerHTML = `
-            <div class="list-item-icon">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="list-item-content">
-                <div class="list-item-title">استثمار رئيسي</div>
-                <div class="list-item-subtitle">${formatDate(investor.joinDate || investor.createdAt)}</div>
-            </div>
-            <div class="list-item-value">${formatCurrency(investor.amount)}</div>
-        `;
-        
-        investmentsList.appendChild(listItem);
-    } else {
-        // لا توجد استثمارات
-        investmentsList.innerHTML = '<div class="empty-list">لا توجد استثمارات</div>';
-    }
-}
-
-// عرض قائمة العمليات
-function renderTransactions() {
-    const transactionsList = document.getElementById('transactions-list');
-    
-    if (!transactionsList) {
-        console.error("لم يتم العثور على عنصر قائمة العمليات");
-        return;
-    }
-    
-    // مسح المحتوى الحالي
-    transactionsList.innerHTML = '';
-    
-    // التحقق من وجود بيانات
-    if (!transactions || transactions.length === 0) {
-        transactionsList.innerHTML = '<div class="empty-list">لا توجد عمليات</div>';
-        return;
-    }
-    
-    // تحديد الفلتر الحالي
-    const activeFilter = document.querySelector('.transaction-filters .filter-btn.active');
-    const filterType = activeFilter ? activeFilter.getAttribute('data-filter') : 'all';
-    
-    // فلترة العمليات
-    let filteredTransactions = transactions;
-    
-    if (filterType !== 'all') {
-        filteredTransactions = transactions.filter(transaction => transaction.type === filterType);
-    }
-    
-    // عرض العمليات
-    filteredTransactions.forEach(transaction => {
-        const listItem = document.createElement('div');
-        listItem.className = 'list-item';
-        
-        // تحديد الأيقونة حسب نوع العملية
-        let icon = '';
-        let typeClass = '';
-        
-        switch (transaction.type) {
-            case 'deposit':
-                icon = 'fa-arrow-down';
-                typeClass = 'deposit';
-                break;
-            case 'withdraw':
-                icon = 'fa-arrow-up';
-                typeClass = 'withdraw';
-                break;
-            case 'profit':
-                icon = 'fa-coins';
-                typeClass = 'profit';
-                break;
-            default:
-                icon = 'fa-exchange-alt';
-                typeClass = '';
-        }
-        
-        listItem.innerHTML = `
-            <div class="list-item-icon ${typeClass}">
-                <i class="fas ${icon}"></i>
-            </div>
-            <div class="list-item-content">
-                <div class="list-item-title">${getTransactionTypeText(transaction.type)}</div>
-                <div class="list-item-subtitle">${formatDate(transaction.date)}</div>
-            </div>
-            <div class="list-item-value ${typeClass}">${formatCurrency(transaction.amount)}</div>
-        `;
-        
-        transactionsList.appendChild(listItem);
-    });
-    
-    // إضافة مستمعات لأزرار الفلترة
-    document.querySelectorAll('.transaction-filters .filter-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // إزالة الفئة النشطة من كل الأزرار
-            document.querySelectorAll('.transaction-filters .filter-btn').forEach(b => {
-                b.classList.remove('active');
+                sep.style.display = hasVisibleTransaction ? 'block' : 'none';
             });
-            
-            // إضافة الفئة النشطة للزر الحالي
-            this.classList.add('active');
-            
-            // إعادة عرض العمليات
-            renderTransactions();
+        }
+    }
+    
+    // معالجة تغيير علامة تبويب الملف الشخصي
+    function handleProfileTabChange() {
+        // إزالة الفئة النشطة من جميع علامات التبويب
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            tab.classList.remove('active');
         });
-    });
-}
-
-// عرض قائمة الأرباح
-function renderProfits() {
-    const profitsList = document.getElementById('profits-list');
-    const totalReceivedProfits = document.getElementById('total-received-profits');
-    
-    if (!profitsList || !totalReceivedProfits) {
-        console.error("لم يتم العثور على عناصر عرض الأرباح");
-        return;
-    }
-    
-    // مسح المحتوى الحالي
-    profitsList.innerHTML = '';
-    
-    // التحقق من وجود بيانات
-    if (!profits || profits.length === 0) {
-        profitsList.innerHTML = '<div class="empty-list">لا توجد أرباح</div>';
-        totalReceivedProfits.textContent = formatCurrency(0);
-        updateProfitProgress(0, 0);
-        return;
-    }
-    
-    // حساب إجمالي الأرباح المستلمة
-    const receivedProfits = profits.filter(profit => profit.status === 'paid');
-    let totalReceived = 0;
-    
-    receivedProfits.forEach(profit => {
-        totalReceived += profit.amount;
-    });
-    
-    totalReceivedProfits.textContent = formatCurrency(totalReceived);
-    
-    // حساب الربح الحالي والمستهدف
-    calculateCurrentProfit();
-    
-    // عرض الأرباح
-    profits.forEach(profit => {
-        const listItem = document.createElement('div');
-        listItem.className = 'list-item';
         
-        // تحديد حالة الربح
-        let statusClass = '';
-        let statusText = '';
+        // إضافة الفئة النشطة للعلامة المحددة
+        this.classList.add('active');
         
-        switch (profit.status) {
-            case 'paid':
-                statusClass = 'success';
-                statusText = 'تم الدفع';
-                break;
-            case 'pending':
-                statusClass = 'warning';
-                statusText = 'قيد الانتظار';
-                break;
-            case 'due':
-                statusClass = 'info';
-                statusText = 'مستحق';
-                break;
-            default:
-                statusClass = '';
-                statusText = profit.status || 'غير معروف';
-        }
-        
-        listItem.innerHTML = `
-            <div class="list-item-icon ${statusClass}">
-                <i class="fas fa-coins"></i>
-            </div>
-            <div class="list-item-content">
-                <div class="list-item-title">
-                    ${profit.description || 'ربح شهري'}
-                    <span class="badge badge-${statusClass}">${statusText}</span>
-                </div>
-                <div class="list-item-subtitle">${formatDate(profit.dueDate)}</div>
-            </div>
-            <div class="list-item-value">${formatCurrency(profit.amount)}</div>
-        `;
-        
-        profitsList.appendChild(listItem);
-    });
-}
-
-// حساب الربح الحالي
-function calculateCurrentProfit() {
-    const investor = investors[0];
-    
-    // الحصول على آخر ربح مدفوع
-    const lastPaidProfit = profits.find(profit => profit.status === 'paid');
-    
-    // تاريخ آخر دفع أو تاريخ بدء الاستثمار
-    const lastPaymentDate = lastPaidProfit ? new Date(lastPaidProfit.paidDate) : 
-                            new Date(investor.joinDate || investor.createdAt);
-    
-    const currentDate = new Date();
-    
-    // حساب عدد الأيام منذ آخر دفع
-    const diffTime = Math.abs(currentDate - lastPaymentDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    // حساب الفترة الكاملة (30 يوم أو الإعداد المحدد)
-    const periodDays = 30;
-    
-    // حساب النسبة المئوية من الفترة
-    const percentage = Math.min(100, (diffDays / periodDays) * 100);
-    
-    // حساب المبلغ الحالي
-    const totalBalance = investor.amount || 0;
-    const monthlyProfit = calculateMonthlyProfit(totalBalance);
-    const currentProfit = (monthlyProfit * diffDays) / periodDays;
-    
-    // تحديث التقدم في الواجهة
-    updateProfitProgress(currentProfit, monthlyProfit, percentage);
-}
-
-// تحديث شريط تقدم الربح
-function updateProfitProgress(currentProfit, targetProfit, percentage = 0) {
-    document.getElementById('profit-percentage').textContent = `${Math.round(percentage)}%`;
-    document.getElementById('current-profit').textContent = formatCurrency(currentProfit);
-    document.getElementById('target-profit').textContent = formatCurrency(targetProfit);
-    document.querySelector('.progress-fill').style.width = `${percentage}%`;
-}
-
-// عرض معلومات المستثمر
-function renderInvestorInfo() {
-    const investor = investors[0];
-    
-    if (!investor) {
-        console.error("لا توجد بيانات للمستثمر");
-        return;
-    }
-    
-    // تحديث معلومات المستثمر
-    document.getElementById('investor-full-name').textContent = investor.name;
-    document.getElementById('investor-phone-number').textContent = investor.phone || '-';
-    document.getElementById('investor-address').textContent = investor.address || '-';
-    document.getElementById('investor-join-date').textContent = formatDate(investor.joinDate || investor.createdAt);
-    
-    // تحديث معلومات البطاقة
-    if (cards && cards.length > 0) {
-        const card = cards[0];
-        document.getElementById('card-type').textContent = getCardTypeName(card.cardType);
-        document.getElementById('card-issue-date').textContent = formatDate(card.createdAt);
-        document.getElementById('card-expiry-date').textContent = formatDate(card.expiryDate);
-        
-        // تحديث حالة البطاقة
-        const statusBadge = document.getElementById('card-status-badge-info');
-        if (statusBadge) {
-            statusBadge.className = 'badge';
-            
-            if (card.status !== 'active') {
-                statusBadge.textContent = 'موقوفة';
-                statusBadge.classList.add('badge-warning');
-            } else if (new Date(card.expiryDate) < new Date()) {
-                statusBadge.textContent = 'منتهية الصلاحية';
-                statusBadge.classList.add('badge-danger');
-            } else {
-                statusBadge.textContent = 'نشطة';
-                statusBadge.classList.add('badge-success');
-            }
-        }
-        
-        // عرض مزايا البطاقة
-        renderCardBenefits(card);
-    }
-}
-
-// عرض مزايا البطاقة
-function renderCardBenefits(card) {
-    const benefitsList = document.getElementById('benefits-list');
-    
-    if (!benefitsList) {
-        console.error("لم يتم العثور على عنصر قائمة المزايا");
-        return;
-    }
-    
-    // مسح المحتوى الحالي
-    benefitsList.innerHTML = '';
-    
-    // تحديد مزايا البطاقة حسب النوع
-    const benefits = getCardBenefits(card.cardType);
-    
-    // عرض المزايا
-    benefits.forEach(benefit => {
-        const listItem = document.createElement('li');
-        listItem.textContent = benefit;
-        benefitsList.appendChild(listItem);
-    });
-}
-
-// الحصول على مزايا البطاقة حسب النوع
-function getCardBenefits(cardType) {
-    switch (cardType) {
-        case 'platinum':
-            return [
-                'تأمين سفر دولي',
-                'خدمة عملاء VIP على مدار 24 ساعة',
-                'إمكانية سحب نقدي بقيمة أعلى',
-                'خصومات لدى الشركاء المميزين',
-                'نقاط مكافآت مضاعفة'
-            ];
-        case 'gold':
-            return [
-                'تأمين على المشتريات',
-                'نقاط مكافآت مميزة',
-                'خصومات خاصة في المتاجر المشاركة',
-                'خدمة عملاء متميزة'
-            ];
-        case 'premium':
-            return [
-                'مكافآت على المشتريات',
-                'أولوية في خدمة العملاء',
-                'تأمين محدود على المشتريات',
-                'خصومات لدى شركاء محددين'
-            ];
-        case 'diamond':
-            return [
-                'امتيازات حصرية',
-                'خدمة شخصية مخصصة',
-                'تأمين شامل على المشتريات والسفر',
-                'رصيد سفر سنوي',
-                'دخول مجاني إلى صالات المطارات',
-                'مساعد شخصي على مدار الساعة'
-            ];
-        case 'islamic':
-            return [
-                'متوافقة مع الشريعة الإسلامية',
-                'مزايا عائلية',
-                'خدمات استشارية مالية إسلامية',
-                'برنامج خيري للتبرعات',
-                'تأمين تكافلي على المشتريات'
-            ];
-        case 'custom':
-        default:
-            return [
-                'تأمين على المشتريات',
-                'خدمة عملاء متميزة',
-                'نظام نقاط المكافآت',
-                'خصومات لدى شركاء محددين'
-            ];
-    }
-}
-
-// عرض الإشعارات
-function renderNotifications() {
-    const notificationsList = document.getElementById('notifications-list');
-    
-    if (!notificationsList) {
-        return;
-    }
-    
-    // مسح المحتوى الحالي
-    notificationsList.innerHTML = '';
-    
-    // التحقق من وجود إشعارات
-    if (!window.notifications || window.notifications.length === 0) {
-        notificationsList.innerHTML = '<div class="empty-list">لا توجد إشعارات</div>';
-        return;
-    }
-    
-    // عرض الإشعارات
-    window.notifications.forEach(notification => {
-        const listItem = document.createElement('div');
-        listItem.className = 'notification-item';
-        
-        if (!notification.read) {
-            listItem.classList.add('unread');
-        }
-        
-        // تحديد الأيقونة حسب نوع الإشعار
-        let icon = 'fa-bell';
-        
-        switch (notification.type) {
-            case 'profit':
-                icon = 'fa-coins';
-                break;
-            case 'transaction':
-                icon = 'fa-exchange-alt';
-                break;
-            case 'card':
-                icon = 'fa-credit-card';
-                break;
-            case 'system':
-                icon = 'fa-cog';
-                break;
-        }
-        
-        listItem.innerHTML = `
-            <div class="notification-icon">
-                <i class="fas ${icon}"></i>
-            </div>
-            <div class="notification-content">
-                <div class="notification-title">${notification.title}</div>
-                <div class="notification-message">${notification.message}</div>
-                <div class="notification-time">${formatRelativeTime(notification.date)}</div>
-            </div>
-            <div class="notification-action">
-                <button class="notification-mark-read" data-id="${notification.id}">
-                    <i class="fas ${notification.read ? 'fa-check' : 'fa-circle'}"></i>
-                </button>
-            </div>
-        `;
-        
-        notificationsList.appendChild(listItem);
-    });
-    
-    // إضافة مستمعات لأزرار تعيين كمقروء
-    document.querySelectorAll('.notification-mark-read').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const notificationId = this.getAttribute('data-id');
-            markNotificationAsRead(notificationId);
+        // إخفاء جميع الأقسام
+        document.querySelectorAll('.profile-section').forEach(section => {
+            section.classList.remove('active');
         });
-    });
-}
-
-// تعيين إشعار كمقروء
-function markNotificationAsRead(notificationId) {
-    if (!window.notifications) return;
-    
-    // البحث عن الإشعار
-    const notification = window.notifications.find(n => n.id === notificationId);
-    
-    if (!notification || notification.read) return;
-    
-    // تحديث الإشعار محليًا
-    notification.read = true;
-    
-    // تحديث قاعدة البيانات
-    const db = firebase.database();
-    db.ref(`notifications/${notificationId}/read`).set(true)
-        .then(() => {
-            console.log("تم تعيين الإشعار كمقروء");
-            
-            // تحديث واجهة المستخدم
-            renderNotifications();
-            updateNotificationBadge();
-        })
-        .catch(error => {
-            console.error("خطأ في تحديث حالة الإشعار:", error);
-        });
-}
-
-// ==================== المشاركة ====================
-// عرض نافذة عرض QR
-function showQRModal() {
-    if (!cards || cards.length === 0) {
-        console.error("لا توجد بطاقة للمستثمر");
-        return;
-    }
-    
-    const card = cards[0];
-    const qrModal = document.getElementById('qr-modal');
-    
-    if (!qrModal) {
-        console.error("لم يتم العثور على نافذة عرض QR");
-        return;
-    }
-    
-    // عرض QR Code
-    const qrContainer = document.getElementById('card-qr-code');
-    
-    if (qrContainer) {
-        qrContainer.innerHTML = '';
         
-        // إنشاء QR Code باستخدام مكتبة QRCode.js
-        if (window.QRCode) {
-            new QRCode(qrContainer, {
-                text: card.id,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+        // إظهار القسم المناسب
+        const sectionId = this.getAttribute('data-section') + '-section';
+        document.getElementById(sectionId).classList.add('active');
+    }
+    
+    // إظهار تأكيد تسجيل الخروج
+    function showLogoutConfirmation() {
+        const logoutConfirmation = document.getElementById('logout-confirmation');
+        if (logoutConfirmation) {
+            logoutConfirmation.classList.add('active');
+        }
+    }
+    
+    // معالجة تسجيل الخروج
+    function handleLogout() {
+        // تسجيل الخروج من النظام
+        InvestorCardFirebase.logout();
+        
+        // إلغاء الاشتراك في تحديثات البطاقة
+        if (cardSubscription) {
+            InvestorCardFirebase.unsubscribeFromChanges(cardSubscription);
+            cardSubscription = null;
+        }
+        
+        // إزالة البيانات المحفوظة
+        localStorage.removeItem('savedCardNumber');
+        localStorage.removeItem('savedCardCVV');
+        
+        // إغلاق نافذة التأكيد
+        document.getElementById('logout-confirmation').classList.remove('active');
+        
+        // إظهار إشعار
+        showToast('تم تسجيل الخروج', 'تم تسجيل الخروج بنجاح', 'info');
+        
+        // العودة إلى شاشة تسجيل الدخول
+        navigateToPage('auth');
+        
+        // إعادة تعيين حقول النموذج
+        if (document.getElementById('card-number')) {
+            document.getElementById('card-number').value = '';
+        }
+        if (document.getElementById('cvv')) {
+            document.getElementById('cvv').value = '';
+        }
+        if (document.getElementById('remember-me')) {
+            document.getElementById('remember-me').checked = false;
+        }
+        
+        // إزالة أي رسائل خطأ
+        if (document.getElementById('card-number-error')) {
+            document.getElementById('card-number-error').textContent = '';
+        }
+        if (document.getElementById('cvv-error')) {
+            document.getElementById('cvv-error').textContent = '';
+        }
+    }
+    
+    // معالجة مشاركة البطاقة
+    function handleShare() {
+        // الحصول على بيانات البطاقة
+        const card = InvestorCardFirebase.getCurrentCardData();
+        if (!card) return;
+        
+        // التحقق من دعم واجهة مشاركة الويب
+        if (navigator.share) {
+            navigator.share({
+                title: 'بطاقة المستثمر',
+                text: `بطاقة المستثمر الخاصة بي - ${card.investorName}`,
+                url: window.location.href
+            })
+            .then(() => {
+                showToast('تمت المشاركة', 'تمت مشاركة معلومات البطاقة بنجاح', 'success');
+            })
+            .catch((error) => {
+                console.error('خطأ في المشاركة:', error);
+                showShareFallback(card);
             });
         } else {
-            // استخدام API خارجي إذا لم تكن المكتبة متاحة
-            const img = document.createElement('img');
-            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${card.id}`;
-            img.alt = "QR Code";
-            qrContainer.appendChild(img);
+            showShareFallback(card);
         }
     }
     
-    // إضافة مستمع لزر الحفظ
-    const saveQrBtn = document.getElementById('save-qr-btn');
-    
-    if (saveQrBtn) {
-        saveQrBtn.onclick = function() {
-            saveQRCode();
-        };
-    }
-    
-    // عرض النافذة
-    qrModal.classList.add('active');
-}
-
-// حفظ QR Code كصورة
-function saveQRCode() {
-    const qrContainer = document.getElementById('card-qr-code');
-    
-    if (!qrContainer || !qrContainer.querySelector('img')) {
-        showToast('لا يمكن حفظ صورة QR Code', 'error');
-        return;
-    }
-    
-    // الحصول على الصورة
-    const img = qrContainer.querySelector('img');
-    
-    // إنشاء رابط لتنزيل الصورة
-    const link = document.createElement('a');
-    link.href = img.src;
-    link.download = `qr_code_${currentUser ? currentUser.name.replace(/\s+/g, '_') : 'card'}.png`;
-    
-    // محاكاة النقر على الرابط
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showToast('تم حفظ صورة QR Code', 'success');
-}
-
-// عرض نافذة المشاركة
-function showShareModal() {
-    if (!cards || cards.length === 0 || !currentUser) {
-        console.error("لا توجد بيانات للمشاركة");
-        return;
-    }
-    
-    const shareModal = document.getElementById('share-modal');
-    
-    if (!shareModal) {
-        console.error("لم يتم العثور على نافذة المشاركة");
-        return;
-    }
-    
-    // إعداد نص المشاركة
-    const card = cards[0];
-    const investor = investors[0];
-    
-    const shareText = document.getElementById('share-text');
-    if (shareText) {
-        shareText.value = `
-بطاقة المستثمر
-
-الاسم: ${investor.name}
-رقم البطاقة: ${maskCardNumber(card.cardNumber)}
-تاريخ الإصدار: ${formatDate(card.createdAt)}
-تاريخ الانتهاء: ${formatDate(card.expiryDate)}
-نوع البطاقة: ${getCardTypeName(card.cardType)}
-
-نظام الاستثمار المتكامل
-        `.trim();
-    }
-    
-    // عرض النافذة
-    shareModal.classList.add('active');
-}
-
-// مشاركة البطاقة
-function shareCard(method) {
-    if (!currentUser || !cards || cards.length === 0) {
-        showToast('لا توجد بيانات للمشاركة', 'error');
-        return;
-    }
-    
-    const shareText = document.getElementById('share-text').value;
-    
-    switch (method) {
-        case 'whatsapp':
-            // مشاركة عبر واتساب
-            window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
-            break;
-        case 'email':
-            // مشاركة عبر البريد الإلكتروني
-            window.open(`mailto:?subject=بطاقة المستثمر - ${currentUser.name}&body=${encodeURIComponent(shareText)}`, '_blank');
-            break;
-        case 'copy':
-            // نسخ النص
-            navigator.clipboard.writeText(shareText)
-                .then(() => {
-                    showToast('تم نسخ النص بنجاح', 'success');
-                })
-                .catch(() => {
-                    // طريقة بديلة إذا لم تكن clipboard API متاحة
-                    const textArea = document.getElementById('share-text');
-                    textArea.select();
-                    document.execCommand('copy');
-                    showToast('تم نسخ النص بنجاح', 'success');
-                });
-            break;
-    }
-}
-
-// عرض نافذة الاتصال بالدعم
-function showSupportModal() {
-    const supportModal = document.getElementById('support-modal');
-    
-    if (!supportModal) {
-        console.error("لم يتم العثور على نافذة الدعم");
-        return;
-    }
-    
-    // عرض النافذة
-    supportModal.classList.add('active');
-}
-
-// إرسال طلب دعم
-function sendSupportRequest() {
-    const subject = document.getElementById('support-subject').value.trim();
-    const message = document.getElementById('support-message').value.trim();
-    
-    if (!subject || !message) {
-        showToast('الرجاء إدخال الموضوع والرسالة', 'error');
-        return;
-    }
-    
-    // إظهار مؤشر التحميل
-    showLoading('send-support-message');
-    
-    // حفظ طلب الدعم في قاعدة البيانات
-    const db = firebase.database();
-    const supportRequest = {
-        investorId: currentUser.id,
-        investorName: currentUser.name,
-        subject: subject,
-        message: message,
-        date: new Date().toISOString(),
-        status: 'new',
-        read: false
-    };
-    
-    db.ref('support_requests').push(supportRequest)
-        .then(() => {
-            hideLoading('send-support-message');
-            showToast('تم إرسال طلب الدعم بنجاح', 'success');
+    // إظهار بديل المشاركة
+    function showShareFallback(card) {
+        const shareModal = document.createElement('div');
+        shareModal.className = 'confirmation-dialog active';
+        shareModal.innerHTML = `
+            <div class="confirmation-content">
+                <div class="confirmation-title">مشاركة بطاقة المستثمر</div>
+                <div style="margin: 15px 0; text-align: center;">
+                    <button class="btn btn-outline share-whatsapp" style="width: 100%; margin-bottom: 10px;">
+                        <i class="fab fa-whatsapp" style="margin-left: 8px; color: #25d366;"></i>
+                        <span>واتساب</span>
+                    </button>
+                    <button class="btn btn-outline share-email" style="width: 100%; margin-bottom: 10px;">
+                        <i class="fas fa-envelope" style="margin-left: 8px; color: #007aff;"></i>
+                        <span>البريد الإلكتروني</span>
+                    </button>
+                    <button class="btn btn-outline share-copy" style="width: 100%;">
+                        <i class="fas fa-copy" style="margin-left: 8px; color: #3498db;"></i>
+                        <span>نسخ المعلومات</span>
+                    </button>
+                </div>
+                <div class="confirmation-actions">
+                    <button class="btn btn-outline close-share-modal">إلغاء</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(shareModal);
+        
+        // مستمع لزر واتساب
+        shareModal.querySelector('.share-whatsapp').addEventListener('click', function() {
+            const text = `بطاقة المستثمر الخاصة بي - ${card.investorName}\nرقم البطاقة: ${formatCardNumber(card.cardNumber)}\nتاريخ الانتهاء: ${formatDate(card.expiryDate)}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            shareModal.remove();
+        });
+        
+        // مستمع للبريد الإلكتروني
+        shareModal.querySelector('.share-email').addEventListener('click', function() {
+            const subject = `بطاقة المستثمر - ${card.investorName}`;
+            const body = `بطاقة المستثمر الخاصة بي\n\nالاسم: ${card.investorName}\nرقم البطاقة: ${formatCardNumber(card.cardNumber)}\nتاريخ الانتهاء: ${formatDate(card.expiryDate)}`;
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            shareModal.remove();
+        });
+        
+        // مستمع لنسخ المعلومات
+        shareModal.querySelector('.share-copy').addEventListener('click', function() {
+            const text = `بطاقة المستثمر الخاصة بي\n\nالاسم: ${card.investorName}\nرقم البطاقة: ${formatCardNumber(card.cardNumber)}\nتاريخ الانتهاء: ${formatDate(card.expiryDate)}`;
+            
+            // نسخ النص إلى الحافظة
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // إظهار إشعار
+            showToast('تم النسخ', 'تم نسخ معلومات البطاقة إلى الحافظة', 'success');
             
             // إغلاق النافذة
-            document.getElementById('support-modal').classList.remove('active');
-            
-            // إعادة تعيين النموذج
-            document.getElementById('support-subject').value = '';
-            document.getElementById('support-message').value = '';
-        })
-        .catch(error => {
-            hideLoading('send-support-message');
-            console.error("خطأ في إرسال طلب الدعم:", error);
-            showToast('حدث خطأ أثناء إرسال طلب الدعم', 'error');
+            shareModal.remove();
         });
-}
-
-// ==================== وظائف مساعدة ====================
-// تنسيق التاريخ
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    
-    try {
-        const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
         
-        return `${year}-${month}-${day}`;
-    } catch (error) {
-        return dateString;
+        // مستمع لزر الإغلاق
+        shareModal.querySelector('.close-share-modal').addEventListener('click', function() {
+            shareModal.remove();
+        });
     }
-}
-
-// تنسيق تاريخ انتهاء البطاقة
-function formatExpiryDate(dateString) {
-    if (!dateString) return 'MM/YY';
     
-    try {
-        const date = new Date(dateString);
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear().toString().slice(2);
+    // معالجة عرض QR Code
+    function handleShowQR() {
+        // الحصول على معرف البطاقة
+        const card = InvestorCardFirebase.getCurrentCardData();
+        if (!card) return;
         
-        return `${month}/${year}`;
-    } catch (error) {
-        return 'MM/YY';
-    }
-}
-
-// تنسيق الوقت النسبي
-function formatRelativeTime(dateString) {
-    if (!dateString) return '';
-    
-    try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffSeconds = Math.floor((now - date) / 1000);
+        // إنشاء نافذة منبثقة لعرض رمز QR
+        const qrModal = document.createElement('div');
+        qrModal.className = 'confirmation-dialog active';
+        qrModal.innerHTML = `
+            <div class="confirmation-content" style="text-align: center;">
+                <div class="confirmation-title">رمز QR الخاص بالبطاقة</div>
+                <div style="margin: 20px 0; background-color: #fff; padding: 15px; border-radius: 10px; display: inline-block;">
+                    <div id="qr-modal-code" style="width: 200px; height: 200px;"></div>
+                </div>
+                <div style="margin-bottom: 15px; color: #7f8c8d; font-size: 0.9rem;">
+                    يمكنك مشاركة هذا الرمز لتسهيل عملية الدفع
+                </div>
+                <div class="confirmation-actions">
+                    <button class="btn btn-primary close-qr-modal">إغلاق</button>
+                </div>
+            </div>
+        `;
         
-        if (diffSeconds < 60) {
-            return 'منذ أقل من دقيقة';
-        } else if (diffSeconds < 3600) {
-            const minutes = Math.floor(diffSeconds / 60);
-            return `منذ ${minutes} ${minutes === 1 ? 'دقيقة' : 'دقائق'}`;
-        } else if (diffSeconds < 86400) {
-            const hours = Math.floor(diffSeconds / 3600);
-            return `منذ ${hours} ${hours === 1 ? 'ساعة' : 'ساعات'}`;
-        } else if (diffSeconds < 604800) {
-            const days = Math.floor(diffSeconds / 86400);
-            return `منذ ${days} ${days === 1 ? 'يوم' : 'أيام'}`;
-        } else {
-            return formatDate(dateString);
+        document.body.appendChild(qrModal);
+        
+        // إنشاء رمز QR في النافذة المنبثقة
+        try {
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(document.getElementById('qr-modal-code'), {
+                    text: card.id || card.cardKey || "INV-CARD-DEFAULT",
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+        } catch (error) {
+            console.error('خطأ في إنشاء QR Code:', error);
         }
-    } catch (error) {
-        return dateString;
-    }
-}
-
-// تنسيق العملة
-function formatCurrency(amount) {
-    if (amount === undefined || amount === null) return '0 دينار';
-    
-    try {
-        // تقريب المبلغ لأقرب عدد صحيح
-        const roundedAmount = Math.round(amount);
         
-        // تنسيق الرقم بالآلاف
-        return roundedAmount.toLocaleString('ar-IQ') + ' دينار';
-    } catch (error) {
-        return amount + ' دينار';
-    }
-}
-
-// تنسيق رقم البطاقة
-function formatCardNumber(cardNumber) {
-    // إزالة المسافات
-    const number = cardNumber.replace(/\s+/g, '');
-    
-    // إضافة مسافات كل 4 أرقام
-    return number.replace(/(\d{4})(?=\d)/g, '$1 ');
-}
-
-// إخفاء أرقام البطاقة
-function maskCardNumber(cardNumber) {
-    // إزالة المسافات
-    const number = cardNumber.replace(/\s+/g, '');
-    
-    // إبقاء الأرقام الأربعة الأخيرة وإخفاء الباقي
-    const masked = 'X'.repeat(number.length - 4) + number.slice(-4);
-    
-    // إضافة مسافات كل 4 أرقام
-    return masked.replace(/(.{4})/g, '$1 ').trim();
-}
-
-// التحقق من صحة تنسيق تاريخ الانتهاء
-function isValidExpiryDate(expiryDate) {
-    // التحقق من التنسيق MM/YY
-    if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
-        return false;
+        // مستمع لزر الإغلاق
+        qrModal.querySelector('.close-qr-modal').addEventListener('click', function() {
+            qrModal.remove();
+        });
     }
     
-    const [month, year] = expiryDate.split('/');
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear() % 100; // آخر رقمين من السنة
-    const currentMonth = currentDate.getMonth() + 1; // الشهور تبدأ من 0
-    
-    // التحقق من صحة الشهر
-    if (parseInt(month) < 1 || parseInt(month) > 12) {
-        return false;
-    }
-    
-    // التحقق من صلاحية التاريخ (غير منتهي)
-    if (parseInt(year) < currentYear || 
-        (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
-        return false;
-    }
-    
-    return true;
-}
-
-// الحصول على نص نوع العملية
-function getTransactionTypeText(type) {
-    switch (type) {
-        case 'deposit':
-            return 'إيداع';
-        case 'withdraw':
-            return 'سحب';
-        case 'profit':
-            return 'ربح';
-        case 'transfer':
-            return 'تحويل';
-        default:
-            return type;
-    }
-}
-
-// الحصول على اسم نوع البطاقة
-function getCardTypeName(cardType) {
-    switch (cardType) {
-        case 'platinum':
-            return 'بلاتينية';
-        case 'gold':
-            return 'ذهبية';
-        case 'premium':
-            return 'بريميوم';
-        case 'diamond':
-            return 'ماسية';
-        case 'islamic':
-            return 'إسلامية';
-        case 'custom':
-            return 'مخصصة';
-        default:
-            return cardType;
-    }
-}
-
-// إظهار رسالة خطأ
-function showError(message, elementId = 'login-error') {
-    const errorElement = document.getElementById(elementId);
-    
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
+    // تنشيط علامة تبويب
+    function activateTab(pageId) {
+        // إزالة الفئة النشطة من جميع علامات التبويب
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.classList.remove('active');
+        });
         
-        // إخفاء الرسالة بعد 5 ثوانٍ
+        // إضافة الفئة النشطة للعلامة المناسبة
+        const activeTab = document.querySelector(`.tab-item[data-page="${pageId}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+    }
+    
+    // الانتقال إلى صفحة
+    function navigateToPage(pageId) {
+        // تحديث الصفحة الحالية
+        currentPage = pageId;
+        
+        // إخفاء جميع الصفحات
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+        
+        // إظهار الصفحة المطلوبة
+        const pageElement = document.getElementById(`${pageId}-page`);
+        if (pageElement) {
+            pageElement.classList.add('active');
+        }
+    }
+    
+    // إظهار/إخفاء مؤشر التحميل
+    function showLoading(show) {
+        // البحث عن عنصر التحميل أو إنشائه
+        let loadingOverlay = document.getElementById('loading-overlay');
+        
+        if (show) {
+            if (!loadingOverlay) {
+                loadingOverlay = document.createElement('div');
+                loadingOverlay.id = 'loading-overlay';
+                loadingOverlay.className = 'loading-overlay';
+                loadingOverlay.innerHTML = '<div class="spinner"></div>';
+                document.body.appendChild(loadingOverlay);
+            }
+            loadingOverlay.style.display = 'flex';
+        } else if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+    
+    // إظهار إشعار
+    function showToast(title, message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container');
+        
+        if (!toastContainer) return;
+        
+        // إنشاء عنصر الإشعار
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        
+        // تحديد أيقونة حسب النوع
+        let icon = '';
+        switch (type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle toast-icon success"></i>';
+                break;
+            case 'error':
+                icon = '<i class="fas fa-times-circle toast-icon error"></i>';
+                break;
+            case 'warning':
+                icon = '<i class="fas fa-exclamation-triangle toast-icon warning"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-info-circle toast-icon info"></i>';
+                break;
+        }
+        
+        // إضافة المحتوى
+        toast.innerHTML = `
+            ${icon}
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        // إضافة إلى الحاوية
+        toastContainer.appendChild(toast);
+        
+        // إظهار الإشعار (تأخير قليلاً لإضافة تأثير الحركة)
         setTimeout(() => {
-            errorElement.textContent = '';
-            errorElement.style.display = 'none';
+            toast.classList.add('active');
+        }, 10);
+        
+        // إضافة مستمع لزر الإغلاق
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            closeToast(toast);
+        });
+        
+        // إغلاق تلقائي بعد 5 ثوانٍ
+        setTimeout(() => {
+            closeToast(toast);
         }, 5000);
-    } else {
-        showToast(message, 'error');
-    }
-}
-
-// إظهار إشعار منبثق
-function showToast(message, type = 'info') {
-    const toast = document.getElementById('toast-notification');
-    
-    if (!toast) {
-        console.error("لم يتم العثور على عنصر الإشعار المنبثق");
-        return;
     }
     
-    // تحديد عنوان الإشعار والأيقونة حسب النوع
-    let title = 'معلومات';
-    let icon = 'fa-info-circle';
-    
-    switch (type) {
-        case 'success':
-            title = 'نجاح';
-            icon = 'fa-check-circle';
-            toast.style.borderRight = '4px solid #2ecc71';
-            break;
-        case 'error':
-            title = 'خطأ';
-            icon = 'fa-times-circle';
-            toast.style.borderRight = '4px solid #e74c3c';
-            break;
-        case 'warning':
-            title = 'تحذير';
-            icon = 'fa-exclamation-triangle';
-            toast.style.borderRight = '4px solid #f39c12';
-            break;
-        default:
-            toast.style.borderRight = '4px solid #3498db';
+    // إغلاق إشعار
+    function closeToast(toast) {
+        toast.classList.remove('active');
+        
+        // إزالة بعد انتهاء الحركة
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
     }
     
-    // تحديث محتوى الإشعار
-    toast.querySelector('.toast-icon i').className = `fas ${icon}`;
-    toast.querySelector('.toast-title').textContent = title;
-    toast.querySelector('.toast-message').textContent = message;
+    // ================== وظائف المساعدة ==================
     
-    // إظهار الإشعار
-    toast.classList.add('show');
+    // تنسيق رقم البطاقة
+    function formatCardNumber(cardNumber) {
+        if (!cardNumber) return 'XXXX XXXX XXXX XXXX';
+        
+        // إزالة جميع المسافات
+        const cleaned = cardNumber.toString().replace(/\s/g, '');
+        
+        // إضافة مسافات كل 4 أرقام
+        return cleaned.replace(/(\d{4})(?=\d)/g, '$1 ');
+    }
     
-    // إخفاء الإشعار بعد 3 ثوانٍ
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    // تنسيق المبلغ المالي
+    function formatCurrency(amount) {
+        if (amount === null || amount === undefined) return '-';
+        
+        // تنسيق المبلغ بالدينار العراقي
+        const formatter = new Intl.NumberFormat('ar-IQ', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+        
+        return formatter.format(amount);
+    }
     
-    // إضافة مستمع لزر الإغلاق
-    toast.querySelector('.toast-close').onclick = function() {
-        toast.classList.remove('show');
+    // تنسيق التاريخ
+    function formatDate(dateStr, format = 'full') {
+        if (!dateStr) return '-';
+        
+        try {
+            const date = new Date(dateStr);
+            
+            if (isNaN(date.getTime())) return '-';
+            
+            if (format === 'month-year') {
+                return `${getMonthName(date.getMonth())} ${date.getFullYear()}`;
+            }
+            
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = getMonthName(date.getMonth());
+            const year = date.getFullYear();
+            
+            return `${day} ${month} ${year}`;
+        } catch (error) {
+            console.error('خطأ في تنسيق التاريخ:', error);
+            return dateStr;
+        }
+    }
+    
+    // الحصول على اسم الشهر
+    function getMonthName(monthIndex) {
+        const months = [
+            'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+        ];
+        
+        return months[monthIndex] || '';
+    }
+    
+    // حساب تاريخ الأرباح القادم
+    function formatNextProfitDate(lastProfitDate) {
+        if (!lastProfitDate) {
+            // إذا لم يكن هناك تاريخ سابق، استخدم اليوم
+            const today = new Date();
+            // ضبط التاريخ على 15 من الشهر التالي
+            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 15);
+            return formatDate(nextMonth);
+        }
+        
+        // الحصول على تاريخ آخر ربح
+        const lastDate = new Date(lastProfitDate);
+        
+        // تحديد تاريخ الربح التالي (15 من الشهر التالي)
+        const nextDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 15);
+        
+        return formatDate(nextDate);
+    }
+    
+    // الحصول على الأحرف الأولى من الاسم
+    function getInitials(name) {
+        if (!name) return '';
+        
+        const parts = name.split(' ');
+        if (parts.length === 1) return parts[0].charAt(0);
+        
+        // الحرف الأول من الاسم الأول والأخير
+        return parts[0].charAt(0) + parts[parts.length - 1].charAt(0);
+    }
+    
+    // الحصول على أيقونة المعاملة
+    function getTransactionIcon(type) {
+        switch (type) {
+            case 'deposit': return 'arrow-down';
+            case 'withdraw': return 'arrow-up';
+            case 'profit': return 'chart-line';
+            case 'transfer': return 'exchange-alt';
+            default: return 'money-bill-wave';
+        }
+    }
+    
+    // الحصول على عنوان المعاملة
+    function getTransactionTitle(type) {
+        switch (type) {
+            case 'deposit': return 'إيداع إلى الحساب';
+            case 'withdraw': return 'سحب من الحساب';
+            case 'profit': return 'أرباح شهرية';
+            case 'transfer': return 'تحويل';
+            default: return 'معاملة مالية';
+        }
+    }
+    
+    // تنسيق مبلغ المعاملة
+    function formatTransactionAmount(amount, type) {
+        if (amount === null || amount === undefined) return '-';
+        
+        const prefix = type === 'withdraw' ? '-' : '+';
+        return `${prefix}${formatCurrency(amount)} د.ع`;
+    }
+    
+    // تعيين نص للعنصر
+    function setElementText(elementId, text) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = text;
+        }
+    }
+    
+    // واجهة برمجة التطبيق العامة
+    return {
+        initialize,
+        showToast,
+        navigateToPage
     };
-}
+})();
 
-// إظهار مؤشر التحميل
-function showLoading(buttonId) {
-    const button = document.getElementById(buttonId);
-    
-    if (button) {
-        // حفظ النص الأصلي
-        button.dataset.originalText = button.innerHTML;
-        
-        // تغيير النص إلى مؤشر التحميل
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>جار التحميل...</span>';
-        
-        // تعطيل الزر
-        button.disabled = true;
-    }
-}
-
-// إخفاء مؤشر التحميل
-function hideLoading(buttonId) {
-    const button = document.getElementById(buttonId);
-    
-    if (button) {
-        // استعادة النص الأصلي
-        if (button.dataset.originalText) {
-            button.innerHTML = button.dataset.originalText;
-        }
-        
-        // تفعيل الزر
-        button.disabled = false;
-    }
-}
-
-// ==================== تنسيق إدخال بيانات البطاقة ====================
-// تنسيق رقم البطاقة أثناء الإدخال
-document.getElementById('card-number').addEventListener('input', function(e) {
-    // إزالة الأحرف غير الرقمية
-    let input = this.value.replace(/\D/g, '');
-    
-    // تقييد الطول إلى 16 رقمًا
-    if (input.length > 16) {
-        input = input.slice(0, 16);
-    }
-    
-    // إضافة مسافات بعد كل 4 أرقام
-    input = input.replace(/(\d{4})(?=\d)/g, '$1 ');
-    
-    // تحديث قيمة الحقل
-    this.value = input;
-});
-
-// تنسيق تاريخ انتهاء الصلاحية أثناء الإدخال
-document.getElementById('card-expiry').addEventListener('input', function(e) {
-    // إزالة الأحرف غير الرقمية
-    let input = this.value.replace(/\D/g, '');
-    
-    // تقييد الطول إلى 4 أرقام
-    if (input.length > 4) {
-        input = input.slice(0, 4);
-    }
-    
-    // إضافة / بعد الشهر
-    if (input.length > 2) {
-        input = input.slice(0, 2) + '/' + input.slice(2);
-    }
-    
-    // تحديث قيمة الحقل
-    this.value = input;
-    
-    // تصحيح قيمة الشهر
-    if (input.length >= 2) {
-        const month = parseInt(input.slice(0, 2));
-        
-        if (month > 12) {
-            this.value = '12' + (input.length > 2 ? '/' + input.slice(3) : '');
-        } else if (month === 0) {
-            this.value = '01' + (input.length > 2 ? '/' + input.slice(3) : '');
-        }
-    }
-});
-
-// تنسيق رمز CVV أثناء الإدخال
-document.getElementById('card-cvv').addEventListener('input', function(e) {
-    // إزالة الأحرف غير الرقمية
-    this.value = this.value.replace(/\D/g, '');
-    
-    // تقييد الطول إلى 3 أرقام
-    if (this.value.length > 3) {
-        this.value = this.value.slice(0, 3);
-    }
-});
-
-// ==================== بدء التطبيق ====================
+// تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
-    // تهيئة التطبيق
-    initializeApp();
+    InvestorCardApp.initialize();
 });

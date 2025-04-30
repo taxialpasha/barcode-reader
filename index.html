@@ -1,147 +1,1701 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#3b82f6">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>بطاقة المستثمر</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#1F3A5F" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     
-    <!-- إضافة Manifest و الأيقونات للـ PWA -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-
+    <title>تطبيق بطاقة المستثمر</title>
+    
+    <!-- أيقونة التطبيق -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,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" />
+    <link rel="apple-touch-icon" href="data:image/png;base64,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" />
+    
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     
     <!-- Google Fonts - Tajawal -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
     
-    <!-- CSS الأساسي -->
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     
-    <!-- CSS لأنماط الرسوم المتحركة -->
-    <link rel="stylesheet" href="animations.css">
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #1F3A5F;
+            --secondary-color: #3498db;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-color: #101a2c;
+            --light-color: #f8f9fa;
+            --text-color: #2c3e50;
+            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            --card-shadow-hover: 0 15px 30px rgba(0, 0, 0, 0.3);
+            --transition-speed: 0.3s;
+            --border-radius: 15px;
+            --platinum-color: #303030;
+            --gold-color: #D4AF37;
+            --premium-color: #1F3A5F;
+            --diamond-color: #16213E;
+            --islamic-color: #006B3C;
+            --custom-color: #3498db;
+            
+            --animation-speed: 0.3s;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f2f5f8;
+            color: var(--text-color);
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            direction: rtl;
+            position: relative;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100%;
+            padding-bottom: 70px; /* Space for bottom tab bar */
+        }
+        
+        /* App Header */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .app-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
+        /* Authentication Screen */
+        .auth-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+        }
+        
+        .auth-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        .auth-subtitle {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+        
+        .auth-form {
+            text-align: right;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+            text-align: right;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all var(--transition-speed);
+            background-color: #f9f9f9;
+            color: #2c3e50;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .form-input:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .form-input.error {
+            border-color: var(--danger-color);
+        }
+        
+        .form-error {
+            color: var(--danger-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .btn-block {
+            width: 100%;
+            display: block;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #183057;
+        }
+        
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #dfe4e8;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .auth-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .form-remember {
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-remember input {
+            margin-left: 8px;
+        }
+        
+        .forgot-password {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .auth-separator {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .auth-separator span {
+            flex: 1;
+            height: 1px;
+            background-color: #ddd;
+        }
+        
+        .auth-separator-text {
+            margin: 0 15px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .qr-option {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .qr-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: 1px dashed #ddd;
+            border-radius: 10px;
+            width: 100%;
+            padding: 15px;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .qr-button:hover {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+        
+        .qr-button i {
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
+        
+        /* Card Screens */
+        .page {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Dashboard Page */
+        .dashboard-page {
+            padding: 0 0 20px 0;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-left: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .card-front-view {
+            margin-bottom: 25px;
+        }
+        
+        /* Investor Card Styles */
+        .investor-card {
+            width: 100%;
+            height: 220px;
+            border-radius: 15px;
+            color: white;
+            padding: 20px;
+            position: relative;
+            box-shadow: var(--card-shadow);
+            margin: 0 auto 20px;
+            overflow: hidden;
+            transition: transform var(--transition-speed);
+            perspective: 1000px;
+            margin-top: 10px;
+        }
+        
+        .investor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow-hover);
+        }
+        
+        .investor-card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        
+        .card-front, .card-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+            overflow: hidden;
+            border-radius: 15px;
+        }
+        
+        .card-back {
+            transform: rotateY(180deg);
+            background-color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-brand {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-logo {
+            position: absolute;
+            top: 20px;
+            left: 25px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .card-logo-circle {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+        }
+        
+        .card-logo-circle.red {
+            background: #eb001b;
+        }
+        
+        .card-logo-circle.yellow {
+            background: #f79e1b;
+            opacity: 0.8;
+            margin-right: -15px;
+        }
+        
+        .card-chip {
+            position: absolute;
+            top: 80px;
+            right: 50px;
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(135deg, #c9a851 0%, #ffd700 50%, #c9a851 100%);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .chip-line {
+            position: absolute;
+            height: 1.5px;
+            background-color: rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+        
+        .chip-line:nth-child(1) { top: 7px; }
+        .chip-line:nth-child(2) { top: 14px; }
+        .chip-line:nth-child(3) { top: 21px; }
+        .chip-line:nth-child(4) { top: 28px; }
+        
+        .chip-line:nth-child(5) {
+            height: 100%;
+            width: 1.5px;
+            left: 11px;
+        }
+        
+        .chip-line:nth-child(6) {
+            height: 100%;
+            width: 1.5px;
+            left: 22px;
+        }
+        
+        .chip-line:nth-child(7) {
+            height: 100%;
+            width: 1.5px;
+            left: 33px;
+        }
+        
+        .card-hologram {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            bottom: 40px;
+            left: 30px;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0.1) 0%, 
+                rgba(255,255,255,0.3) 25%, 
+                rgba(255,255,255,0.5) 50%, 
+                rgba(255,255,255,0.3) 75%, 
+                rgba(255,255,255,0.1) 100%);
+            border-radius: 50%;
+            animation: hologram-animation 3s infinite linear;
+            opacity: 0.7;
+        }
+        
+        @keyframes hologram-animation {
+            0% { 
+                background-position: 0% 0%;
+            }
+            100% { 
+                background-position: 100% 100%;
+            }
+        }
+        
+        .card-qrcode {
+            width: 70px;
+            height: 70px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            margin-left: auto;
+            overflow: hidden;
+            position: absolute;
+            top: 65px;
+            left: 25px;
+        }
+        
+        .card-qrcode img, .card-qrcode canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .card-number {
+            position: absolute;
+            bottom: 70px;
+            width: 100%;
+            left: 0;
+            padding: 0 25px;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            text-align: center;
+            color: white;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-details {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            left: 0;
+            padding: 0 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .card-validity {
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-valid-text {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-bottom: 3px;
+        }
+        
+        .card-name {
+            font-size: 0.9rem;
+            text-align: right;
+            text-transform: uppercase;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: 1px;
+        }
+        
+        /* CVV على ظهر البطاقة */
+        .card-back-strip {
+            width: 100%;
+            height: 40px;
+            background-color: rgba(0, 0, 0, 0.8);
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .card-cvv {
+            position: absolute;
+            right: 20px;
+            bottom: -25px;
+            background-color: white;
+            color: black;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .card-issuer-info {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            text-align: center;
+            opacity: 0.7;
+        }
+        
+        /* عناصر تحت البطاقة */
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+        
+        .card-action-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .card-action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-action-btn i {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        
+        .card-action-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        /* Balance and Profit Stats */
+        .stats-container {
+            display: flex;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background-color: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 0 5px;
+            text-align: center;
+            transition: all var(--transition-speed);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-title {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-currency {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+        }
+        
+        .stat-card.balance .stat-value {
+            color: var(--secondary-color);
+        }
+        
+        .stat-card.profit .stat-value {
+            color: var(--success-color);
+        }
+        
+        /* Recent Transactions */
+        .transactions-list {
+            background-color: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background-color: #f1f1f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+        }
+        
+        .transaction-icon.deposit {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+        
+        .transaction-icon.withdraw {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .transaction-icon.profit {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+        }
+        
+        .transaction-details {
+            flex: 1;
+        }
+        
+        .transaction-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .transaction-date {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+        }
+        
+        .transaction-amount {
+            font-weight: 700;
+        }
+        
+        .transaction-amount.deposit {
+            color: var(--success-color);
+        }
+        
+        .transaction-amount.withdraw {
+            color: var(--danger-color);
+        }
+        
+        .transaction-amount.profit {
+            color: var(--secondary-color);
+        }
+        
+        /* Details Page */
+        .detail-page {
+            padding-bottom: 80px;
+        }
+        
+        .detail-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f1f1f1;
+            padding-bottom: 15px;
+        }
+        
+        .detail-item:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .detail-label {
+            width: 140px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .detail-value {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        /* Charts Section */
+        .chart-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            height: 250px;
+        }
+        
+        /* Transactions Page */
+        .transactions-page {
+            padding-bottom: 80px;
+        }
+        
+        .transaction-filters {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: 15px;
+            padding: 5px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .transaction-filters::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            background-color: #f1f1f1;
+            border-radius: 20px;
+            margin-left: 10px;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            transition: all var(--transition-speed);
+            border: none;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .all-transactions-list {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .month-separator {
+            background-color: #f9f9f9;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #7f8c8d;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        /* Profile Page */
+        .profile-page {
+            padding-bottom: 80px;
+        }
+        
+        .profile-header {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+        }
+        
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .profile-details {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        
+        .profile-tabs {
+            display: flex;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .profile-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            font-size: 0.9rem;
+        }
+        
+        .profile-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .profile-section {
+            display: none;
+        }
+        
+        .profile-section.active {
+            display: block;
+        }
+        
+        /* Bottom Tab Bar */
+        .bottom-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            display: flex;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 5px;
+            color: #7f8c8d;
+            transition: all var(--transition-speed);
+            text-decoration: none;
+        }
+        
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+        
+        .tab-icon {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .tab-label {
+            font-size: 0.7rem;
+        }
+        
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 50%;
+            margin-right: -20px;
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all var(--transition-speed);
+        }
+        
+        .has-notifications .notification-badge {
+            opacity: 1;
+        }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn var(--animation-speed) forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .slide-up {
+            animation: slideUp var(--animation-speed) forwards;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Card Type Styles */
+        .investor-card.platinum {
+            background-color: var(--platinum-color);
+        }
+        
+        .investor-card.gold {
+            background-color: var(--gold-color);
+            color: #000000;
+        }
+        
+        .investor-card.premium {
+            background-color: var(--premium-color);
+        }
+        
+        .investor-card.diamond {
+            background-color: var(--diamond-color);
+        }
+        
+        .investor-card.islamic {
+            background-color: var(--islamic-color);
+        }
+        
+        .investor-card.custom {
+            background-color: var(--custom-color);
+        }
+        
+        /* Error Page */
+        .error-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .error-icon {
+            font-size: 5rem;
+            color: var(--danger-color);
+            margin-bottom: 20px;
+        }
+        
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        .error-message {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(52, 152, 219, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            z-index: 99;
+        }
+        
+        .fab i {
+            font-size: 1.5rem;
+        }
+        
+        .fab:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* QR Scanner */
+        .qr-scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+        
+        .qr-scanner-container.active {
+            display: flex;
+        }
+        
+        .scanner-area {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+        }
+        
+        .scanner-marker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px dashed white;
+            border-radius: 15px;
+            box-shadow: 0 0 0 5000px rgba(0, 0, 0, 0.5);
+        }
+        
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--secondary-color);
+            animation: scan 2s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: calc(100% - 2px); }
+            100% { top: 0; }
+        }
+        
+        .scanner-message {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .scanner-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .toast {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            min-width: 300px;
+            max-width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all var(--transition-speed);
+            pointer-events: auto;
+        }
+        
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            margin-left: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .toast-icon.success { color: var(--success-color); }
+        .toast-icon.error { color: var(--danger-color); }
+        .toast-icon.warning { color: var(--warning-color); }
+        .toast-icon.info { color: var(--secondary-color); }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+        
+        .toast-message {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .toast-close {
+            color: #bdc3c7;
+            font-size: 1.1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+        
+        /* Confirmation Dialog */
+        .confirmation-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-speed);
+        }
+        
+        .confirmation-dialog.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .confirmation-content {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            transform: translateY(20px);
+            transition: all var(--transition-speed);
+        }
+        
+        .confirmation-dialog.active .confirmation-content {
+            transform: translateY(0);
+        }
+        
+        .confirmation-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .confirmation-message {
+            margin-bottom: 25px;
+            color: #7f8c8d;
+        }
+        
+        .confirmation-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        /* Settings Page Styles */
+        .settings-container {
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .settings-item {
+            padding: 15px;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+            color: var(--primary-color);
+        }
+        
+        .settings-details {
+            flex: 1;
+        }
+        
+        .settings-title {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .settings-description {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .settings-action {
+            margin-right: 10px;
+        }
+        
+        .settings-toggle {
+            position: relative;
+            width: 50px;
+            height: 28px;
+        }
+        
+        .settings-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e0e0e0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            color: #e0e0e0;
+            margin-bottom: 15px;
+        }
+        
+        .empty-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+        
+        .empty-description {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        /* Support and Contact Page */
+        .support-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .support-option {
+            flex: 1;
+            min-width: 120px;
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all var(--transition-speed);
+        }
+        
+        .support-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .support-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .support-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .support-description {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .contact-form {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .form-textarea:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        /* Logout Confirmation */
+        .logout-btn {
+            background-color: #f9f9f9;
+            color: var(--danger-color);
+            border: 1px solid #f1f1f1;
+        }
+        
+        /* Safari Bottom Bar Fix */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .bottom-tabs {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .container {
+                padding-bottom: calc(70px + env(safe-area-inset-bottom));
+            }
+        }
+        
+        /* Light Mode Fallback */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --text-color: #2c3e50;
+                --light-color: #f8f9fa;
+            }
+        }
+        
+        /* Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text-color: #ecf0f1;
+                --light-color: #2c3e50;
+            }
+            
+            body {
+                background-color: #1a1a2e;
+                color: var(--text-color);
+            }
+            
+            .app-header, 
+            .auth-card, 
+            .transactions-list, 
+            .stat-card, 
+            .card-action-btn, 
+            .detail-container, 
+            .profile-header, 
+            .bottom-tabs, 
+            .settings-container,
+            .toast,
+            .confirmation-content {
+                background-color: #252543;
+                color: var(--text-color);
+            }
+            
+            .form-input {
+                background-color: #1e1e2f;
+                border-color: #3a3a5c;
+                color: var(--text-color);
+            }
+            
+            .card-action-label,
+            .transaction-date,
+            .stat-title,
+            .stat-currency,
+            .profile-details,
+            .detail-label,
+            .settings-description,
+            .toast-message {
+                color: #a0a0a0;
+            }
+            
+            .auth-subtitle,
+            .auth-separator-text {
+                color: #a0a0a0;
+            }
+            
+            .transaction-item {
+                border-color: #3a3a5c;
+            }
+            
+            .filter-btn {
+                background-color: #3a3a5c;
+                color: #a0a0a0;
+            }
+            
+            .filter-btn.active {
+                color: white;
+            }
+            
+            .profile-tabs {
+                background-color: #3a3a5c;
+            }
+            
+            .empty-icon {
+                color: #3a3a5c;
+            }
+            
+            .empty-description {
+                color: #a0a0a0;
+            }
+            
+            .tab-item {
+                color: #a0a0a0;
+            }
+        }
+    </style>
 </head>
 <body>
-   
-
-    <!-- شاشة تسجيل الدخول -->
-    <div id="login-screen" class="screen">
-        <div class="login-container">
-            <div class="login-header">
-                <div class="login-logo">
-                    <i class="fas fa-credit-card"></i>
-                </div>
-                <h1 class="login-title">بطاقة المستثمر</h1>
-                <p class="login-subtitle">قم بتسجيل الدخول للوصول إلى بطاقتك</p>
-            </div>
-            
-            <div class="tabs">
-                <div class="tab-buttons">
-                    <button class="tab-btn active" data-tab="card-login">الدخول برقم البطاقة</button>
-                    <button class="tab-btn" data-tab="phone-login">الدخول برقم الهاتف</button>
-                </div>
-                
-                <!-- تسجيل الدخول برقم البطاقة -->
-                <div id="card-login-tab" class="tab-content active">
-                    <form id="card-login-form" class="login-form">
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="page active">
+        <div class="container">
+            <div class="auth-screen">
+                <div class="auth-card fade-in">
+                    <img src="data:image/png;base64,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" alt="Logo" class="auth-logo">
+                    <h1 class="auth-title">تطبيق بطاقة المستثمر</h1>
+                    <p class="auth-subtitle">أدخل بيانات بطاقتك للوصول إلى حسابك</p>
+                    
+                    <form id="auth-form" class="auth-form slide-up">
                         <div class="form-group">
-                            <label for="card-number">رقم البطاقة</label>
-                            <input type="text" id="card-number" class="form-input" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" autocomplete="off">
+                            <label class="form-label">رقم البطاقة</label>
+                            <input type="text" id="card-number" class="form-input" placeholder="XXXX XXXX XXXX XXXX" required>
+                            <div id="card-number-error" class="form-error"></div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="card-expiry">تاريخ الانتهاء</label>
-                            <input type="text" id="card-expiry" class="form-input" placeholder="MM/YY" maxlength="5" autocomplete="off">
+                            <label class="form-label">رمز التحقق (CVV)</label>
+                            <input type="password" id="cvv" class="form-input" placeholder="XXX" maxlength="3" required>
+                            <div id="cvv-error" class="form-error"></div>
                         </div>
                         
-                        <div class="form-group" id="cvv-group">
-                            <label for="card-cvv">رمز الحماية (CVV)</label>
-                            <input type="password" id="card-cvv" class="form-input" placeholder="XXX" maxlength="3" autocomplete="off">
-                        </div>
-                        
-                        <div class="form-group" id="pin-group" style="display: none;">
-                            <label for="card-pin">رمز PIN</label>
-                            <div class="pin-input-container">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
+                        <div class="auth-options">
+                            <div class="form-remember">
+                                <input type="checkbox" id="remember-me">
+                                <label for="remember-me">تذكرني</label>
                             </div>
-                            <input type="hidden" id="card-pin">
+                            <a href="#" class="forgot-password" id="forgot-card">نسيت بياناتي؟</a>
                         </div>
                         
-                        <div id="login-error" class="error-message"></div>
-                        
-                        <button type="submit" id="card-login-btn" class="btn btn-primary btn-block">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span>تسجيل الدخول</span>
-                        </button>
+                        <button type="submit" class="btn btn-primary btn-block">تسجيل الدخول</button>
                     </form>
-                </div>
-                
-                <!-- تسجيل الدخول برقم الهاتف -->
-                <div id="phone-login-tab" class="tab-content">
-                    <form id="phone-login-form" class="login-form">
-                        <div class="form-group">
-                            <label for="phone-number">رقم الهاتف</label>
-                            <input type="tel" id="phone-number" class="form-input" placeholder="أدخل رقم هاتفك" autocomplete="off">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="investor-name">الاسم بالكامل</label>
-                            <input type="text" id="investor-name" class="form-input" placeholder="أدخل اسمك كما هو مسجل" autocomplete="off">
-                        </div>
-                        
-                        <div id="phone-login-error" class="error-message"></div>
-                        
-                        <button type="submit" id="phone-login-btn" class="btn btn-primary btn-block">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span>تسجيل الدخول</span>
+                    
+                    <div class="auth-separator">
+                        <span></span>
+                        <div class="auth-separator-text">أو</div>
+                        <span></span>
+                    </div>
+                    
+                    <div class="qr-option">
+                        <button id="scan-qr-btn" class="qr-button">
+                            <i class="fas fa-qrcode"></i>
+                            <span>مسح رمز QR من البطاقة</span>
                         </button>
-                    </form>
+                    </div>
                 </div>
-            </div>
-
-            <div class="login-help">
-                <p>مشكلة في تسجيل الدخول؟</p>
-                <a href="#" id="contact-support-btn">تواصل مع الدعم</a>
             </div>
         </div>
     </div>
-
-    <!-- شاشة البطاقة الرئيسية -->
-    <div id="card-dashboard" class="screen">
-        <!-- شريط التنقل العلوي -->
-        <div class="top-navbar">
-            <div class="user-welcome">
-                <div class="user-avatar">
-                    <span id="user-initial">م</span>
-                </div>
-                <span id="welcome-text">مرحباً، <span id="user-name">المستثمر</span></span>
+    
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="page">
+        <div class="container">
+            <div class="app-header">
+                <h1 class="app-title">بطاقتي</h1>
+                <img src="data:image/png;base64,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" alt="Logo" class="app-logo">
             </div>
-            <div class="top-actions">
-                <button id="notifications-btn" class="icon-btn">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">0</span>
-                </button>
-                <button id="logout-btn" class="icon-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- محتوى الصفحة الرئيسية -->
-        <div class="dashboard-content">
-            <!-- عرض البطاقة -->
-            <div id="card-container" class="card-container">
-                <div class="investor-card">
+            
+            <div class="card-front-view">
+                <div id="investor-card" class="investor-card premium">
                     <div class="card-inner">
                         <div class="card-front">
-                            <div class="card-brand">بلاتينية</div>
+                            <div class="card-brand">بريميوم</div>
                             <div class="card-logo">
                                 <div class="card-logo-circle red"></div>
                                 <div class="card-logo-circle yellow"></div>
@@ -159,394 +1713,1122 @@
                             
                             <div class="card-hologram"></div>
                             
-                            <div class="card-qrcode">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=preview" alt="QR Code">
+                            <div class="card-qrcode" id="card-qr-code">
+                                <!-- QR code will be generated here -->
                             </div>
                             
-                            <div class="card-number" id="display-card-number">XXXX XXXX XXXX XXXX</div>
+                            <div class="card-number" id="card-number-display">5XXX XXXX XXXX 1234</div>
                             <div class="card-details">
                                 <div class="card-validity">
                                     <div class="card-valid-text">VALID THRU</div>
-                                    <div id="display-card-expiry">MM/YY</div>
+                                    <div id="card-expiry">12/25</div>
                                 </div>
-                                <div class="card-name" id="display-card-name">اسم المستثمر</div>
+                                <div class="card-name" id="card-name">أحمد محمد علي</div>
                             </div>
-                            
-                            <div class="card-status-badge" id="card-status-badge"></div>
                         </div>
                         
                         <div class="card-back">
                             <div class="card-back-strip"></div>
-                            <div class="card-cvv">CVV: <span id="display-cvv">***</span></div>
+                            <div class="card-cvv">CVV: <span id="card-cvv-display">***</span></div>
                             <div class="card-issuer-info">
                                 نظام الاستثمار المتكامل<br>
                                 بطاقة المستثمر<br>
-                                <span id="display-phone"></span>
+                                <span id="card-phone">0501234567</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="card-actions">
-                    <button id="flip-card-btn" class="card-action-btn">
+                    <div class="card-action-btn" id="flip-card-btn">
                         <i class="fas fa-sync-alt"></i>
-                        <span>عرض الخلف</span>
-                    </button>
-                    <button id="show-qr-btn" class="card-action-btn">
-                        <i class="fas fa-qrcode"></i>
-                        <span>عرض QR</span>
-                    </button>
-                    <button id="share-card-btn" class="card-action-btn">
+                        <div class="card-action-label">تدوير</div>
+                    </div>
+                    <div class="card-action-btn" id="share-card-btn">
                         <i class="fas fa-share-alt"></i>
-                        <span>مشاركة</span>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- ملخص مالي -->
-            <div class="financial-summary">
-                <div class="balance-card">
-                    <div class="balance-header">
-                        <div class="balance-title">الرصيد الإجمالي</div>
-                        <div class="balance-icon">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
+                        <div class="card-action-label">مشاركة</div>
                     </div>
-                    <div class="balance-amount" id="total-balance">0 دينار</div>
-                    <div class="balance-updated">آخر تحديث: <span id="last-update-date">اليوم</span></div>
-                </div>
-                
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-coins"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="monthly-profit">0 دينار</div>
-                            <div class="stat-label">الربح الشهري</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="investment-days">0</div>
-                            <div class="stat-label">أيام الاستثمار</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="next-profit-date">-</div>
-                            <div class="stat-label">موعد الربح القادم</div>
-                        </div>
+                    <div class="card-action-btn" id="show-qr-btn">
+                        <i class="fas fa-qrcode"></i>
+                        <div class="card-action-label">QR كود</div>
                     </div>
                 </div>
             </div>
             
-            <!-- تبويبات المعلومات -->
-            <div class="info-tabs">
-                <div class="tab-buttons">
-                    <button class="tab-btn active" data-tab="investments">الاستثمارات</button>
-                    <button class="tab-btn" data-tab="transactions">العمليات</button>
-                    <button class="tab-btn" data-tab="profits">الأرباح</button>
-                    <button class="tab-btn" data-tab="info">معلومات</button>
+            <div class="stats-container">
+                <div class="stat-card balance">
+                    <div class="stat-title">الرصيد الكلي</div>
+                    <div class="stat-value" id="total-balance">50,000</div>
+                    <div class="stat-currency">دينار</div>
                 </div>
-                
-                <!-- تبويب الاستثمارات -->
-                <div id="investments-tab" class="tab-content active">
-                    <div class="investment-history">
-                        <h3>استثماراتك الحالية</h3>
-                        <div id="investments-list" class="data-list">
-                            <!-- سيتم ملؤها ديناميكياً -->
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- تبويب العمليات -->
-                <div id="transactions-tab" class="tab-content">
-                    <div class="transaction-filters">
-                        <button class="filter-btn active" data-filter="all">الكل</button>
-                        <button class="filter-btn" data-filter="deposit">إيداع</button>
-                        <button class="filter-btn" data-filter="withdraw">سحب</button>
-                        <button class="filter-btn" data-filter="profit">أرباح</button>
-                    </div>
-                    <div id="transactions-list" class="data-list">
-                        <!-- سيتم ملؤها ديناميكياً -->
-                    </div>
-                </div>
-                
-                <!-- تبويب الأرباح -->
-                <div id="profits-tab" class="tab-content">
-                    <div class="profit-summary">
-                        <div class="profit-header">
-                            <div class="profit-title">إجمالي الأرباح المستلمة</div>
-                            <div class="profit-amount" id="total-received-profits">0 دينار</div>
-                        </div>
-                        <div class="profit-progress">
-                            <div class="progress-title">
-                                <span>الربح الحالي</span>
-                                <span id="profit-percentage">0%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%"></div>
-                            </div>
-                            <div class="progress-info">
-                                <span id="current-profit">0 دينار</span>
-                                <span id="target-profit">0 دينار</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="profits-list" class="data-list">
-                        <!-- سيتم ملؤها ديناميكياً -->
-                    </div>
-                </div>
-                
-                <!-- تبويب المعلومات -->
-                <div id="info-tab" class="tab-content">
-                    <div class="investor-info">
-                        <h3>معلومات المستثمر</h3>
-                        <div class="info-item">
-                            <div class="info-label">الاسم</div>
-                            <div class="info-value" id="investor-full-name">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">رقم الهاتف</div>
-                            <div class="info-value" id="investor-phone-number">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">العنوان</div>
-                            <div class="info-value" id="investor-address">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">تاريخ الانضمام</div>
-                            <div class="info-value" id="investor-join-date">-</div>
-                        </div>
-                    </div>
-                    
-                    <div class="card-info">
-                        <h3>معلومات البطاقة</h3>
-                        <div class="info-item">
-                            <div class="info-label">نوع البطاقة</div>
-                            <div class="info-value" id="card-type">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">تاريخ الإصدار</div>
-                            <div class="info-value" id="card-issue-date">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">تاريخ الانتهاء</div>
-                            <div class="info-value" id="card-expiry-date">-</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">حالة البطاقة</div>
-                            <div class="info-value">
-                                <span id="card-status-badge-info" class="badge badge-success">نشطة</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card-benefits">
-                        <h3>مزايا البطاقة</h3>
-                        <ul id="benefits-list">
-                            <!-- سيتم ملؤها ديناميكياً -->
-                        </ul>
-                    </div>
-                    
-                    <div class="contact-support">
-                        <h3>الدعم الفني</h3>
-                        <p>للمساعدة أو الاستفسارات، يرجى التواصل مع فريق الدعم الفني</p>
-                        <button id="contact-btn" class="btn btn-primary">
-                            <i class="fas fa-headset"></i>
-                            <span>التواصل مع الدعم</span>
-                        </button>
-                    </div>
+                <div class="stat-card profit">
+                    <div class="stat-title">الربح المستحق</div>
+                    <div class="stat-value" id="total-profit">8,750</div>
+                    <div class="stat-currency">دينار</div>
                 </div>
             </div>
-        </div>
-        
-        <!-- شريط التنقل السفلي -->
-        <div class="bottom-navbar">
-            <a href="#home" class="nav-item active">
-                <i class="fas fa-home"></i>
-                <span>الرئيسية</span>
-            </a>
-            <a href="#transactions" class="nav-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>العمليات</span>
-            </a>
-            <a href="#profits" class="nav-item">
-                <i class="fas fa-coins"></i>
-                <span>الأرباح</span>
-            </a>
-            <a href="#profile" class="nav-item">
-                <i class="fas fa-user"></i>
-                <span>الملف</span>
-            </a>
-        </div>
-    </div>
-
-    <!-- عناصر النافذة المنبثقة -->
-    <!-- نافذة عرض QR Code -->
-    <div id="qr-modal" class="modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3>QR Code البطاقة</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="qr-code-container">
-                    <div id="card-qr-code"></div>
+            
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-exchange-alt"></i> أحدث العمليات</h2>
+                <div class="transactions-list" id="recent-transactions">
+                    <!-- Transactions will be dynamically added here -->
                 </div>
-                <p class="qr-code-info">قم بمسح هذا الرمز لمشاركة معلومات البطاقة</p>
             </div>
-            <div class="modal-footer">
-                <button id="save-qr-btn" class="btn btn-primary">حفظ الصورة</button>
-                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
+            
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-chart-line"></i> تطور الاستثمار</h2>
+                <div class="chart-container">
+                    <canvas id="investment-chart"></canvas>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- نافذة مشاركة البطاقة -->
-    <div id="share-modal" class="modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3>مشاركة البطاقة</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="share-options">
-                    <button class="share-option" data-method="whatsapp">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>واتساب</span>
-                    </button>
-                    <button class="share-option" data-method="email">
-                        <i class="fas fa-envelope"></i>
-                        <span>البريد الإلكتروني</span>
-                    </button>
-                    <button class="share-option" data-method="copy">
-                        <i class="fas fa-copy"></i>
-                        <span>نسخ النص</span>
-                    </button>
-                </div>
-                <div class="share-text-container">
-                    <textarea id="share-text" readonly></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- نافذة الإشعارات -->
-    <div id="notifications-modal" class="modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3>الإشعارات</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="notifications-list">
-                    <!-- سيتم ملؤها ديناميكياً -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="mark-read-btn" class="btn btn-primary">تعيين الكل كمقروء</button>
-                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- نافذة الاتصال بالدعم -->
-    <div id="support-modal" class="modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3>اتصل بالدعم</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="support-options">
-                    <a href="tel:+9647800000000" class="support-option">
-                        <i class="fas fa-phone"></i>
-                        <span>اتصل بنا: +964 780 000 0000</span>
-                    </a>
-                    <a href="mailto:support@investment-system.com" class="support-option">
-                        <i class="fas fa-envelope"></i>
-                        <span>البريد الإلكتروني: support@investment-system.com</span>
-                    </a>
-                    <a href="https://wa.me/9647800000000" class="support-option">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>واتساب: +964 780 000 0000</span>
-                    </a>
-                </div>
-                <div class="support-form">
-                    <h4>أرسل رسالة</h4>
-                    <div class="form-group">
-                        <label for="support-subject">الموضوع</label>
-                        <input type="text" id="support-subject" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label for="support-message">الرسالة</label>
-                        <textarea id="support-message" class="form-input" rows="4"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="send-support-message" class="btn btn-primary">إرسال</button>
-                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- إشعار منبثق -->
-    <div id="toast-notification" class="toast">
-        <div class="toast-icon">
-            <i class="fas fa-info-circle"></i>
-        </div>
-        <div class="toast-content">
-            <div class="toast-title">عنوان الإشعار</div>
-            <div class="toast-message">نص الإشعار يظهر هنا</div>
-        </div>
-        <div class="toast-close">&times;</div>
-    </div>
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     
-    <!-- QR Code Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+    <!-- Transactions Page -->
+    <div id="transactions-page" class="page">
+        <div class="container">
+            <div class="app-header">
+                <h1 class="app-title">العمليات</h1>
+                <img src="data:image/png;base64,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" alt="Logo" class="app-logo">
+            </div>
+            
+            <div class="transaction-filters">
+                <button class="filter-btn active" data-filter="all">الكل</button>
+                <button class="filter-btn" data-filter="deposit">إيداع</button>
+                <button class="filter-btn" data-filter="withdraw">سحب</button>
+                <button class="filter-btn" data-filter="profit">أرباح</button>
+            </div>
+            
+            <div class="all-transactions-list" id="all-transactions">
+                <!-- Transactions will be added here -->
+                <div class="month-separator">أبريل 2025</div>
+                <div class="transaction-item">
+                    <div class="transaction-icon deposit">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">إيداع إلى الحساب</div>
+                        <div class="transaction-date">20 أبريل 2025</div>
+                    </div>
+                    <div class="transaction-amount deposit">+15,000 د.ع</div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-icon profit">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">أرباح شهرية</div>
+                        <div class="transaction-date">15 أبريل 2025</div>
+                    </div>
+                    <div class="transaction-amount profit">+2,625 د.ع</div>
+                </div>
+                <div class="month-separator">مارس 2025</div>
+                <div class="transaction-item">
+                    <div class="transaction-icon profit">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">أرباح شهرية</div>
+                        <div class="transaction-date">15 مارس 2025</div>
+                    </div>
+                    <div class="transaction-amount profit">+2,625 د.ع</div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-icon withdraw">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">سحب من الحساب</div>
+                        <div class="transaction-date">5 مارس 2025</div>
+                    </div>
+                    <div class="transaction-amount withdraw">-3,500 د.ع</div>
+                </div>
+                <div class="month-separator">فبراير 2025</div>
+                <div class="transaction-item">
+                    <div class="transaction-icon profit">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">أرباح شهرية</div>
+                        <div class="transaction-date">15 فبراير 2025</div>
+                    </div>
+                    <div class="transaction-amount profit">+2,625 د.ع</div>
+                </div>
+                <div class="transaction-item">
+                    <div class="transaction-icon deposit">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">إيداع إلى الحساب</div>
+                        <div class="transaction-date">1 فبراير 2025</div>
+                    </div>
+                    <div class="transaction-amount deposit">+35,000 د.ع</div>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <!-- Service Worker -->
+    <!-- Details Page -->
+    <div id="details-page" class="page">
+        <div class="container">
+            <div class="app-header">
+                <h1 class="app-title">تفاصيل الحساب</h1>
+                <img src="data:image/png;base64,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" alt="Logo" class="app-logo">
+            </div>
+            
+            <div class="detail-container">
+                <div class="detail-item">
+                    <div class="detail-label">الاسم</div>
+                    <div class="detail-value">أحمد محمد علي</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">رقم الهاتف</div>
+                    <div class="detail-value">0501234567</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">البريد الإلكتروني</div>
+                    <div class="detail-value">ahmed@example.com</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ الاشتراك</div>
+                    <div class="detail-value">10 يناير 2025</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">رقم البطاقة</div>
+                    <div class="detail-value">5XXX XXXX XXXX 1234</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ الانتهاء</div>
+                    <div class="detail-value">12/25</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">نوع البطاقة</div>
+                    <div class="detail-value">بريميوم</div>
+                </div>
+            </div>
+            
+            <div class="detail-container">
+                <div class="detail-item">
+                    <div class="detail-label">إجمالي الاستثمار</div>
+                    <div class="detail-value">50,000 دينار</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">العائد الشهري</div>
+                    <div class="detail-value">8,750 دينار</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">نسبة الربح</div>
+                    <div class="detail-value">17.5%</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">الأرباح المدفوعة</div>
+                    <div class="detail-value">52,500 دينار</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ آخر الأرباح</div>
+                    <div class="detail-value">15 أبريل 2025</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">تاريخ الأرباح القادمة</div>
+                    <div class="detail-value">15 مايو 2025</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title"><i class="fas fa-chart-line"></i> تحليل الأرباح</h2>
+                <div class="chart-container">
+                    <canvas id="profits-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Page -->
+    <div id="profile-page" class="page">
+        <div class="container">
+            <div class="app-header">
+                <h1 class="app-title">الملف الشخصي</h1>
+                <img src="data:image/png;base64,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" alt="Logo" class="app-logo">
+            </div>
+            
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    أم
+                </div>
+                <h2 class="profile-name">أحمد محمد علي</h2>
+                <p class="profile-details">مستثمر منذ يناير 2025</p>
+                
+                <div class="profile-tabs">
+                    <div class="profile-tab active" data-section="personal-info">معلومات شخصية</div>
+                    <div class="profile-tab" data-section="settings">الإعدادات</div>
+                </div>
+            </div>
+            
+            <div class="profile-section active" id="personal-info-section">
+                <div class="detail-container">
+                    <div class="detail-item">
+                        <div class="detail-label">الاسم الكامل</div>
+                        <div class="detail-value">أحمد محمد علي</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">رقم الهاتف</div>
+                        <div class="detail-value">0501234567</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">البريد الإلكتروني</div>
+                        <div class="detail-value">ahmed@example.com</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">العنوان</div>
+                        <div class="detail-value">بغداد - الكرادة - شارع 15</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الميلاد</div>
+                        <div class="detail-value">15 مارس 1988</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">رقم البطاقة الشخصية</div>
+                        <div class="detail-value">2910523648</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-block" id="edit-profile-btn" style="margin-top: 20px;">
+                    <i class="fas fa-edit"></i>
+                    <span>تعديل البيانات الشخصية</span>
+                </button>
+            </div>
+            
+            <div class="profile-section" id="settings-section">
+                <div class="settings-container">
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-title">الإشعارات</div>
+                            <div class="settings-description">تلقي إشعارات بالأرباح والعمليات المالية</div>
+                        </div>
+                        <div class="settings-action">
+                            <label class="settings-toggle">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-fingerprint"></i>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-title">المصادقة الحيوية</div>
+                            <div class="settings-description">استخدام بصمة الإصبع أو الوجه لتسجيل الدخول</div>
+                        </div>
+                        <div class="settings-action">
+                            <label class="settings-toggle">
+                                <input type="checkbox">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-title">الوضع الداكن</div>
+                            <div class="settings-description">تفعيل المظهر الداكن للتطبيق</div>
+                        </div>
+                        <div class="settings-action">
+                            <label class="settings-toggle">
+                                <input type="checkbox" id="dark-mode-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-language"></i>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-title">اللغة</div>
+                            <div class="settings-description">تغيير لغة التطبيق</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="btn btn-sm btn-outline">العربية</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-container" style="margin-top: 20px;">
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-title">الأمان</div>
+                            <div class="settings-description">تغيير كلمة المرور ورمز PIN</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="btn btn-sm btn-outline"><i class="fas fa-chevron-left"></i></button>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-title">المساعدة والدعم</div>
+                            <div class="settings-description">الاتصال بالدعم الفني</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="btn btn-sm btn-outline"><i class="fas fa-chevron-left"></i></button>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-title">عن التطبيق</div>
+                            <div class="settings-description">الإصدار 2.0.5</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="btn btn-sm btn-outline"><i class="fas fa-chevron-left"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-block logout-btn" id="logout-btn" style="margin-top: 30px;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Tab Bar -->
+    <div class="bottom-tabs">
+        <a href="#" class="tab-item active" data-page="dashboard">
+            <div class="tab-icon"><i class="fas fa-home"></i></div>
+            <div class="tab-label">الرئيسية</div>
+        </a>
+        <a href="#" class="tab-item" data-page="transactions">
+            <div class="tab-icon"><i class="fas fa-exchange-alt"></i></div>
+            <div class="tab-label">العمليات</div>
+        </a>
+        <a href="#" class="tab-item" data-page="details">
+            <div class="tab-icon"><i class="fas fa-chart-pie"></i></div>
+            <div class="tab-label">التفاصيل</div>
+        </a>
+        <a href="#" class="tab-item" data-page="profile">
+            <div class="tab-icon"><i class="fas fa-user"></i></div>
+            <div class="tab-label">الملف</div>
+            <div class="notification-badge">2</div>
+        </a>
+    </div>
+    
+    <!-- QR Scanner Container -->
+    <div class="qr-scanner-container" id="qr-scanner">
+        <button class="scanner-close" id="close-scanner">&times;</button>
+        <div class="scanner-area">
+            <div class="scanner-marker">
+                <div class="scanner-line"></div>
+            </div>
+        </div>
+        <div class="scanner-message">وجّه الكاميرا نحو رمز QR في البطاقة</div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container">
+        <!-- Toasts will be added dynamically -->
+    </div>
+    
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="logout-confirmation">
+        <div class="confirmation-content">
+            <div class="confirmation-title">تسجيل الخروج</div>
+            <div class="confirmation-message">هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟</div>
+            <div class="confirmation-actions">
+                <button class="btn btn-outline" id="cancel-logout">إلغاء</button>
+                <button class="btn btn-danger" id="confirm-logout">تسجيل الخروج</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
     <script>
-        // تسجيل Service Worker للـ PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(function(registration) {
-                        console.log('ServiceWorker تم التسجيل بنجاح:', registration.scope);
-                    })
-                    .catch(function(error) {
-                        console.log('فشل تسجيل ServiceWorker:', error);
+        document.addEventListener('DOMContentLoaded', function() {
+            // تهيئة Firebase (تخصيص بمعلومات المشروع)
+             const firebaseConfig = {
+            apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+            authDomain: "messageemeapp.firebaseapp.com",
+            databaseURL: "https://messageemeapp-default-rtdb.firebaseio.com",
+            projectId: "messageemeapp",
+            storageBucket: "messageemeapp.appspot.com",
+            messagingSenderId: "255034474844",
+            appId: "1:255034474844:web:5e3b7a6bc4b2fb94cc4199"
+        };
+            
+            // تهيئة Firebase (مع تجاهل أي أخطاء إذا كانت المكتبة غير محملة)
+            try {
+                if (typeof firebase !== 'undefined') {
+                    firebase.initializeApp(firebaseConfig);
+                }
+            } catch (error) {
+                console.error('خطأ في تهيئة Firebase:', error);
+            }
+            
+            // إنشاء QR Code للبطاقة
+            try {
+                const qrCodeContainer = document.getElementById('card-qr-code');
+                if (qrCodeContainer && typeof QRCode !== 'undefined') {
+                    new QRCode(qrCodeContainer, {
+                        text: "INV-CARD-1234567890",
+                        width: 70,
+                        height: 70,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
                     });
+                }
+            } catch (error) {
+                console.error('خطأ في إنشاء QR Code:', error);
+            }
+            
+            // إنشاء رسم بياني لتطور الاستثمار
+            try {
+                const investmentChartCtx = document.getElementById('investment-chart');
+                if (investmentChartCtx && typeof Chart !== 'undefined') {
+                    const investmentChart = new Chart(investmentChartCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                            datasets: [{
+                                label: 'الرصيد الكلي',
+                                data: [50000, 55000, 52500, 50000, 50000, 65000],
+                                borderColor: '#3498db',
+                                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'الأرباح',
+                                data: [0, 2625, 2625, 2625, 2625, 2625],
+                                borderColor: '#2ecc71',
+                                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            family: "'Tajawal', sans-serif"
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    bodyFont: {
+                                        family: "'Tajawal', sans-serif"
+                                    },
+                                    titleFont: {
+                                        family: "'Tajawal', sans-serif"
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        font: {
+                                            family: "'Tajawal', sans-serif"
+                                        }
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            family: "'Tajawal', sans-serif"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // إنشاء رسم بياني للأرباح
+                const profitsChartCtx = document.getElementById('profits-chart');
+                if (profitsChartCtx && typeof Chart !== 'undefined') {
+                    const profitsChart = new Chart(profitsChartCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                            datasets: [{
+                                label: 'الأرباح الشهرية',
+                                data: [5000, 7625, 7625, 10250, 10250, 11750],
+                                backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                                borderColor: 'rgba(46, 204, 113, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            family: "'Tajawal', sans-serif"
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    bodyFont: {
+                                        family: "'Tajawal', sans-serif"
+                                    },
+                                    titleFont: {
+                                        family: "'Tajawal', sans-serif"
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        font: {
+                                            family: "'Tajawal', sans-serif"
+                                        }
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            family: "'Tajawal', sans-serif"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('خطأ في إنشاء الرسوم البيانية:', error);
+            }
+            
+            // تهيئة العمليات الحديثة
+            const recentTransactions = [
+                {
+                    type: 'deposit',
+                    title: 'إيداع إلى الحساب',
+                    date: '20 أبريل 2025',
+                    amount: '+15,000 د.ع'
+                },
+                {
+                    type: 'profit',
+                    title: 'أرباح شهرية',
+                    date: '15 أبريل 2025',
+                    amount: '+2,625 د.ع'
+                },
+                {
+                    type: 'profit',
+                    title: 'أرباح شهرية',
+                    date: '15 مارس 2025',
+                    amount: '+2,625 د.ع'
+                }
+            ];
+            
+            const recentTransactionsContainer = document.getElementById('recent-transactions');
+            if (recentTransactionsContainer) {
+                recentTransactions.forEach(transaction => {
+                    const transactionItem = document.createElement('div');
+                    transactionItem.className = 'transaction-item';
+                    transactionItem.innerHTML = `
+                        <div class="transaction-icon ${transaction.type}">
+                            <i class="fas fa-${transaction.type === 'deposit' ? 'arrow-down' : transaction.type === 'withdraw' ? 'arrow-up' : 'chart-line'}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">${transaction.title}</div>
+                            <div class="transaction-date">${transaction.date}</div>
+                        </div>
+                        <div class="transaction-amount ${transaction.type}">${transaction.amount}</div>
+                    `;
+                    recentTransactionsContainer.appendChild(transactionItem);
+                });
+            }
+            
+            // تبديل البطاقة (الوجه الأمامي/الخلفي)
+            const flipCardBtn = document.getElementById('flip-card-btn');
+            const investorCard = document.getElementById('investor-card');
+            
+            if (flipCardBtn && investorCard) {
+                flipCardBtn.addEventListener('click', function() {
+                    investorCard.classList.toggle('flipped');
+                });
+            }
+            
+            // مستمع التبديل بين صفحات التطبيق
+            const tabItems = document.querySelectorAll('.tab-item');
+            const pages = document.querySelectorAll('.page');
+            
+            tabItems.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // إزالة الفئة النشطة من جميع علامات التبويب
+                    tabItems.forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // إضافة الفئة النشطة للعلامة المحددة
+                    this.classList.add('active');
+                    
+                    // إخفاء جميع الصفحات
+                    pages.forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    
+                    // إظهار الصفحة المناسبة
+                    const pageId = this.getAttribute('data-page');
+                    document.getElementById(pageId + '-page').classList.add('active');
+                });
             });
-        }
+            
+            // مستمعي فلاتر العمليات
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // إزالة الفئة النشطة من جميع الأزرار
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // إضافة الفئة النشطة للزر المحدد
+                    this.classList.add('active');
+                    
+                    // تنفيذ الفلترة (هنا يمكن إضافة منطق الفلترة الفعلي)
+                    const filter = this.getAttribute('data-filter');
+                    console.log('تم تطبيق الفلتر:', filter);
+                    
+                    // مثال بسيط لتنفيذ الفلترة (تغيير أسلوب العناصر بدلاً من إعادة التحميل)
+                    const allTransactions = document.querySelectorAll('#all-transactions .transaction-item');
+                    allTransactions.forEach(item => {
+                        if (filter === 'all') {
+                            item.style.display = 'flex';
+                        } else {
+                            const iconType = item.querySelector('.transaction-icon').classList[1];
+                            item.style.display = (iconType === filter) ? 'flex' : 'none';
+                        }
+                    });
+                    
+                    // أظهر/أخفِ عناصر فاصل الشهر حسب الحاجة
+                    const monthSeparators = document.querySelectorAll('.month-separator');
+                    if (filter === 'all') {
+                        monthSeparators.forEach(sep => sep.style.display = 'block');
+                    } else {
+                        monthSeparators.forEach(sep => {
+                            // تحقق ما إذا كان هناك عنصر مرئي بعد هذا الفاصل
+                            let hasVisibleTransaction = false;
+                            let nextEl = sep.nextElementSibling;
+                            
+                            while (nextEl && nextEl.className === 'transaction-item') {
+                                if (nextEl.style.display !== 'none') {
+                                    hasVisibleTransaction = true;
+                                    break;
+                                }
+                                nextEl = nextEl.nextElementSibling;
+                            }
+                            
+                            sep.style.display = hasVisibleTransaction ? 'block' : 'none';
+                        });
+                    }
+                });
+            });
+            
+            // مستمعي صفحة الملف الشخصي
+            const profileTabs = document.querySelectorAll('.profile-tab');
+            const profileSections = document.querySelectorAll('.profile-section');
+            
+            profileTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // إزالة الفئة النشطة من جميع علامات التبويب
+                    profileTabs.forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // إضافة الفئة النشطة للعلامة المحددة
+                    this.classList.add('active');
+                    
+                    // إخفاء جميع الأقسام
+                    profileSections.forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    // إظهار القسم المناسب
+                    const sectionId = this.getAttribute('data-section') + '-section';
+                    document.getElementById(sectionId).classList.add('active');
+                });
+            });
+            
+            // مستمع تبديل الوضع الداكن
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            
+            if (darkModeToggle) {
+                // تهيئة الحالة بناءً على وضع النظام أو الإعدادات المحفوظة
+                const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+                
+                // ضبط الحالة الأولية
+                const isDarkMode = savedDarkMode !== null ? savedDarkMode : prefersDarkMode;
+                darkModeToggle.checked = isDarkMode;
+                
+                // تطبيق الوضع الداكن إذا كان مفعلاً
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                }
+                
+                // مستمع التغيير
+                darkModeToggle.addEventListener('change', function() {
+                    document.body.classList.toggle('dark-mode', this.checked);
+                    localStorage.setItem('darkMode', this.checked);
+                    
+                    // إظهار إشعار
+                    showToast(
+                        this.checked ? 'تم تفعيل الوضع الداكن' : 'تم إلغاء الوضع الداكن',
+                        this.checked ? 'تم تغيير مظهر التطبيق إلى الوضع الداكن' : 'تم تغيير مظهر التطبيق إلى الوضع الفاتح',
+                        'info'
+                    );
+                });
+            }
+            
+            // مستمع زر مسح QR
+            const scanQrBtn = document.getElementById('scan-qr-btn');
+            const qrScanner = document.getElementById('qr-scanner');
+            const closeScanner = document.getElementById('close-scanner');
+            
+            if (scanQrBtn && qrScanner && closeScanner) {
+                scanQrBtn.addEventListener('click', function() {
+                    qrScanner.classList.add('active');
+                    
+                    // في التطبيق الحقيقي، هنا يمكن تنفيذ منطق فتح الكاميرا وبدء المسح
+                    
+                    // محاكاة بسيطة للمسح
+                    setTimeout(() => {
+                        // أظهر إشعار نجاح وأغلق الماسح
+                        showToast('تم المسح بنجاح', 'تم التعرف على البطاقة وتسجيل الدخول', 'success');
+                        qrScanner.classList.remove('active');
+                        
+                        // انتقل إلى الصفحة الرئيسية
+                        document.getElementById('auth-screen').classList.remove('active');
+                        document.getElementById('dashboard-page').classList.add('active');
+                    }, 3000);
+                });
+                
+                closeScanner.addEventListener('click', function() {
+                    qrScanner.classList.remove('active');
+                });
+            }
+            
+            // مستمع نموذج تسجيل الدخول
+            const authForm = document.getElementById('auth-form');
+            
+            if (authForm) {
+                authForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const cardNumber = document.getElementById('card-number').value;
+                    const cvv = document.getElementById('cvv').value;
+                    
+                    // التحقق من الحقول
+                    let isValid = true;
+                    
+                    if (!cardNumber) {
+                        document.getElementById('card-number-error').textContent = 'يرجى إدخال رقم البطاقة';
+                        isValid = false;
+                    } else if (!/^\d{4}\s?\d{4}\s?\d{4}\s?\d{4}$/.test(cardNumber.replace(/\s/g, '').padStart(16, 'X'))) {
+                        document.getElementById('card-number-error').textContent = 'يرجى إدخال رقم بطاقة صحيح';
+                        isValid = false;
+                    } else {
+                        document.getElementById('card-number-error').textContent = '';
+                    }
+                    
+                    if (!cvv) {
+                        document.getElementById('cvv-error').textContent = 'يرجى إدخال رمز التحقق';
+                        isValid = false;
+                    } else if (!/^\d{3}$/.test(cvv)) {
+                        document.getElementById('cvv-error').textContent = 'رمز التحقق يجب أن يتكون من 3 أرقام';
+                        isValid = false;
+                    } else {
+                        document.getElementById('cvv-error').textContent = '';
+                    }
+                    
+                    if (isValid) {
+                        // في التطبيق الحقيقي، هنا يمكن إرسال طلب إلى الخادم للتحقق من البطاقة
+                        
+                        // التمثيل الافتراضي للتحقق الناجح
+                        showToast('تم تسجيل الدخول', 'تم التحقق من البطاقة بنجاح', 'success');
+                        
+                        // انتقل إلى الصفحة الرئيسية
+                        document.getElementById('auth-screen').classList.remove('active');
+                        document.getElementById('dashboard-page').classList.add('active');
+                        
+                        // تفعيل علامة التبويب المناسبة
+                        document.querySelectorAll('.tab-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        document.querySelector('.tab-item[data-page="dashboard"]').classList.add('active');
+                        
+                        // حفظ في التخزين المحلي إذا تم تحديد "تذكرني"
+                        if (document.getElementById('remember-me').checked) {
+                            localStorage.setItem('savedCardNumber', cardNumber);
+                            // لا تخزن CVV أبدًا لأسباب أمنية
+                        }
+                    }
+                });
+            }
+            
+            // تحقق من وجود بيانات البطاقة المحفوظة
+            const savedCardNumber = localStorage.getItem('savedCardNumber');
+            if (savedCardNumber && document.getElementById('card-number')) {
+                document.getElementById('card-number').value = savedCardNumber;
+                document.getElementById('remember-me').checked = true;
+            }
+            
+            // مستمع زر تسجيل الخروج
+            const logoutBtn = document.getElementById('logout-btn');
+            const logoutConfirmation = document.getElementById('logout-confirmation');
+            const cancelLogout = document.getElementById('cancel-logout');
+            const confirmLogout = document.getElementById('confirm-logout');
+            
+            if (logoutBtn && logoutConfirmation && cancelLogout && confirmLogout) {
+                logoutBtn.addEventListener('click', function() {
+                    logoutConfirmation.classList.add('active');
+                });
+                
+                cancelLogout.addEventListener('click', function() {
+                    logoutConfirmation.classList.remove('active');
+                });
+                
+                confirmLogout.addEventListener('click', function() {
+                    // تسجيل الخروج
+                    localStorage.removeItem('savedCardNumber');
+                    
+                    // إظهار إشعار
+                    showToast('تم تسجيل الخروج', 'تم تسجيل الخروج بنجاح', 'info');
+                    
+                    // إغلاق النافذة المنبثقة
+                    logoutConfirmation.classList.remove('active');
+                    
+                    // العودة إلى شاشة تسجيل الدخول
+                    document.querySelectorAll('.page').forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    document.getElementById('auth-screen').classList.add('active');
+                    
+                    // إعادة تعيين حقول النموذج
+                    if (document.getElementById('card-number')) {
+                        document.getElementById('card-number').value = '';
+                    }
+                    if (document.getElementById('cvv')) {
+                        document.getElementById('cvv').value = '';
+                    }
+                    if (document.getElementById('remember-me')) {
+                        document.getElementById('remember-me').checked = false;
+                    }
+                });
+            }
+            
+            // مستمع زر عرض QR Code
+            const showQrBtn = document.getElementById('show-qr-btn');
+            
+            if (showQrBtn) {
+                showQrBtn.addEventListener('click', function() {
+                    // إنشاء نافذة منبثقة لعرض رمز QR
+                    const qrModal = document.createElement('div');
+                    qrModal.className = 'confirmation-dialog active';
+                    qrModal.innerHTML = `
+                        <div class="confirmation-content" style="text-align: center;">
+                            <div class="confirmation-title">رمز QR الخاص بالبطاقة</div>
+                            <div style="margin: 20px 0; background-color: #fff; padding: 15px; border-radius: 10px; display: inline-block;">
+                                <div id="qr-modal-code" style="width: 200px; height: 200px;"></div>
+                            </div>
+                            <div style="margin-bottom: 15px; color: #7f8c8d; font-size: 0.9rem;">
+                                يمكنك مشاركة هذا الرمز لتسهيل عملية الدفع
+                            </div>
+                            <div class="confirmation-actions">
+                                <button class="btn btn-primary close-qr-modal">إغلاق</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(qrModal);
+                    
+                    // إنشاء رمز QR في النافذة المنبثقة
+                    try {
+                        if (typeof QRCode !== 'undefined') {
+                            new QRCode(document.getElementById('qr-modal-code'), {
+                                text: "INV-CARD-1234567890",
+                                width: 200,
+                                height: 200,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+                        }
+                    } catch (error) {
+                        console.error('خطأ في إنشاء QR Code:', error);
+                    }
+                    
+                    // مستمع لزر الإغلاق
+                    qrModal.querySelector('.close-qr-modal').addEventListener('click', function() {
+                        qrModal.remove();
+                    });
+                });
+            }
+            
+            // مستمع زر المشاركة
+            const shareCardBtn = document.getElementById('share-card-btn');
+            
+            if (shareCardBtn) {
+                shareCardBtn.addEventListener('click', function() {
+                    // التحقق من دعم واجهة مشاركة الويب
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'بطاقة المستثمر',
+                            text: 'بطاقة المستثمر الخاصة بي - أحمد محمد علي',
+                            url: window.location.href
+                        })
+                        .then(() => {
+                            showToast('تمت المشاركة', 'تمت مشاركة معلومات البطاقة بنجاح', 'success');
+                        })
+                        .catch((error) => {
+                            console.error('خطأ في المشاركة:', error);
+                            showShareFallback();
+                        });
+                    } else {
+                        showShareFallback();
+                    }
+                    
+                    // احتياطي للمشاركة إذا لم تكن واجهة المشاركة مدعومة
+                    function showShareFallback() {
+                        const shareModal = document.createElement('div');
+                        shareModal.className = 'confirmation-dialog active';
+                        shareModal.innerHTML = `
+                            <div class="confirmation-content">
+                                <div class="confirmation-title">مشاركة بطاقة المستثمر</div>
+                                <div style="margin: 15px 0; text-align: center;">
+                                    <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;">
+                                        <i class="fab fa-whatsapp" style="margin-left: 8px; color: #25d366;"></i>
+                                        <span>واتساب</span>
+                                    </button>
+                                    <button class="btn btn-outline" style="width: 100%; margin-bottom: 10px;">
+                                        <i class="fas fa-envelope" style="margin-left: 8px; color: #007aff;"></i>
+                                        <span>البريد الإلكتروني</span>
+                                    </button>
+                                    <button class="btn btn-outline" style="width: 100%;">
+                                        <i class="fas fa-copy" style="margin-left: 8px; color: #3498db;"></i>
+                                        <span>نسخ الرابط</span>
+                                    </button>
+                                </div>
+                                <div class="confirmation-actions">
+                                    <button class="btn btn-outline close-share-modal">إلغاء</button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        document.body.appendChild(shareModal);
+                        
+                        // مستمع لزر الإغلاق
+                        shareModal.querySelector('.close-share-modal').addEventListener('click', function() {
+                            shareModal.remove();
+                        });
+                    }
+                });
+            }
+            
+            // دالة إظهار الإشعارات
+            function showToast(title, message, type = 'info') {
+                const toastContainer = document.getElementById('toast-container');
+                
+                if (!toastContainer) return;
+                
+                // إنشاء عنصر الإشعار
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                
+                // تحديد أيقونة حسب النوع
+                let icon = '';
+                switch (type) {
+                    case 'success':
+                        icon = '<i class="fas fa-check-circle toast-icon success"></i>';
+                        break;
+                    case 'error':
+                        icon = '<i class="fas fa-times-circle toast-icon error"></i>';
+                        break;
+                    case 'warning':
+                        icon = '<i class="fas fa-exclamation-triangle toast-icon warning"></i>';
+                        break;
+                    default:
+                        icon = '<i class="fas fa-info-circle toast-icon info"></i>';
+                        break;
+                }
+                
+                // إضافة المحتوى
+                toast.innerHTML = `
+                    ${icon}
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                    <button class="toast-close">&times;</button>
+                `;
+                
+                // إضافة إلى الحاوية
+                toastContainer.appendChild(toast);
+                
+                // إظهار الإشعار (تأخير قليلاً لإضافة تأثير الحركة)
+                setTimeout(() => {
+                    toast.classList.add('active');
+                }, 10);
+                
+                // إضافة مستمع لزر الإغلاق
+                toast.querySelector('.toast-close').addEventListener('click', function() {
+                    closeToast(toast);
+                });
+                
+                // إغلاق تلقائي بعد 5 ثوانٍ
+                setTimeout(() => {
+                    closeToast(toast);
+                }, 5000);
+                
+                // دالة إغلاق الإشعار
+                function closeToast(toastElement) {
+                    toastElement.classList.remove('active');
+                    
+                    // إزالة بعد انتهاء الحركة
+                    setTimeout(() => {
+                        if (toastElement.parentNode) {
+                            toastElement.parentNode.removeChild(toastElement);
+                        }
+                    }, 300);
+                }
+            }
+            
+            // تحقق من حالة التحميل على سبيل المثال
+            if (document.readyState === 'complete') {
+                showToast('تم التحميل', 'تم تحميل التطبيق بنجاح', 'success');
+            }
+        });
+        
+        <script src="app.js"></script>
     </script>
-    
-    <!-- توصيل بـ Firebase -->
-    <script src="js/firebase-config.js"></script>
-    
-    <!-- JS الرئيسي -->
-    <script src="app.js"></script>
-    <script src="card-utils.js"></script>
-    <script src="animation.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="login.js"></script>
-    <script src="dashboard.js"></script>
-    <script src="investor-card-system"></script>
-
 </body>
 </html>
