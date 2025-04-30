@@ -13,6 +13,10 @@ const InvestorCardFirebase = (function() {
         appId: "1:255034474844:web:5e3b7a6bc4b2fb94cc4199"
     };
 
+    // معرف المستخدم الذي يحتوي على بطاقات المستثمرين
+    // تم إضافة هذا المعرف بناءً على الرابط المقدم
+    const INVESTOR_CARDS_USER_ID = "b7XlRaRqUEX2X6SdnF9fyV5SPi83";
+
     // متغيرات النظام
     let isInitialized = false;
     let firebaseInstance = null;
@@ -64,104 +68,261 @@ const InvestorCardFirebase = (function() {
             
             console.log('البحث عن البطاقة في قاعدة البيانات:', cleanCardNumber);
             
-            const dbRef = firebase.database().ref('/users');
+            // استخدام المسار المحدد للمستثمرين بناءً على معرف المستخدم المحدد
+            const dbRef = firebase.database().ref(`/users/${INVESTOR_CARDS_USER_ID}/investor_cards`);
             
-            // استعلام لجميع المستخدمين أولاً
+            // استعلام مباشر للبطاقات
             dbRef.once('value')
                 .then(snapshot => {
                     let foundCard = null;
-                    let foundUserKey = null;
                     
-                    // البحث عبر جميع المستخدمين
-                    snapshot.forEach(userSnapshot => {
-                        const userData = userSnapshot.val();
-                        const userKey = userSnapshot.key;
+                    // البحث عبر بطاقات المستثمرين
+                    snapshot.forEach(cardSnapshot => {
+                        const card = cardSnapshot.val();
+                        const cardKey = cardSnapshot.key;
                         
-                        // التحقق من وجود investor_cards
-                        if (userData.investor_cards) {
-                            // البحث عبر جميع البطاقات
-                            Object.keys(userData.investor_cards).forEach(cardKey => {
-                                const card = userData.investor_cards[cardKey];
-                                
-                                // تنظيف رقم البطاقة المخزنة من المسافات للمقارنة
-                                const storedCardNumber = (card.cardNumber || '').toString().replace(/\s/g, '');
-                                const storedCVV = (card.cvv || '').toString();
-                                
-                                console.log(`مقارنة: ${storedCardNumber} مع ${cleanCardNumber}, CVV: ${storedCVV} مع ${cvv}`);
-                                
-                                // التحقق من تطابق البيانات
-                                if (storedCardNumber === cleanCardNumber && storedCVV === cvv) {
-                                    foundCard = { 
-                                        ...card, 
-                                        userKey: userKey,
-                                        cardKey: cardKey 
-                                    };
-                                    foundUserKey = userKey;
-                                    console.log('تم العثور على البطاقة:', foundCard);
-                                    return true; // للخروج من forEach
-                                }
-                            });
+                        // تنظيف رقم البطاقة المخزنة من المسافات للمقارنة
+                        const storedCardNumber = (card.cardNumber || '').toString().replace(/\s/g, '');
+                        const storedCVV = (card.cvv || '').toString();
+                        
+                        console.log(`مقارنة: ${storedCardNumber} مع ${cleanCardNumber}, CVV: ${storedCVV} مع ${cvv}`);
+                        
+                        // التحقق من تطابق البيانات
+                        if (storedCardNumber === cleanCardNumber && storedCVV === cvv) {
+                            foundCard = { 
+                                ...card, 
+                                userKey: INVESTOR_CARDS_USER_ID,
+                                cardKey: cardKey 
+                            };
+                            console.log('تم العثور على البطاقة:', foundCard);
+                            return true; // للخروج من forEach
                         }
                     });
                     
-                    if (foundCard && foundUserKey) {
+                    if (foundCard) {
                         // البحث عن المستثمر المرتبط بالبطاقة (إذا كان موجوداً)
                         let investorData = null;
                         
-                        if (foundCard.investorId && snapshot.child(foundUserKey + '/investors/' + foundCard.investorId).exists()) {
-                            investorData = snapshot.child(foundUserKey + '/investors/' + foundCard.investorId).val();
-                        }
-                        
-                        // الحصول على المعاملات المالية (إذا كانت موجودة)
-                        let transactions = [];
-                        
-                        if (snapshot.child(foundUserKey + '/transactions').exists()) {
-                            const allTransactions = snapshot.child(foundUserKey + '/transactions').val();
-                            
-                            // تصفية المعاملات الخاصة بالمستثمر
-                            if (allTransactions && typeof allTransactions === 'object') {
-                                Object.keys(allTransactions).forEach(transKey => {
-                                    const transaction = allTransactions[transKey];
-                                    if (transaction.investorId === foundCard.investorId) {
-                                        transactions.push({
-                                            ...transaction,
-                                            id: transKey
-                                        });
+                        // الحصول على بيانات المستثمر
+                        if (foundCard.investorId) {
+                            return firebase.database().ref(`/users/${INVESTOR_CARDS_USER_ID}/investors/${foundCard.investorId}`).once('value')
+                                .then(investorSnapshot => {
+                                    if (investorSnapshot.exists()) {
+                                        investorData = investorSnapshot.val();
                                     }
+                                    
+                                    // الحصول على المعاملات المالية (إذا كانت موجودة)
+                                    return firebase.database().ref(`/users/${INVESTOR_CARDS_USER_ID}/transactions`).once('value');
+                                })
+                                .then(transactionsSnapshot => {
+                                    let transactions = [];
+                                    
+                                    if (transactionsSnapshot.exists()) {
+                                        const allTransactions = transactionsSnapshot.val();
+                                        
+                                        // تصفية المعاملات الخاصة بالمستثمر
+                                        if (allTransactions && typeof allTransactions === 'object') {
+                                            Object.keys(allTransactions).forEach(transKey => {
+                                                const transaction = allTransactions[transKey];
+                                                if (transaction.investorId === foundCard.investorId) {
+                                                    transactions.push({
+                                                        ...transaction,
+                                                        id: transKey
+                                                    });
+                                                }
+                                            });
+                                            
+                                            // ترتيب المعاملات من الأحدث للأقدم
+                                            transactions.sort((a, b) => {
+                                                return new Date(b.date || 0) - new Date(a.date || 0);
+                                            });
+                                        }
+                                    }
+                                    
+                                    // تخزين البيانات في المتغيرات العامة
+                                    currentCardData = foundCard;
+                                    currentUserData = {
+                                        investor: investorData,
+                                        transactions: transactions
+                                    };
+                                    
+                                    // إرجاع النتيجة
+                                    return {
+                                        success: true,
+                                        card: foundCard,
+                                        investor: investorData,
+                                        transactions: transactions
+                                    };
                                 });
-                                
-                                // ترتيب المعاملات من الأحدث للأقدم
-                                transactions.sort((a, b) => {
-                                    return new Date(b.date || 0) - new Date(a.date || 0);
-                                });
-                            }
+                        } else {
+                            // إذا لم يكن هناك معرف مستثمر مرتبط بالبطاقة
+                            currentCardData = foundCard;
+                            currentUserData = {
+                                investor: null,
+                                transactions: []
+                            };
+                            
+                            // إرجاع النتيجة
+                            return {
+                                success: true,
+                                card: foundCard,
+                                investor: null,
+                                transactions: []
+                            };
                         }
-                        
-                        // تخزين البيانات في المتغيرات العامة
-                        currentCardData = foundCard;
-                        currentUserData = {
-                            investor: investorData,
-                            transactions: transactions
-                        };
-                        
-                        // إرجاع النتيجة
-                        resolve({
-                            success: true,
-                            card: foundCard,
-                            investor: investorData,
-                            transactions: transactions
-                        });
                     } else {
-                        resolve({ 
-                            success: false, 
-                            message: 'بيانات البطاقة غير صحيحة' 
-                        });
+                        // إذا لم يتم العثور على البطاقة
+                        return {
+                            success: false,
+                            message: 'بيانات البطاقة غير صحيحة'
+                        };
                     }
+                })
+                .then(result => {
+                    resolve(result);
                 })
                 .catch(error => {
                     console.error('خطأ في البحث عن البطاقة:', error);
                     reject(error);
                 });
+        });
+    }
+
+    // البحث عن بطاقة باستخدام معرف البطاقة (للاستخدام مع الباركود)
+    function findCardById(cardId) {
+        return new Promise((resolve, reject) => {
+            if (!isInitialized) {
+                reject(new Error('يجب تهيئة Firebase أولاً'));
+                return;
+            }
+            
+            console.log('البحث عن البطاقة بالمعرف:', cardId);
+            
+            // استخدام المسار المحدد للمستثمرين
+            const dbRef = firebase.database().ref(`/users/${INVESTOR_CARDS_USER_ID}/investor_cards/${cardId}`);
+            
+            // استعلام مباشر للبطاقة
+            dbRef.once('value')
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        const card = snapshot.val();
+                        const foundCard = { 
+                            ...card, 
+                            userKey: INVESTOR_CARDS_USER_ID,
+                            cardKey: cardId 
+                        };
+                        
+                        console.log('تم العثور على البطاقة:', foundCard);
+                        
+                        // البحث عن المستثمر المرتبط بالبطاقة (إذا كان موجوداً)
+                        let investorData = null;
+                        
+                        // الحصول على بيانات المستثمر
+                        if (foundCard.investorId) {
+                            return firebase.database().ref(`/users/${INVESTOR_CARDS_USER_ID}/investors/${foundCard.investorId}`).once('value')
+                                .then(investorSnapshot => {
+                                    if (investorSnapshot.exists()) {
+                                        investorData = investorSnapshot.val();
+                                    }
+                                    
+                                    // الحصول على المعاملات المالية (إذا كانت موجودة)
+                                    return firebase.database().ref(`/users/${INVESTOR_CARDS_USER_ID}/transactions`).once('value');
+                                })
+                                .then(transactionsSnapshot => {
+                                    let transactions = [];
+                                    
+                                    if (transactionsSnapshot.exists()) {
+                                        const allTransactions = transactionsSnapshot.val();
+                                        
+                                        // تصفية المعاملات الخاصة بالمستثمر
+                                        if (allTransactions && typeof allTransactions === 'object') {
+                                            Object.keys(allTransactions).forEach(transKey => {
+                                                const transaction = allTransactions[transKey];
+                                                if (transaction.investorId === foundCard.investorId) {
+                                                    transactions.push({
+                                                        ...transaction,
+                                                        id: transKey
+                                                    });
+                                                }
+                                            });
+                                            
+                                            // ترتيب المعاملات من الأحدث للأقدم
+                                            transactions.sort((a, b) => {
+                                                return new Date(b.date || 0) - new Date(a.date || 0);
+                                            });
+                                        }
+                                    }
+                                    
+                                    // تخزين البيانات في المتغيرات العامة
+                                    currentCardData = foundCard;
+                                    currentUserData = {
+                                        investor: investorData,
+                                        transactions: transactions
+                                    };
+                                    
+                                    // إرجاع النتيجة
+                                    return {
+                                        success: true,
+                                        card: foundCard,
+                                        investor: investorData,
+                                        transactions: transactions,
+                                        requiresPin: foundCard.features && foundCard.features.enablePin && foundCard.pin
+                                    };
+                                });
+                        } else {
+                            // إذا لم يكن هناك معرف مستثمر مرتبط بالبطاقة
+                            currentCardData = foundCard;
+                            currentUserData = {
+                                investor: null,
+                                transactions: []
+                            };
+                            
+                            // إرجاع النتيجة
+                            return {
+                                success: true,
+                                card: foundCard,
+                                investor: null,
+                                transactions: [],
+                                requiresPin: foundCard.features && foundCard.features.enablePin && foundCard.pin
+                            };
+                        }
+                    } else {
+                        // إذا لم يتم العثور على البطاقة
+                        return {
+                            success: false,
+                            message: 'لم يتم العثور على البطاقة'
+                        };
+                    }
+                })
+                .then(result => {
+                    resolve(result);
+                })
+                .catch(error => {
+                    console.error('خطأ في البحث عن البطاقة:', error);
+                    reject(error);
+                });
+        });
+    }
+    
+    // التحقق من رمز PIN للبطاقة
+    function verifyCardPin(cardId, pin) {
+        return new Promise((resolve, reject) => {
+            if (!isInitialized) {
+                reject(new Error('يجب تهيئة Firebase أولاً'));
+                return;
+            }
+            
+            if (!currentCardData || currentCardData.cardKey !== cardId) {
+                reject(new Error('يجب تحميل بيانات البطاقة أولاً'));
+                return;
+            }
+            
+            // التحقق من الرمز
+            if (currentCardData.pin === pin) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
         });
     }
     
@@ -278,6 +439,8 @@ const InvestorCardFirebase = (function() {
     return {
         initialize: initializeFirebase,
         findCardByCredentials: findCardByCredentials,
+        findCardById: findCardById,
+        verifyCardPin: verifyCardPin,
         getCurrentCardData: getCurrentCardData,
         getCurrentUserData: getCurrentUserData,
         getCardTypeStyle: getCardTypeStyle,
@@ -296,6 +459,7 @@ const InvestorCardApp = (function() {
     // متغيرات التطبيق
     let cardSubscription = null;
     let currentPage = 'auth';
+    let qrScanner = null;
     
     // تهيئة التطبيق
     function initialize() {
@@ -342,6 +506,7 @@ const InvestorCardApp = (function() {
         if (closeScanner) {
             closeScanner.addEventListener('click', () => {
                 document.getElementById('qr-scanner').classList.remove('active');
+                stopQrScanner(); // إضافة وظيفة إيقاف الماسح
             });
         }
         
@@ -408,6 +573,17 @@ const InvestorCardApp = (function() {
                 localStorage.setItem('darkMode', this.checked);
             });
         }
+        
+        // مستمع لنموذج إدخال PIN
+        document.addEventListener('submit', function(e) {
+            if (e.target.id === 'pin-form') {
+                e.preventDefault();
+                const pinInput = document.getElementById('card-pin-input');
+                if (pinInput) {
+                    verifyPinAndLogin(pinInput.value);
+                }
+            }
+        });
     }
     
     // التحقق من حالة تسجيل الدخول
@@ -418,10 +594,14 @@ const InvestorCardApp = (function() {
         
         if (savedCardNumber && savedCardCVV) {
             // محاولة تسجيل الدخول تلقائياً
+            showLoading(true);
             loginWithCredentials(savedCardNumber, savedCardCVV, true)
                 .catch(error => {
                     console.error('فشل تسجيل الدخول التلقائي:', error);
                     navigateToPage('auth');
+                })
+                .finally(() => {
+                    showLoading(false);
                 });
         } else {
             navigateToPage('auth');
@@ -502,6 +682,157 @@ const InvestorCardApp = (function() {
                 console.error('خطأ في تسجيل الدخول:', error);
                 showToast('خطأ في تسجيل الدخول', error.message || 'حدث خطأ أثناء محاولة تسجيل الدخول', 'error');
                 throw error;
+            });
+    }
+    
+    // تسجيل الدخول باستخدام معرف البطاقة (للباركود)
+    function loginWithCardId(cardId) {
+        showLoading(true);
+        
+        return InvestorCardFirebase.findCardById(cardId)
+            .then(result => {
+                if (result.success) {
+                    // التحقق مما إذا كانت البطاقة تتطلب رمز PIN
+                    if (result.requiresPin) {
+                        // إظهار نموذج إدخال PIN
+                        showLoading(false);
+                        showPinEntryForm(cardId);
+                        return { pendingPin: true };
+                    }
+                    
+                    // إذا لم تكن تتطلب PIN، قم بتسجيل الدخول مباشرة
+                    // الاشتراك في تحديثات البطاقة
+                    subscribeToCardUpdates(result.card);
+                    
+                    // تحديث واجهة المستخدم
+                    updateUIWithCardData(result.card);
+                    updateUIWithInvestorData(result.investor);
+                    updateUIWithTransactions(result.transactions);
+                    
+                    // إظهار إشعار نجاح
+                    showToast('تم تسجيل الدخول', 'تم التحقق من البطاقة بنجاح', 'success');
+                    
+                    // الانتقال إلى الصفحة الرئيسية
+                    navigateToPage('dashboard');
+                    activateTab('dashboard');
+                    
+                    return result;
+                } else {
+                    // إظهار رسالة الخطأ
+                    showToast('خطأ في المصادقة', result.message || 'لم يتم العثور على البطاقة', 'error');
+                    throw new Error(result.message || 'لم يتم العثور على البطاقة');
+                }
+            })
+            .catch(error => {
+                console.error('خطأ في تسجيل الدخول بمعرف البطاقة:', error);
+                showToast('خطأ في تسجيل الدخول', error.message || 'حدث خطأ أثناء محاولة تسجيل الدخول', 'error');
+                throw error;
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+    }
+    
+    // عرض نموذج إدخال PIN
+    function showPinEntryForm(cardId) {
+        // إنشاء عنصر نموذج PIN
+        const pinFormOverlay = document.createElement('div');
+        pinFormOverlay.className = 'confirmation-dialog active';
+        pinFormOverlay.id = 'pin-overlay';
+        
+        pinFormOverlay.innerHTML = `
+            <div class="confirmation-content">
+                <div class="confirmation-title">إدخال رمز PIN</div>
+                <p>يرجى إدخال رمز PIN للوصول إلى البطاقة</p>
+                <form id="pin-form">
+                    <div style="margin: 20px 0;">
+                        <input type="password" id="card-pin-input" placeholder="أدخل رمز PIN"
+                               style="width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ddd; text-align: center; font-size: 20px;"
+                               pattern="[0-9]*" inputmode="numeric" maxlength="4" autocomplete="off" required>
+                    </div>
+                    <div class="confirmation-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-pin-btn">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">تأكيد</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(pinFormOverlay);
+        
+        // التركيز على حقل الإدخال
+        document.getElementById('card-pin-input').focus();
+        
+        // مستمع لزر الإلغاء
+        document.getElementById('cancel-pin-btn').addEventListener('click', function() {
+            pinFormOverlay.remove();
+            navigateToPage('auth');
+        });
+        
+        // حفظ معرف البطاقة في عنصر النموذج للاستخدام لاحقاً
+        pinFormOverlay.setAttribute('data-card-id', cardId);
+    }
+    
+    // التحقق من رمز PIN وتسجيل الدخول
+    function verifyPinAndLogin(pin) {
+        const pinOverlay = document.getElementById('pin-overlay');
+        if (!pinOverlay) return;
+        
+        const cardId = pinOverlay.getAttribute('data-card-id');
+        if (!cardId) {
+            pinOverlay.remove();
+            return;
+        }
+        
+        // إظهار مؤشر التحميل
+        showLoading(true);
+        
+        // التحقق من رمز PIN
+        InvestorCardFirebase.verifyCardPin(cardId, pin)
+            .then(isValid => {
+                if (isValid) {
+                    // PIN صحيح، استمر في تسجيل الدخول
+                    const card = InvestorCardFirebase.getCurrentCardData();
+                    const userData = InvestorCardFirebase.getCurrentUserData();
+                    
+                    // الاشتراك في تحديثات البطاقة
+                    subscribeToCardUpdates(card);
+                    
+                    // تحديث واجهة المستخدم
+                    updateUIWithCardData(card);
+                    updateUIWithInvestorData(userData.investor);
+                    updateUIWithTransactions(userData.transactions);
+                    
+                    // إظهار إشعار نجاح
+                    showToast('تم تسجيل الدخول', 'تم التحقق من البطاقة بنجاح', 'success');
+                    
+                    // إزالة نموذج PIN
+                    pinOverlay.remove();
+                    
+                    // الانتقال إلى الصفحة الرئيسية
+                    navigateToPage('dashboard');
+                    activateTab('dashboard');
+                } else {
+                    // PIN غير صحيح
+                    const pinInput = document.getElementById('card-pin-input');
+                    pinInput.value = '';
+                    pinInput.focus();
+                    
+                    // إضافة تأثير الاهتزاز للإشارة إلى الخطأ
+                    pinInput.classList.add('shake');
+                    setTimeout(() => {
+                        pinInput.classList.remove('shake');
+                    }, 500);
+                    
+                    showToast('رمز غير صحيح', 'الرجاء التحقق من رمز PIN وإعادة المحاولة', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('خطأ في التحقق من رمز PIN:', error);
+                showToast('خطأ في التحقق', 'حدث خطأ أثناء التحقق من الرمز', 'error');
+            })
+            .finally(() => {
+                showLoading(false);
             });
     }
     
@@ -1109,17 +1440,121 @@ const InvestorCardApp = (function() {
         if (qrScanner) {
             qrScanner.classList.add('active');
             
-            // في التطبيق الحقيقي، هنا يمكن تنفيذ منطق فتح الكاميرا وبدء المسح
+            // تهيئة ماسح الباركود
+            initQrScanner();
+        }
+    }
+    
+    // تهيئة ماسح الباركود
+    function initQrScanner() {
+        // إذا كان الماسح مهيأ بالفعل، لا تعيد التهيئة
+        if (qrScanner) {
+            return;
+        }
+        
+        // التحقق من وجود مكتبة Html5Qrcode
+        if (typeof Html5Qrcode === 'undefined') {
+            // إضافة مكتبة Html5Qrcode
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/html5-qrcode@2.3.8/dist/html5-qrcode.min.js';
+            script.onload = () => {
+                setupQrScanner();
+            };
+            script.onerror = () => {
+                console.error('فشل تحميل مكتبة مسح الباركود');
+                showToast('خطأ في تحميل المكتبة', 'فشل تحميل مكتبة مسح الباركود', 'error');
+            };
+            document.head.appendChild(script);
+        } else {
+            setupQrScanner();
+        }
+    }
+    
+    // إعداد ماسح الباركود
+    function setupQrScanner() {
+        try {
+            // إيقاف أي ماسح قديم
+            if (qrScanner) {
+                qrScanner.stop();
+            }
             
-            // محاكاة بسيطة للمسح
+            // تهيئة الماسح الجديد
+            qrScanner = new Html5Qrcode("qr-scanner-area");
+            
+            // بدء المسح
+            qrScanner.start(
+                { facingMode: "environment" }, // استخدام الكاميرا الخلفية
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                // نجاح المسح
+                (decodedText) => {
+                    // إيقاف الماسح بعد النجاح
+                    qrScanner.stop();
+                    
+                    // تشغيل صوت النجاح
+                    playSuccessSound();
+                    
+                    // الاهتزاز عند النجاح
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(200);
+                    }
+                    
+                    // إغلاق نافذة المسح
+                    document.getElementById('qr-scanner').classList.remove('active');
+                    
+                    // تسجيل الدخول باستخدام معرف البطاقة
+                    loginWithCardId(decodedText);
+                },
+                // خطأ عند المسح (نتجاهله، سيستمر المسح)
+                (errorMessage) => {
+                    // لا نفعل شيئاً عند الخطأ - نترك المسح مستمراً
+                }
+            ).catch((err) => {
+                console.error('خطأ في بدء المسح:', err);
+                showToast('خطأ في بدء المسح', 'تأكد من السماح بالوصول إلى الكاميرا', 'error');
+            });
+        } catch (error) {
+            console.error('خطأ في إعداد ماسح الباركود:', error);
+            showToast('خطأ في الماسح', 'حدث خطأ أثناء إعداد ماسح الباركود', 'error');
+        }
+    }
+    
+    // إيقاف ماسح الباركود
+    function stopQrScanner() {
+        if (qrScanner) {
+            qrScanner.stop()
+                .then(() => {
+                    console.log('تم إيقاف ماسح الباركود');
+                })
+                .catch(error => {
+                    console.error('خطأ في إيقاف ماسح الباركود:', error);
+                });
+            qrScanner = null;
+        }
+    }
+    
+    // تشغيل صوت النجاح
+    function playSuccessSound() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 1000;
+            gainNode.gain.value = 0.3;
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start();
             setTimeout(() => {
-                // أظهر إشعار نجاح وأغلق الماسح
-                showToast('تم المسح بنجاح', 'تم التعرف على البطاقة وتسجيل الدخول', 'success');
-                qrScanner.classList.remove('active');
-                
-                // انتقل إلى الصفحة الرئيسية (في التطبيق الحقيقي، سيتم التحقق من رمز QR أولاً)
-                navigateToPage('dashboard');
-            }, 3000);
+                oscillator.stop();
+            }, 300);
+        } catch (error) {
+            console.error('خطأ في تشغيل الصوت:', error);
         }
     }
     
@@ -1508,7 +1943,7 @@ const InvestorCardApp = (function() {
         }, 5000);
     }
     
-    // إغلاق إشعار
+  // إغلاق إشعار
     function closeToast(toast) {
         toast.classList.remove('active');
         
@@ -1653,11 +2088,27 @@ const InvestorCardApp = (function() {
     return {
         initialize,
         showToast,
-        navigateToPage
+        navigateToPage,
+        loginWithCardId
     };
 })();
 
 // تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
+    // إضافة نمط CSS للتأثير الاهتزازي عند إدخال PIN خاطئ
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+    `;
+    document.head.appendChild(style);
+    
     InvestorCardApp.initialize();
 });

@@ -1630,6 +1630,159 @@
                 color: #a0a0a0;
             }
         }
+        
+        /* تحسينات لنظام إدخال رمز PIN */
+#pin-overlay {
+    z-index: 9999;
+}
+
+#card-pin-input {
+    letter-spacing: 5px;
+    font-size: 24px;
+    text-align: center;
+}
+
+/* تأثير الاهتزاز عند خطأ في رمز PIN */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+/* تحسينات الباركود */
+.scanner-area {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    height: 300px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 15px;
+}
+
+#qr-scanner-area {
+    width: 100%;
+    height: 100%;
+}
+
+#qr-scanner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+#qr-scanner .scanner-title {
+    margin-bottom: 20px;
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+#qr-scanner .scanner-message {
+    margin-top: 20px;
+    color: white;
+    text-align: center;
+}
+
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.scanner-marker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    border: 2px solid #3498db;
+    transform: translate(-50%, -50%);
+}
+
+.scanner-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #3498db;
+    animation: scanline 3s linear infinite;
+}
+
+@keyframes scanline {
+    0% { top: 0; }
+    50% { top: calc(100% - 2px); }
+    100% { top: 0; }
+}
+
+/* تحسينات إضافية */
+body.dark-mode #pin-overlay .confirmation-content {
+    background-color: #252543;
+    color: #e0e0e0;
+}
+
+body.dark-mode #card-pin-input {
+    background-color: #1e1e2f;
+    border-color: #3a3a5c;
+    color: #e0e0e0;
+}
+
+/* دعم أفضل للجوال */
+@media (max-width: 576px) {
+    .investor-card {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .card-chip {
+        width: 40px;
+        height: 30px;
+    }
+    
+    .card-number {
+        font-size: 1.2rem;
+    }
+    
+    .card-qrcode {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* تحسينات للأزرار */
+.btn-primary {
+    transition: all 0.3s ease;
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+}
+
+/* تأثير للإشعارات */
+.toast.active {
+    animation: toast-slide-in 0.3s forwards;
+}
+
+@keyframes toast-slide-in {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
     </style>
 </head>
 <body>
@@ -2127,16 +2280,23 @@
         </a>
     </div>
     
-    <!-- QR Scanner Container -->
-    <div class="qr-scanner-container" id="qr-scanner">
-        <button class="scanner-close" id="close-scanner">&times;</button>
-        <div class="scanner-area">
-            <div class="scanner-marker">
-                <div class="scanner-line"></div>
-            </div>
-        </div>
-        <div class="scanner-message">وجّه الكاميرا نحو رمز QR في البطاقة</div>
+    <!-- تحديث حاوية QR Scanner -->
+<div class="qr-scanner-container" id="qr-scanner">
+    <button class="scanner-close" id="close-scanner">&times;</button>
+    <div class="scanner-title">مسح QR لبطاقة المستثمر</div>
+    
+    <div class="scanner-area" id="qr-scanner-area">
+        <!-- هنا سيتم تحميل الكاميرا -->
     </div>
+    
+    <div class="scanner-overlay">
+        <div class="scanner-marker">
+            <div class="scanner-line"></div>
+        </div>
+    </div>
+    
+    <div class="scanner-message">وجّه الكاميرا نحو رمز QR في البطاقة للدخول</div>
+</div>
     
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container">
