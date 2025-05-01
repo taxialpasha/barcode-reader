@@ -935,8 +935,8 @@ const App = (function() {
             
             while (currentDate < today) {
                 // Monthly profit (1.5% per month)
-             // Monthly profit (1.75% per month)
-const profit = amount * 0.0175;
+                const profit = amount * 0.015;
+                currentBalance += profit;
                 
                 transactions.push({
                     id: `tr-${investorId}-${counter}`,
