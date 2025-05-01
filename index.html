@@ -378,57 +378,27 @@
         </div>
     </div>
 
-  <!-- تعديل مودال مسح QR لإضافة خيار تحميل صور -->
-<div id="qr-scanner-modal" class="modal">
-    <div class="modal-overlay"></div>
-    <div class="modal-container">
-        <div class="modal-header">
-            <h3>مسح QR للدخول</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="scan-options">
-                <button id="camera-scan-btn" class="scan-option-btn active">
-                    <i class="fas fa-camera"></i>
-                    <span>استخدام الكاميرا</span>
-                </button>
-                <button id="file-scan-btn" class="scan-option-btn">
-                    <i class="fas fa-image"></i>
-                    <span>تحميل صورة</span>
-                </button>
+    <!-- Modals -->
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>QR Code البطاقة</h3>
+                <button class="modal-close">&times;</button>
             </div>
-            
-            <div id="camera-scan-container">
-                <p class="text-center mb-sm">وجه الكاميرا نحو رمز QR لبطاقة المستثمر</p>
-                <div id="qr-reader"></div>
-            </div>
-            
-            <div id="file-scan-container" class="hidden">
-                <p class="text-center mb-sm">اختر صورة تحتوي على رمز QR</p>
-                <div class="file-upload-container">
-                    <input type="file" id="qr-file-input" accept="image/*" class="hidden">
-                    <button id="browse-file-btn" class="btn btn-primary btn-block">
-                        <i class="fas fa-folder-open"></i>
-                        <span>اختيار صورة من الجهاز</span>
-                    </button>
-                    <div id="selected-file-info" class="mt-sm hidden">
-                        <div class="selected-file-name"></div>
-                        <button id="scan-selected-file-btn" class="btn btn-secondary mt-sm">
-                            <i class="fas fa-qrcode"></i>
-                            <span>مسح الصورة</span>
-                        </button>
-                    </div>
+            <div class="modal-body">
+                <div class="qr-code-container">
+                    <div id="card-qr-code"></div>
                 </div>
-                <div class="selected-image-preview mt-md"></div>
+                <p class="qr-code-info">قم بمسح هذا الرمز لمشاركة معلومات البطاقة</p>
             </div>
-            
-            <div id="qr-reader-results" class="mt-md"></div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary modal-close-btn">إغلاق</button>
+            <div class="modal-footer">
+                <button id="save-qr-btn" class="btn btn-primary">حفظ الصورة</button>
+                <button class="btn btn-secondary modal-close-btn">إغلاق</button>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Share Modal -->
     <div id="share-modal" class="modal">
