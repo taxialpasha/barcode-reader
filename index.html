@@ -66,8 +66,38 @@
                         <button class="modal-close">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <p class="text-center mb-sm">وجه الكاميرا نحو رمز QR لبطاقة المستثمر</p>
-                        <div id="qr-reader"></div>
+                        <div class="scan-options">
+                            <button id="camera-scan-btn" class="scan-option-btn active">
+                                <i class="fas fa-camera"></i>
+                                <span>استخدام الكاميرا</span>
+                            </button>
+                            <button id="file-scan-btn" class="scan-option-btn">
+                                <i class="fas fa-image"></i>
+                                <span>تحميل صورة</span>
+                            </button>
+                        </div>
+                        <div id="camera-scan-container">
+                            <p class="text-center mb-sm">وجه الكاميرا نحو رمز QR لبطاقة المستثمر</p>
+                            <div id="qr-reader"></div>
+                        </div>
+                        <div id="file-scan-container" class="hidden">
+                            <p class="text-center mb-sm">اختر صورة تحتوي على رمز QR</p>
+                            <div class="file-upload-container">
+                                <input type="file" id="qr-file-input" accept="image/*" class="hidden">
+                                <button id="browse-file-btn" class="btn btn-primary btn-block">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>اختيار صورة من الجهاز</span>
+                                </button>
+                                <div id="selected-file-info" class="mt-sm hidden">
+                                    <div class="selected-file-name"></div>
+                                    <button id="scan-selected-file-btn" class="btn btn-secondary mt-sm">
+                                        <i class="fas fa-qrcode"></i>
+                                        <span>مسح الصورة</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="selected-image-preview mt-md"></div>
+                        </div>
                         <div id="qr-reader-results" class="mt-md"></div>
                     </div>
                     <div class="modal-footer">
@@ -75,6 +105,8 @@
                     </div>
                 </div>
             </div>
+
+            
             
             <!-- إضافة مكتبة مسح QR في نهاية ملف index.html قبل script tags الموجودة -->
             <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>

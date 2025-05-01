@@ -992,89 +992,7 @@
             }
         }
 
-        // طباعة الباركود
-        function printQrCode() {
-            const printWindow = window.open('', '_blank');
-            
-            if (!printWindow) {
-                showStatusMessage("الرجاء السماح بالنوافذ المنبثقة للطباعة", "error");
-                return;
-            }
-            
-            const canvas = qrCodeContainer.querySelector('canvas');
-            const img = qrCodeContainer.querySelector('img');
-            
-            let qrSrc = '';
-            
-            if (canvas) {
-                qrSrc = canvas.toDataURL('image/png');
-            } else if (img) {
-                qrSrc = img.src;
-            } else {
-                showStatusMessage("لا يمكن طباعة الباركود", "error");
-                return;
-            }
-            
-            // إنشاء محتوى نافذة الطباعة
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html dir="rtl">
-                <head>
-                    <title>طباعة باركود البطاقة</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            text-align: center;
-                            padding: 20px;
-                        }
-                        .print-container {
-                            margin: 0 auto;
-                            max-width: 500px;
-                        }
-                        .qr-image {
-                            width: 300px;
-                            height: 300px;
-                            margin: 20px auto;
-                        }
-                        .card-info {
-                            text-align: right;
-                            margin-top: 20px;
-                            padding: 15px;
-                            border: 1px solid #ddd;
-                            border-radius: 5px;
-                        }
-                        .print-btn {
-                            margin-top: 20px;
-                            padding: 10px 20px;
-                            background-color: #3498db;
-                            color: white;
-                            border: none;
-                            border-radius: 5px;
-                            cursor: pointer;
-                        }
-                        @media print {
-                            .no-print {
-                                display: none;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="print-container">
-                        <h2>باركود بطاقة المستثمر</h2>
-                        <img src="${qrSrc}" alt="QR Code" class="qr-image">
-                        <div class="card-info">
-                            <pre>${qrTextArea.value}</pre>
-                        </div>
-                        <button onclick="window.print(); return false;" class="print-btn no-print">طباعة</button>
-                    </div>
-                </body>
-                </html>
-            `);
-            
-            printWindow.document.close();
-        }
-
+ 
         // عرض رسالة الحالة
         function showStatusMessage(message, type) {
             const statusMessage = document.getElementById('status-message');
@@ -1114,6 +1032,9 @@
             
             return value;
         }
+
+
+        
     </script>
 </body>
 </html>

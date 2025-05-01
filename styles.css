@@ -1918,3 +1918,77 @@ textarea.form-input {
   color: var(--danger-color) !important;
   font-weight: 600;
 }
+
+/* أنماط لخيارات المسح */
+.scan-options {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.scan-option-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.scan-option-btn.active {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.scan-option-btn i {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-xs);
+}
+
+/* أنماط لتحميل الملفات */
+.file-upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md);
+  border: 2px dashed var(--primary-color);
+  border-radius: var(--border-radius);
+  background-color: rgba(52, 152, 219, 0.05);
+}
+
+#browse-file-btn {
+  max-width: 300px;
+}
+
+.selected-file-name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.9rem;
+}
+
+.selected-file-name i {
+  color: var(--primary-color);
+}
+
+.selected-image-preview {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-md);
+}
+
+.selected-image-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+}

@@ -387,7 +387,41 @@ const App = (function() {
                     this.showQRScanner();
                 });
             }
-            
+
+            // Buttons to switch scan modes (camera/file)
+            const cameraScanBtn = document.getElementById('camera-scan-btn');
+            const fileScanBtn = document.getElementById('file-scan-btn');
+            if (cameraScanBtn && fileScanBtn) {
+                cameraScanBtn.addEventListener('click', () => {
+                    this.switchScanMode('camera');
+                });
+
+                fileScanBtn.addEventListener('click', () => {
+                    this.switchScanMode('file');
+                });
+            }
+
+            // File upload buttons
+            const browseFileBtn = document.getElementById('browse-file-btn');
+            const qrFileInput = document.getElementById('qr-file-input');
+            if (browseFileBtn && qrFileInput) {
+                browseFileBtn.addEventListener('click', () => {
+                    qrFileInput.click();
+                });
+
+                qrFileInput.addEventListener('change', (e) => {
+                    this.handleQRFileSelected(e);
+                });
+            }
+
+            // Button to scan the selected file
+            const scanSelectedFileBtn = document.getElementById('scan-selected-file-btn');
+            if (scanSelectedFileBtn) {
+                scanSelectedFileBtn.addEventListener('click', () => {
+                    this.scanSelectedQRFile();
+                });
+            }
+
             console.log('Event listeners set up successfully');
         },
         
@@ -952,30 +986,32 @@ const App = (function() {
         updateFinancialInfo: function() {
             const card = InvestorCardSystem.getCurrentCard();
             if (!card) return;
-            
+
+            const annualRate = 21; // 21% annual return (1.75% monthly)
+            const monthlyRate = annualRate / 12; // Calculate monthly rate
             let investor = null;
-            
+
             // Get the investor data
             if (card.investorId) {
                 investor = InvestorCardSystem.getInvestorById(card.investorId);
             }
-            
+
             if (!investor) return;
-            
+
             // Update balance
             const totalBalance = document.getElementById('total-balance');
             if (totalBalance) {
                 totalBalance.textContent = InvestorCardSystem.formatCurrency(investor.amount || 0);
             }
-            
+
             // Update monthly profit
             const monthlyProfit = document.getElementById('monthly-profit');
             if (monthlyProfit) {
-                // Calculate monthly profit (1.75% monthly return)
-                const profit = (investor.amount || 0) * 0.0175; 
+                // Calculate monthly profit
+                const profit = (investor.amount || 0) * (monthlyRate / 100);
                 monthlyProfit.textContent = InvestorCardSystem.formatCurrency(profit);
             }
-            
+
             // Update investment days
             const investmentDays = document.getElementById('investment-days');
             if (investmentDays) {
@@ -2038,9 +2074,7 @@ const App = (function() {
         showQRScanner: function() {
             // Show the modal
             this.showModal('qr-scanner-modal');
-            
-            // Initialize QR scanner
-            this.initQRScanner();
+            this.switchScanMode('camera'); // Default to camera mode
         },
         
         /**
@@ -2152,71 +2186,325 @@ const App = (function() {
          * @returns {Object|null} - Parsed card data or null
          */
         parseCardDataFromText: function(text) {
-            const cardNumberRegex = /\b(\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4})\b/;
-            const expiryRegex = /\b(0[1-9]|1[0-2])\s*\/\s*([0-9]{2})\b/;
-            
-            const cardNumberMatch = text.match(cardNumberRegex);
-            const expiryMatch = text.match(expiryRegex);
-            
-            if (cardNumberMatch) {
-                const result = { number: cardNumberMatch[1].replace(/\s/g, '') };
-                if (expiryMatch) result.expiry = `${expiryMatch[1]}/${expiryMatch[2]}`;
-                return result;
+            console.log('Extracting data from text:', text);
+
+            const lines = text.split(/\r?\n/);
+            const cardData = {};
+
+            for (const line of lines) {
+                if (line.includes('اسم المستثمر') || line.includes('الاسم')) {
+                    const nameMatch = line.match(/[^:]*:\s*(.+)/);
+                    if (nameMatch && nameMatch[1]) {
+                        cardData.name = nameMatch[1].trim();
+                    }
+                } else if (line.includes('رقم البطاقة') || line.includes('الرقم')) {
+                    const cardNumberMatch = line.match(/(\d[\d\s-]+\d)/);
+                    if (cardNumberMatch && cardNumberMatch[1]) {
+                        cardData.number = cardNumberMatch[1].replace(/[\s-]/g, '');
+                    }
+                } else if (line.includes('تاريخ الانتهاء') || line.includes('تاريخ')) {
+                    const expiryMatch = line.match(/(\d{1,2})[\/\\](\d{2})/);
+                    if (expiryMatch) {
+                        const month = expiryMatch[1].padStart(2, '0');
+                        const year = expiryMatch[2];
+                        cardData.expiry = `${month}/${year}`;
+                    }
+                } else if (line.includes('CVV') || line.includes('رمز الحماية')) {
+                    const cvvMatch = line.match(/(\d{3,4})/);
+                    if (cvvMatch) {
+                        cardData.cvv = cvvMatch[1];
+                    }
+                } else if (line.includes('نوع البطاقة') || line.includes('النوع')) {
+                    const typeMatch = line.match(/[^:]*:\s*(.+)/);
+                    if (typeMatch && typeMatch[1]) {
+                        cardData.type = typeMatch[1].trim();
+                    }
+                }
             }
+
+            if (!cardData.number) {
+                const cardNumberRegex = /\b(\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4})\b/;
+                const cardNumberMatch = text.match(cardNumberRegex);
+                if (cardNumberMatch) {
+                    cardData.number = cardNumberMatch[1].replace(/[\s-]/g, '');
+                }
+            }
+
+            if (!cardData.expiry) {
+                const expiryRegex = /\b(0?[1-9]|1[0-2])\s*[\/\\]\s*([0-9]{2})\b/;
+                const expiryMatch = text.match(expiryRegex);
+                if (expiryMatch) {
+                    const month = expiryMatch[1].padStart(2, '0');
+                    const year = expiryMatch[2];
+                    cardData.expiry = `${month}/${year}`;
+                }
+            }
+
+            if (!cardData.cvv) {
+                const cvvRegex = /(?:CVV|رمز الحماية)[^\d]*(\d{3,4})/i;
+                const cvvMatch = text.match(cvvRegex);
+                if (cvvMatch) {
+                    cardData.cvv = cvvMatch[1];
+                }
+            }
+
+            console.log('Extracted data:', cardData);
+
+            if (cardData.number) {
+                return cardData;
+            }
+
             return null;
         },
-        
+
         /**
-         * Process scanned card data
-         * @param {Object} cardData - Extracted card data
+         * Process card data after scanning
+         * @param {Object} cardData - Card data extracted from QR code
          */
         processScannedCardData: function(cardData) {
             const resultsContainer = document.getElementById('qr-reader-results');
-            
+
             if (!cardData || (!cardData.number && !cardData.id)) {
                 if (resultsContainer) {
                     resultsContainer.innerHTML = '<p class="scan-error">Incomplete QR data. Please try again.</p>';
                 }
                 return;
             }
-            
-            if (cardData.number) {
-                const cardNumberInput = document.getElementById('card-number');
-                const cardExpiryInput = document.getElementById('card-expiry');
-                
-                if (cardNumberInput) cardNumberInput.value = this.formatCardNumber(cardData.number);
-                if (cardExpiryInput && cardData.expiry) cardExpiryInput.value = cardData.expiry;
-                
-                this.hideModal('qr-scanner-modal');
-                
-                if (cardData.expiry) {
-                    setTimeout(() => this.handleCardLogin(), 500);
-                } else if (cardExpiryInput) {
+
+            const cardNumberInput = document.getElementById('card-number');
+            const cardExpiryInput = document.getElementById('card-expiry');
+            const cardCvvInput = document.getElementById('card-cvv');
+
+            if (cardNumberInput && cardData.number) {
+                cardNumberInput.value = this.formatCardNumber(cardData.number);
+            }
+
+            if (cardExpiryInput && cardData.expiry) {
+                cardExpiryInput.value = cardData.expiry;
+            }
+
+            if (cardCvvInput && cardData.cvv) {
+                cardCvvInput.value = cardData.cvv;
+            }
+
+            if (resultsContainer) {
+                resultsContainer.innerHTML = '<p class="scan-success">Card data extracted successfully!</p>';
+            }
+
+            this.hideModal('qr-scanner-modal');
+
+            if (cardData.number && cardData.expiry) {
+                setTimeout(() => {
+                    this.handleCardLogin();
+                }, 800);
+            } else if (cardExpiryInput && !cardData.expiry) {
+                setTimeout(() => {
                     cardExpiryInput.focus();
-                }
-            } else if (cardData.id) {
+                }, 300);
+            }
+        },
+
+        /**
+         * Switch scan mode between camera and file upload
+         * @param {string} mode - Scan mode: 'camera' or 'file'
+         */
+        switchScanMode: function(mode) {
+            const cameraScanBtn = document.getElementById('camera-scan-btn');
+            const fileScanBtn = document.getElementById('file-scan-btn');
+            const cameraScanContainer = document.getElementById('camera-scan-container');
+            const fileScanContainer = document.getElementById('file-scan-container');
+            const resultsContainer = document.getElementById('qr-reader-results');
+        
+            if (!cameraScanBtn || !fileScanBtn || !cameraScanContainer || !fileScanContainer) {
+                return;
+            }
+        
+            // Reset scan results
+            if (resultsContainer) {
+                resultsContainer.innerHTML = '';
+            }
+        
+            // Stop the current scanner if active
+            if (this.currentQrScanner) {
+                this.currentQrScanner.stop()
+                    .then(() => console.log('QR scanner stopped'))
+                    .catch(err => console.error('Error stopping QR scanner:', err));
+                this.currentQrScanner = null;
+            }
+        
+            if (mode === 'camera') {
+                cameraScanBtn.classList.add('active');
+                fileScanBtn.classList.remove('active');
+                cameraScanContainer.classList.remove('hidden');
+                fileScanContainer.classList.add('hidden');
+                this.initQRScanner(); // Restart camera scanner
+            } else if (mode === 'file') {
+                fileScanBtn.classList.add('active');
+                cameraScanBtn.classList.remove('active');
+                fileScanContainer.classList.remove('hidden');
+                cameraScanContainer.classList.add('hidden');
+        
+                const qrFileInput = document.getElementById('qr-file-input');
+                if (qrFileInput) qrFileInput.value = '';
+        
+                const selectedFileInfo = document.getElementById('selected-file-info');
+                if (selectedFileInfo) selectedFileInfo.classList.add('hidden');
+        
+                const previewContainer = document.querySelector('.selected-image-preview');
+                if (previewContainer) previewContainer.innerHTML = '';
+            }
+        },
+        
+        /**
+         * Handle QR file selection
+         * @param {Event} event - File input change event
+         */
+        handleQRFileSelected: function(event) {
+            const resultsContainer = document.getElementById('qr-reader-results');
+            const selectedFileInfo = document.getElementById('selected-file-info');
+            const selectedFileName = document.querySelector('.selected-file-name');
+            const previewContainer = document.querySelector('.selected-image-preview');
+        
+            if (!event.target.files || !event.target.files.length) return;
+        
+            const file = event.target.files[0];
+        
+            if (!file.type.match('image.*')) {
                 if (resultsContainer) {
-                    resultsContainer.innerHTML = '<p class="scan-success">Logging in...</p>';
+                    resultsContainer.innerHTML = '<p class="scan-error">Please select a valid image file.</p>';
                 }
-                
-                InvestorCardSystem.findCardById(cardData.id)
-                    .then(card => {
-                        if (card) {
-                            InvestorCardSystem.setCurrentCard(card);
-                            this.hideModal('qr-scanner-modal');
-                            this.showScreen('dashboard');
-                        } else {
-                            if (resultsContainer) {
-                                resultsContainer.innerHTML = '<p class="scan-error">Card not found. Please check the QR code.</p>';
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error finding card:', error);
-                        if (resultsContainer) {
-                            resultsContainer.innerHTML = '<p class="scan-error">Error finding card. Please try again.</p>';
-                        }
-                    });
+                return;
+            }
+        
+            if (selectedFileInfo && selectedFileName) {
+                selectedFileInfo.classList.remove('hidden');
+                selectedFileName.innerHTML = `<i class="fas fa-file-image"></i> ${file.name}`;
+            }
+        
+            if (previewContainer) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" alt="QR Image Preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        
+            if (resultsContainer) {
+                resultsContainer.innerHTML = '';
+            }
+        },
+        
+        /**
+         * Scan the selected QR file
+         */
+        scanSelectedQRFile: function() {
+            const qrFileInput = document.getElementById('qr-file-input');
+            const resultsContainer = document.getElementById('qr-reader-results');
+        
+            if (!qrFileInput || !qrFileInput.files || !qrFileInput.files.length) {
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = '<p class="scan-error">Please select a file first.</p>';
+                }
+                return;
+            }
+        
+            const file = qrFileInput.files[0];
+        
+            if (resultsContainer) {
+                resultsContainer.innerHTML = '<p>Scanning the image...</p>';
+            }
+        
+            const html5QrCode = new Html5Qrcode("qr-reader");
+        
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    this.onQRCodeScanned(decodedText);
+                })
+                .catch(error => {
+                    console.error("Error scanning QR file:", error);
+                    if (resultsContainer) {
+                        resultsContainer.innerHTML = '<p class="scan-error">No QR code found in the image. Please ensure the image contains a clear QR code.</p>';
+                    }
+                });
+        },
+        
+        /**
+         * Improve initQRScanner for better performance
+         */
+        initQRScanner: function() {
+            const qrReader = document.getElementById('qr-reader');
+            const resultsContainer = document.getElementById('qr-reader-results');
+        
+            if (!qrReader || typeof Html5Qrcode === 'undefined') {
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = '<p class="scan-error">Cannot initialize QR scanner. Ensure camera access is allowed.</p>';
+                }
+                return;
+            }
+        
+            if (resultsContainer) resultsContainer.innerHTML = '';
+            if (qrReader.childElementCount > 0) qrReader.innerHTML = '';
+        
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            this.currentQrScanner = html5QrCode;
+        
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+            };
+        
+            Html5Qrcode.getCameras()
+                .then(cameras => {
+                    if (cameras && cameras.length) {
+                        let cameraId = cameras[0].id;
+                        const backCamera = cameras.find(camera => 
+                            camera.label.toLowerCase().includes('back') || 
+                            camera.label.toLowerCase().includes('rear')
+                        );
+                        if (backCamera) cameraId = backCamera.id;
+        
+                        return html5QrCode.start(
+                            cameraId,
+                            config,
+                            this.onQRCodeScanned.bind(this),
+                            this.onQRScanError.bind(this)
+                        );
+                    } else {
+                        throw new Error('No cameras found');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error initializing camera:', err);
+                    if (resultsContainer) {
+                        resultsContainer.innerHTML = `
+                            <p class="scan-error">Unable to access the camera. ${err.message || ''}.</p>
+                            <p class="mt-sm">You can use the file upload option instead.</p>
+                        `;
+                    }
+                    this.switchScanMode('file');
+                });
+        
+            const modalClose = document.querySelector('#qr-scanner-modal .modal-close');
+            const modalCloseBtn = document.querySelector('#qr-scanner-modal .modal-close-btn');
+            const modalOverlay = document.querySelector('#qr-scanner-modal .modal-overlay');
+        
+            const stopScannerFn = () => {
+                if (this.currentQrScanner) {
+                    this.currentQrScanner.stop()
+                        .then(() => console.log('QR scanner stopped'))
+                        .catch(err => console.error('Error stopping QR scanner:', err));
+                    this.currentQrScanner = null;
+                }
+            };
+        
+            if (modalClose) modalClose.addEventListener('click', stopScannerFn, { once: true });
+            if (modalCloseBtn) modalCloseBtn.addEventListener('click', stopScannerFn, { once: true });
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) stopScannerFn();
+                }, { once: true });
             }
         }
     };
