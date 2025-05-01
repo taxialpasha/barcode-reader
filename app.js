@@ -746,7 +746,8 @@ const App = (function() {
             const monthlyProfit = document.getElementById('monthly-profit');
             if (monthlyProfit) {
                 // Calculate monthly profit (simplified example)
-                const profit = (investor.amount || 0) * 0.015; // 1.5% monthly return
+                // الربح اليومي (تقريباً 1.75% ÷ 30 يوم)
+const dailyProfit = amount * (0.0175 / 30);
                 monthlyProfit.textContent = InvestorCardSystem.formatCurrency(profit);
             }
             
@@ -828,7 +829,8 @@ const App = (function() {
          */
         createInvestmentHTML: function(investment) {
             // Calculate return rate (simplified example)
-            const annualRate = 18; // 18% annual return
+            // Calculate return rate 
+const annualRate = 21; // 21% annual return (1.75% monthly) annual return
             const statusClass = investment.status === 'active' ? 'badge-success' : 'badge-warning';
             const statusText = investment.status === 'active' ? 'نشط' : 'غير نشط';
             
@@ -935,8 +937,8 @@ const App = (function() {
             
             while (currentDate < today) {
                 // Monthly profit (1.5% per month)
-                const profit = amount * 0.015;
-                currentBalance += profit;
+             // Monthly profit (1.75% per month)
+const profit = amount * 0.0175;
                 
                 transactions.push({
                     id: `tr-${investorId}-${counter}`,
