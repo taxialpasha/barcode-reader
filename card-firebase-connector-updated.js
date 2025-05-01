@@ -4,8 +4,9 @@
  * نظام ربط بطاقات المستثمرين مع Firebase
  * تم تحديثه لحل مشاكل التوثيق ودعم الاستخدام بدون حساب
  * تم إصلاح الأخطاء وتحسين الأداء
+ * تحسين البحث عبر مسارات متعددة
  * 
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 // كائن إدارة بطاقات المستثمر
@@ -27,7 +28,10 @@ const InvestorCardSystem = (function() {
         CARDS: 'investor_cards',
         CURRENT_USER: 'current_user',
         CURRENT_CARD: 'current_card',
-        LAST_SYNC: 'last_sync_time'
+        LAST_SYNC: 'last_sync_time',
+        INVESTORS: 'investors_data',
+        TRANSACTIONS: 'transactions_data',
+        PROFITS: 'profits_data'
     };
     
     // معلومات أنواع البطاقات
@@ -38,7 +42,7 @@ const InvestorCardSystem = (function() {
             textColor: '#ffffff',
             logoColor: '#ffffff',
             chipColor: '#FFD700',
-            benefits: ['تأمين سفر', 'خدمة عملاء VIP', 'نقاط مضاعفة']
+            benefits: ['تأمين سفر شامل', 'خدمة عملاء VIP على مدار الساعة', 'نقاط مضاعفة على المشتريات', 'دخول مجاني لصالات VIP بالمطارات']
         },
         gold: {
             name: 'ذهبية',
@@ -46,7 +50,7 @@ const InvestorCardSystem = (function() {
             textColor: '#000000',
             logoColor: '#ffffff',
             chipColor: '#ffffff',
-            benefits: ['نقاط مكافآت', 'خصومات خاصة', 'تأمين مشتريات']
+            benefits: ['نقاط مكافآت على المشتريات', 'خصومات خاصة لدى الشركاء', 'تأمين مشتريات لمدة عام', 'خدمة العملاء المميزة']
         },
         premium: {
             name: 'بريميوم',
@@ -54,7 +58,7 @@ const InvestorCardSystem = (function() {
             textColor: '#ffffff',
             logoColor: '#ffffff',
             chipColor: '#C0C0C0',
-            benefits: ['مكافآت مشتريات', 'خدمة عملاء على مدار الساعة']
+            benefits: ['مكافآت مشتريات مميزة', 'خدمة عملاء على مدار الساعة', 'تحويلات مجانية', 'خصومات لدى الشركاء المعتمدين']
         },
         diamond: {
             name: 'ماسية',
@@ -62,7 +66,7 @@ const InvestorCardSystem = (function() {
             textColor: '#ffffff',
             logoColor: '#ffffff',
             chipColor: '#B9F2FF',
-            benefits: ['امتيازات حصرية', 'خدمة شخصية', 'رصيد سفر سنوي']
+            benefits: ['امتيازات حصرية', 'خدمة شخصية على مدار الساعة', 'رصيد سفر سنوي', 'تأمين شامل للعائلة']
         },
         islamic: {
             name: 'إسلامية',
@@ -70,7 +74,7 @@ const InvestorCardSystem = (function() {
             textColor: '#ffffff',
             logoColor: '#ffffff',
             chipColor: '#F8C300',
-            benefits: ['متوافقة مع الشريعة', 'مزايا عائلية']
+            benefits: ['متوافقة مع الشريعة الإسلامية', 'خدمات عائلية', 'استشارات استثمارية متخصصة', 'أولوية في تحويل الأرباح']
         },
         custom: {
             name: 'مخصصة',
@@ -78,16 +82,18 @@ const InvestorCardSystem = (function() {
             textColor: '#ffffff',
             logoColor: '#ffffff',
             chipColor: '#C0C0C0',
-            benefits: ['قابلة للتخصيص']
+            benefits: ['قابلة للتخصيص حسب احتياجاتك', 'مزايا مخصصة', 'خدمة مخصصة']
         }
     };
 
-    // معرفات المستخدمين المعروفة - يمكن البحث في جميعها
+    // معرفات المستخدمين المعروفة - يتم البحث في جميعها
+    // تم تعديلها لتشمل قائمة معرفات المستخدمين التي سيتم البحث فيها
     const KNOWN_USER_IDS = [
+        'XgaPOacU8WfTZ4KeBPOcquLaK4j2',
         'b7XlRaRqUEX2X6SdnF9fyV5SPi83',
-        'XgaPOacU8WfTZ4KeBPOcquLaK4j2'
-        
-        
+        '9VxpBQmjkBTw3NcKxKQNuFXrE4y1',
+        'JzGdF8Kt7QsZ2cxpWYLuV5ArN6m4',
+        'P3qHnRtM5bXj8VwEgFkYd2ZsL7a9'
     ];
 
     // تهيئة النظام
@@ -103,7 +109,9 @@ const InvestorCardSystem = (function() {
         }
         
         // تهيئة Firebase إذا لم تكن مهيأة بالفعل
-        initializeFirebase();
+        if (!initializeFirebase()) {
+            return Promise.reject(new Error('فشل في تهيئة Firebase'));
+        }
         
         // إضافة أنماط CSS
         addCardStyles();
@@ -130,7 +138,8 @@ const InvestorCardSystem = (function() {
                 
                 // في حالة الخطأ، سنحاول تحميل البيانات من التخزين المحلي
                 userInvestorCards = getCardsFromLocalStorage();
-                console.log(`تم تحميل ${userInvestorCards.length} بطاقة من التخزين المحلي`);
+                investorsList = getInvestorsFromLocalStorage();
+                console.log(`تم تحميل ${userInvestorCards.length} بطاقة و ${investorsList.length} مستثمر من التخزين المحلي`);
                 
                 initialized = true;
                 return true;
@@ -237,6 +246,16 @@ const InvestorCardSystem = (function() {
         } catch (error) {
             console.error('خطأ في تحميل بيانات البطاقة من التخزين المحلي:', error);
         }
+        
+        // محاولة استرداد المستثمرين
+        try {
+            const investorsData = localStorage.getItem(LOCAL_STORAGE_KEYS.INVESTORS);
+            if (investorsData) {
+                investorsList = JSON.parse(investorsData);
+            }
+        } catch (error) {
+            console.error('خطأ في تحميل بيانات المستثمرين من التخزين المحلي:', error);
+        }
     }
 
     // حفظ معلومات المستخدم في التخزين المحلي
@@ -281,6 +300,17 @@ const InvestorCardSystem = (function() {
         }
     }
 
+    // حفظ المستثمرين في التخزين المحلي
+    function saveInvestorsToLocalStorage() {
+        if (investorsList && investorsList.length > 0) {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEYS.INVESTORS, JSON.stringify(investorsList));
+            } catch (error) {
+                console.error('خطأ في حفظ بيانات المستثمرين في التخزين المحلي:', error);
+            }
+        }
+    }
+
     // تحميل البطاقات من Firebase
     function loadCardsData() {
         if (isLoading) {
@@ -295,7 +325,7 @@ const InvestorCardSystem = (function() {
         userInvestorCards = getCardsFromLocalStorage();
 
         // استخدام معرف المستخدم المسجل أو البحث في كل المسارات المعروفة
-        const userIdsToSearch = userUID ? [userUID] : KNOWN_USER_IDS;
+        const userIdsToSearch = userUID ? [userUID, ...KNOWN_USER_IDS] : KNOWN_USER_IDS;
         
         // مصفوفة للوعود
         const promises = userIdsToSearch.map(uid => {
@@ -317,11 +347,44 @@ const InvestorCardSystem = (function() {
                             }
                         });
                     }
+                    return null;
                 })
                 .catch(error => {
                     console.error(`خطأ في تحميل البطاقات من المسار ${cardsPath}:`, error);
+                    return null;
                 });
         });
+
+        // البحث في مسار المستخدمين للحصول على جميع البطاقات (تحديث جديد)
+        const usersPath = 'users';
+        promises.push(
+            databaseRef.ref(usersPath).once('value')
+                .then(snapshot => {
+                    const usersData = snapshot.val();
+                    if (usersData) {
+                        console.log('تم العثور على بيانات المستخدمين، جاري البحث عن البطاقات...');
+                        
+                        // البحث عن البطاقات في كل مستخدم
+                        Object.keys(usersData).forEach(uid => {
+                            if (usersData[uid] && usersData[uid].investor_cards) {
+                                const userCards = Object.values(usersData[uid].investor_cards);
+                                
+                                // دمج البطاقات مع تجنب التكرار
+                                userCards.forEach(card => {
+                                    if (!userInvestorCards.some(existingCard => existingCard.id === card.id)) {
+                                        userInvestorCards.push(card);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    return null;
+                })
+                .catch(error => {
+                    console.error('خطأ في البحث في مسار المستخدمين:', error);
+                    return null;
+                })
+        );
 
         return Promise.all(promises)
             .then(() => {
@@ -351,30 +414,68 @@ const InvestorCardSystem = (function() {
         console.log('جاري تحميل بيانات المستثمرين...');
 
         // مصفوفة للوعود
-        const promises = KNOWN_USER_IDS.map(uid => {
+        const promises = [];
+        
+        // البحث في معرفات المستخدمين المعروفة
+        KNOWN_USER_IDS.forEach(uid => {
             const investorsPath = `users/${uid}/investors/data`;
             
-            return databaseRef.ref(investorsPath).once('value')
-                .then(snapshot => {
-                    const investorsData = snapshot.val();
-                    
-                    if (investorsData) {
-                        console.log(`تم العثور على مستثمرين في المسار: ${investorsPath}`);
-                        // إضافة المستثمرين إلى المصفوفة
-                        const newInvestors = Object.values(investorsData);
+            promises.push(
+                databaseRef.ref(investorsPath).once('value')
+                    .then(snapshot => {
+                        const investorsData = snapshot.val();
                         
-                        // دمج المستثمرين مع تجنب التكرار
-                        newInvestors.forEach(investor => {
-                            if (!investorsList.some(existingInvestor => existingInvestor.id === investor.id)) {
-                                investorsList.push(investor);
+                        if (investorsData) {
+                            console.log(`تم العثور على مستثمرين في المسار: ${investorsPath}`);
+                            // إضافة المستثمرين إلى المصفوفة
+                            const newInvestors = Object.values(investorsData);
+                            
+                            // دمج المستثمرين مع تجنب التكرار
+                            newInvestors.forEach(investor => {
+                                if (!investorsList.some(existingInvestor => existingInvestor.id === investor.id)) {
+                                    investorsList.push(investor);
+                                }
+                            });
+                        }
+                        return null;
+                    })
+                    .catch(error => {
+                        console.error(`خطأ في تحميل المستثمرين من المسار ${investorsPath}:`, error);
+                        return null;
+                    })
+            );
+        });
+
+        // البحث في مسار المستخدمين للحصول على جميع المستثمرين (تحديث جديد)
+        const usersPath = 'users';
+        promises.push(
+            databaseRef.ref(usersPath).once('value')
+                .then(snapshot => {
+                    const usersData = snapshot.val();
+                    if (usersData) {
+                        console.log('تم العثور على بيانات المستخدمين، جاري البحث عن المستثمرين...');
+                        
+                        // البحث عن المستثمرين في كل مستخدم
+                        Object.keys(usersData).forEach(uid => {
+                            if (usersData[uid] && usersData[uid].investors && usersData[uid].investors.data) {
+                                const userInvestors = Object.values(usersData[uid].investors.data);
+                                
+                                // دمج المستثمرين مع تجنب التكرار
+                                userInvestors.forEach(investor => {
+                                    if (!investorsList.some(existingInvestor => existingInvestor.id === investor.id)) {
+                                        investorsList.push(investor);
+                                    }
+                                });
                             }
                         });
                     }
+                    return null;
                 })
                 .catch(error => {
-                    console.error(`خطأ في تحميل المستثمرين من المسار ${investorsPath}:`, error);
-                });
-        });
+                    console.error('خطأ في البحث في مسار المستخدمين:', error);
+                    return null;
+                })
+        );
 
         return Promise.all(promises)
             .then(() => {
@@ -385,6 +486,9 @@ const InvestorCardSystem = (function() {
                     investorsList = window.investors;
                     console.log(`تم تحميل ${investorsList.length} مستثمر من النافذة العامة`);
                 }
+                
+                // حفظ المستثمرين في التخزين المحلي
+                saveInvestorsToLocalStorage();
                 
                 // ربط بيانات المستثمرين بالبطاقات
                 linkInvestorsToCards();
@@ -423,6 +527,22 @@ const InvestorCardSystem = (function() {
             return [];
         } catch (error) {
             console.error('خطأ في قراءة البطاقات من التخزين المحلي:', error);
+            return [];
+        }
+    }
+
+    // جلب المستثمرين من التخزين المحلي
+    function getInvestorsFromLocalStorage() {
+        try {
+            const investorsData = localStorage.getItem(LOCAL_STORAGE_KEYS.INVESTORS);
+            
+            if (investorsData) {
+                return JSON.parse(investorsData);
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('خطأ في قراءة المستثمرين من التخزين المحلي:', error);
             return [];
         }
     }
@@ -534,9 +654,55 @@ const InvestorCardSystem = (function() {
         console.log(`البحث عن البطاقة رقم: ${cardNumber} | تاريخ الانتهاء: ${expiryDate}`);
         
         // مصفوفة للوعود
-        const promises = KNOWN_USER_IDS.map(uid => {
-            return loadCardsFromFirebasePath(uid, cardNumber, expiryDate, cvv);
+        const promises = [];
+        
+ // البحث في معرفات المستخدمين المعروفة
+        KNOWN_USER_IDS.forEach(uid => {
+            promises.push(loadCardsFromFirebasePath(uid, cardNumber, expiryDate, cvv));
         });
+        
+        // البحث في مسار المستخدمين للحصول على جميع البطاقات (تحديث جديد)
+        promises.push(
+            databaseRef.ref('users').once('value')
+                .then(snapshot => {
+                    const usersData = snapshot.val();
+                    if (!usersData) {
+                        console.log('لا توجد بيانات مستخدمين متاحة');
+                        return null;
+                    }
+                    
+                    // البحث في كل مستخدم
+                    for (const uid in usersData) {
+                        if (usersData[uid] && usersData[uid].investor_cards) {
+                            const cardsData = usersData[uid].investor_cards;
+                            
+                            // البحث عن البطاقة المطابقة
+                            for (const cardId in cardsData) {
+                                const card = cardsData[cardId];
+                                const cardNum = card.cardNumber?.replace(/\s+/g, '') || '';
+                                const expiry = formatExpiryDate(card.expiryDate);
+                                
+                                if (cardNum === cardNumber && expiry === expiryDate) {
+                                    // التحقق من رمز CVV إذا كان موجوداً
+                                    if (cvv && card.cvv && cvv !== card.cvv) {
+                                        console.log('رمز CVV غير متطابق');
+                                        continue;
+                                    }
+                                    
+                                    console.log(`تم العثور على البطاقة في مسار المستخدم: ${uid}`);
+                                    return card;
+                                }
+                            }
+                        }
+                    }
+                    
+                    return null;
+                })
+                .catch(error => {
+                    console.error('خطأ في البحث في مسار المستخدمين:', error);
+                    return null;
+                })
+        );
         
         return Promise.all(promises)
             .then(results => {
@@ -668,36 +834,76 @@ const InvestorCardSystem = (function() {
                 return resolve(localInvestor);
             }
             
-            // البحث في Firebase
-            const promises = KNOWN_USER_IDS.map(uid => {
+            // مصفوفة للوعود
+            const promises = [];
+            
+            // البحث في معرفات المستخدمين المعروفة
+            KNOWN_USER_IDS.forEach(uid => {
                 const investorsPath = `users/${uid}/investors/data`;
                 
-                return databaseRef.ref(investorsPath).once('value')
+                promises.push(
+                    databaseRef.ref(investorsPath).once('value')
+                        .then(snapshot => {
+                            const investorsData = snapshot.val();
+                            
+                            if (!investorsData) {
+                                return null;
+                            }
+                            
+                            // البحث عن المستثمر المطابق
+                            for (const investorId in investorsData) {
+                                const investor = investorsData[investorId];
+                                
+                                if (investor.phone === phone && 
+                                    investor.name.toLowerCase().includes(name.toLowerCase())) {
+                                    console.log(`تم العثور على المستثمر في المسار: ${investorsPath}`);
+                                    return investor;
+                                }
+                            }
+                            
+                            return null;
+                        })
+                        .catch(error => {
+                            console.error(`خطأ في البحث عن المستثمر في المسار ${investorsPath}:`, error);
+                            return null;
+                        })
+                );
+            });
+            
+            // البحث في مسار المستخدمين للحصول على جميع المستثمرين (تحديث جديد)
+            promises.push(
+                databaseRef.ref('users').once('value')
                     .then(snapshot => {
-                        const investorsData = snapshot.val();
-                        
-                        if (!investorsData) {
+                        const usersData = snapshot.val();
+                        if (!usersData) {
                             return null;
                         }
                         
-                        // البحث عن المستثمر المطابق
-                        for (const investorId in investorsData) {
-                            const investor = investorsData[investorId];
-                            
-                            if (investor.phone === phone && 
-                                investor.name.toLowerCase().includes(name.toLowerCase())) {
-                                console.log(`تم العثور على المستثمر في المسار: ${investorsPath}`);
-                                return investor;
+                        // البحث في كل مستخدم
+                        for (const uid in usersData) {
+                            if (usersData[uid] && usersData[uid].investors && usersData[uid].investors.data) {
+                                const investorsData = usersData[uid].investors.data;
+                                
+                                // البحث عن المستثمر المطابق
+                                for (const investorId in investorsData) {
+                                    const investor = investorsData[investorId];
+                                    
+                                    if (investor.phone === phone && 
+                                        investor.name.toLowerCase().includes(name.toLowerCase())) {
+                                        console.log(`تم العثور على المستثمر في مسار المستخدم: ${uid}`);
+                                        return investor;
+                                    }
+                                }
                             }
                         }
                         
                         return null;
                     })
                     .catch(error => {
-                        console.error(`خطأ في البحث عن المستثمر في المسار ${investorsPath}:`, error);
+                        console.error('خطأ في البحث في مسار المستخدمين:', error);
                         return null;
-                    });
-            });
+                    })
+            );
             
             Promise.all(promises)
                 .then(results => {
@@ -731,35 +937,74 @@ const InvestorCardSystem = (function() {
                 return resolve(localCard);
             }
             
-            // البحث في Firebase
-            const promises = KNOWN_USER_IDS.map(uid => {
+            // مصفوفة للوعود
+            const promises = [];
+            
+            // البحث في معرفات المستخدمين المعروفة
+            KNOWN_USER_IDS.forEach(uid => {
                 const cardsPath = `users/${uid}/investor_cards`;
                 
-                return databaseRef.ref(cardsPath).once('value')
+                promises.push(
+                    databaseRef.ref(cardsPath).once('value')
+                        .then(snapshot => {
+                            const cardsData = snapshot.val();
+                            
+                            if (!cardsData) {
+                                return null;
+                            }
+                            
+                            // البحث عن البطاقة المطابقة
+                            for (const cardId in cardsData) {
+                                const card = cardsData[cardId];
+                                
+                                if (card.investorId === investorId) {
+                                    console.log(`تم العثور على البطاقة في المسار: ${cardsPath}`);
+                                    return card;
+                                }
+                            }
+                            
+                            return null;
+                        })
+                        .catch(error => {
+                            console.error(`خطأ في البحث عن البطاقة في المسار ${cardsPath}:`, error);
+                            return null;
+                        })
+                );
+            });
+            
+            // البحث في مسار المستخدمين للحصول على جميع البطاقات (تحديث جديد)
+            promises.push(
+                databaseRef.ref('users').once('value')
                     .then(snapshot => {
-                        const cardsData = snapshot.val();
-                        
-                        if (!cardsData) {
+                        const usersData = snapshot.val();
+                        if (!usersData) {
                             return null;
                         }
                         
-                        // البحث عن البطاقة المطابقة
-                        for (const cardId in cardsData) {
-                            const card = cardsData[cardId];
-                            
-                            if (card.investorId === investorId) {
-                                console.log(`تم العثور على البطاقة في المسار: ${cardsPath}`);
-                                return card;
+                        // البحث في كل مستخدم
+                        for (const uid in usersData) {
+                            if (usersData[uid] && usersData[uid].investor_cards) {
+                                const cardsData = usersData[uid].investor_cards;
+                                
+                                // البحث عن البطاقة المطابقة
+                                for (const cardId in cardsData) {
+                                    const card = cardsData[cardId];
+                                    
+                                    if (card.investorId === investorId) {
+                                        console.log(`تم العثور على البطاقة في مسار المستخدم: ${uid}`);
+                                        return card;
+                                    }
+                                }
                             }
                         }
                         
                         return null;
                     })
                     .catch(error => {
-                        console.error(`خطأ في البحث عن البطاقة في المسار ${cardsPath}:`, error);
+                        console.error('خطأ في البحث في مسار المستخدمين:', error);
                         return null;
-                    });
-            });
+                    })
+            );
             
             Promise.all(promises)
                 .then(results => {
@@ -793,320 +1038,8 @@ const InvestorCardSystem = (function() {
         
         // إضافة الأنماط CSS
         styleElement.textContent = `
-            /* أنماط النظام */
-            .investor-card-container {
-                perspective: 1000px;
-                width: 100%;
-                max-width: 400px;
-                margin: 0 auto;
-            }
-            
-            .investor-card {
-                width: 100%;
-                height: 240px;
-                position: relative;
-                transition: transform 0.6s;
-                transform-style: preserve-3d;
-                border-radius: 16px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            }
-            
-            .investor-card.flipped {
-                transform: rotateY(180deg);
-            }
-            
-            .card-front, .card-back {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                backface-visibility: hidden;
-                border-radius: 16px;
-                padding: 20px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-            }
-            
-            .card-back {
-                transform: rotateY(180deg);
-            }
-            
-            .card-brand {
-                text-align: right;
-                font-size: 1.2rem;
-                font-weight: bold;
-                margin-bottom: 10px;
-            }
-            
-            .card-logo {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                display: flex;
-            }
-            
-            .card-logo-circle {
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-            }
-            
-            .card-logo-circle.red {
-                background-color: #eb001b;
-            }
-            
-            .card-logo-circle.yellow {
-                background-color: #f79e1b;
-                margin-right: -15px;
-            }
-            
-            .card-number {
-                font-size: 1.4rem;
-                letter-spacing: 2px;
-                text-align: center;
-                margin-top: 40px;
-                font-family: monospace;
-            }
-            
-            .card-details {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-end;
-                margin-top: auto;
-            }
-            
-            .card-validity {
-                text-transform: uppercase;
-                font-size: 0.8rem;
-            }
-            
-            .card-valid-text {
-                font-size: 0.6rem;
-                opacity: 0.8;
-            }
-            
-            .card-name {
-                text-align: right;
-                font-size: 1rem;
-                text-transform: uppercase;
-            }
-            
-            .card-chip {
-                position: absolute;
-                top: 70px;
-                right: 40px;
-                width: 50px;
-                height: 40px;
-                background: linear-gradient(135deg, #c9a851 0%, #ffd700 50%, #c9a851 100%);
-                border-radius: 6px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                overflow: hidden;
-            }
-            
-            .chip-line {
-                position: absolute;
-                height: 1.5px;
-                background-color: rgba(0, 0, 0, 0.3);
-                width: 100%;
-            }
-            
-            .chip-line:nth-child(1) { top: 8px; }
-            .chip-line:nth-child(2) { top: 16px; }
-            .chip-line:nth-child(3) { top: 24px; }
-            .chip-line:nth-child(4) { top: 32px; }
-            
-            .chip-line:nth-child(5) {
-                height: 100%;
-                width: 1.5px;
-                left: 12px;
-            }
-            
-            .chip-line:nth-child(6) {
-                height: 100%;
-                width: 1.5px;
-                left: 24px;
-            }
-            
-            .chip-line:nth-child(7) {
-                height: 100%;
-                width: 1.5px;
-                left: 36px;
-            }
-            
-            .card-hologram {
-                position: absolute;
-                width: 60px;
-                height: 60px;
-                bottom: 50px;
-                left: 40px;
-                background: linear-gradient(45deg, 
-                    rgba(255,255,255,0.1) 0%, 
-                    rgba(255,255,255,0.3) 25%, 
-                    rgba(255,255,255,0.5) 50%, 
-                    rgba(255,255,255,0.3) 75%, 
-                    rgba(255,255,255,0.1) 100%);
-                border-radius: 50%;
-                animation: hologram-animation 3s infinite linear;
-                opacity: 0.7;
-            }
-            
-            @keyframes hologram-animation {
-                0% { 
-                    background-position: 0% 0%;
-                }
-                100% { 
-                    background-position: 100% 100%;
-                }
-            }
-            
-            .card-back-strip {
-                width: 100%;
-                height: 40px;
-                background-color: #333;
-                margin: 20px 0;
-            }
-            
-            .card-cvv {
-                background-color: white;
-                color: black;
-                display: inline-block;
-                padding: 5px 10px;
-                font-size: 0.9rem;
-                margin-top: 10px;
-                border-radius: 4px;
-                font-family: monospace;
-            }
-            
-            .card-issuer-info {
-                text-align: center;
-                margin-top: 40px;
-                font-size: 0.8rem;
-                opacity: 0.8;
-            }
-            
-            /* أنماط للـ QR */
-            .card-qr-container {
-                position: absolute;
-                bottom: 50px;
-                right: 30px;
-                width: 80px;
-                height: 80px;
-                background-color: white;
-                padding: 5px;
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            
-            .card-qr-container img, .card-qr-container canvas {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-            
-            /* أنماط الناقذة المنبثقة */
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s ease, visibility 0.3s ease;
-            }
-            
-            .modal-overlay.active {
-                opacity: 1;
-                visibility: visible;
-            }
-            
-            .modal {
-                background-color: white;
-                border-radius: 12px;
-                max-width: 90%;
-                width: 500px;
-                max-height: 90vh;
-                overflow-y: auto;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .modal-header {
-                padding: 15px 20px;
-                border-bottom: 1px solid #eee;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .modal-title {
-                font-size: 1.2rem;
-                font-weight: bold;
-                margin: 0;
-            }
-            
-            .modal-close {
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                color: #666;
-                transition: color 0.2s;
-            }
-            
-            .modal-close:hover {
-                color: #333;
-            }
-            
-            .modal-body {
-                padding: 20px;
-                flex: 1;
-                overflow-y: auto;
-            }
-            
-            .modal-footer {
-                padding: 15px 20px;
-                border-top: 1px solid #eee;
-                display: flex;
-                justify-content: flex-end;
-                gap: 10px;
-            }
-            
-            /* أنماط حالة البطاقة */
-            .card-status-badge {
-                position: absolute;
-                top: 20px;
-                left: 70px;
-                padding: 5px 10px;
-                border-radius: 30px;
-                font-size: 0.8rem;
-                font-weight: bold;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                z-index: 10;
-            }
-            
-            .card-status-badge.success {
-                background-color: #2ecc71;
-                color: white;
-            }
-            
-            .card-status-badge.warning {
-                background-color: #f39c12;
-                color: white;
-            }
-            
-            .card-status-badge.danger {
-                background-color: #e74c3c;
-                color: white;
-            }
+            /* أنماط النظام - تم تحديثها للإصدار الجديد */
+            /* تم نقل أنماط البطاقات إلى ملف styles.css الرئيسي */
         `;
         
         // إضافة العنصر إلى head
@@ -1119,335 +1052,53 @@ const InvestorCardSystem = (function() {
     function setupEventListeners() {
         console.log('إعداد مستمعات الأحداث لنظام البطاقات...');
 
-        // مستمع لنموذج تسجيل الدخول بالبطاقة
-        const cardLoginForm = document.getElementById('card-login-form');
-        if (cardLoginForm) {
-            cardLoginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const cardNumber = document.getElementById('card-number').value;
-                const cardExpiry = document.getElementById('card-expiry').value;
-                const cardCvv = document.getElementById('card-cvv').value;
-                
-                // تعطيل الزر أثناء المعالجة
-                const loginBtn = document.getElementById('card-login-btn');
-                if (loginBtn) {
-                    loginBtn.disabled = true;
-                    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جاري التحقق...</span>';
-                }
-                
-                // مسح رسائل الخطأ السابقة
-                const errorElement = document.getElementById('login-error');
-                if (errorElement) {
-                    errorElement.textContent = '';
-                    errorElement.style.display = 'none';
-                }
-                
-                // إخفاء زر إعادة المحاولة
-                const resetBtn = document.getElementById('reset-login-state');
-                if (resetBtn) {
-                    resetBtn.style.display = 'none';
-                }
-                
-                // محاولة تسجيل الدخول
-                loginWithCard(cardNumber, cardExpiry, cardCvv)
-                    .then(card => {
-                        console.log('تم تسجيل الدخول بنجاح');
-                        
-                        // إخفاء شاشة تسجيل الدخول
-                        const loginScreen = document.getElementById('login-screen');
-                        if (loginScreen) {
-                            loginScreen.style.display = 'none';
-                        }
-                        
-                        // عرض الصفحة الرئيسية
-                        const cardDashboard = document.getElementById('card-dashboard');
-                        if (cardDashboard) {
-                            cardDashboard.style.display = 'flex';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('خطأ في تسجيل الدخول بالبطاقة:', error);
-                        
-                        // عرض رسالة الخطأ
-                        if (errorElement) {
-                            errorElement.textContent = error.message;
-                            errorElement.style.display = 'block';
-                            
-                            // إظهار زر إعادة المحاولة إذا كانت المشكلة متعلقة بحالة التحميل
-                            if (error.message.includes('جاري معالجة العملية السابقة')) {
-                                const resetBtn = document.getElementById('reset-login-state');
-                                if (resetBtn) {
-                                    resetBtn.style.display = 'block';
-                                }
-                            }
-                        }
-                    })
-                    .finally(() => {
-                        // إعادة تفعيل الزر
-                        if (loginBtn) {
-                            loginBtn.disabled = false;
-                            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>تسجيل الدخول</span>';
-                        }
-                    });
-            });
-        }
-
-        // مستمع لنموذج تسجيل الدخول بالهاتف
-        const phoneLoginForm = document.getElementById('phone-login-form');
-        if (phoneLoginForm) {
-            phoneLoginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const phoneNumber = document.getElementById('phone-number').value;
-                const investorName = document.getElementById('investor-name').value;
-                
-                // تعطيل الزر أثناء المعالجة
-                const loginBtn = document.getElementById('phone-login-btn');
-                if (loginBtn) {
-                    loginBtn.disabled = true;
-                    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جاري التحقق...</span>';
-                }
-                
-                // مسح رسائل الخطأ السابقة
-                const errorElement = document.getElementById('phone-login-error');
-                if (errorElement) {
-                    errorElement.textContent = '';
-                    errorElement.style.display = 'none';
-                }
-                
-                // محاولة تسجيل الدخول
-                loginWithPhone(phoneNumber, investorName)
-                    .then(card => {
-                        console.log('تم تسجيل الدخول بنجاح');
-                        
-                        // إخفاء شاشة تسجيل الدخول
-                        const loginScreen = document.getElementById('login-screen');
-                        if (loginScreen) {
-                            loginScreen.style.display = 'none';
-                        }
-                        
-                        // عرض الصفحة الرئيسية
-                        const cardDashboard = document.getElementById('card-dashboard');
-                        if (cardDashboard) {
-                            cardDashboard.style.display = 'flex';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('خطأ في تسجيل الدخول بالهاتف:', error);
-                        
-                        // عرض رسالة الخطأ
-                        if (errorElement) {
-                            errorElement.textContent = error.message;
-                            errorElement.style.display = 'block';
-                        }
-                    })
-                    .finally(() => {
-                        // إعادة تفعيل الزر
-                        if (loginBtn) {
-                            loginBtn.disabled = false;
-                            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>تسجيل الدخول</span>';
-                        }
-                    });
-            });
-        }
-
-        // مستمع لزر إعادة تعيين حالة تسجيل الدخول
-        const resetLoginStateBtn = document.getElementById('reset-login-state');
-        if (resetLoginStateBtn) {
-            resetLoginStateBtn.addEventListener('click', function() {
-                // إعادة تعيين حالة التحميل
-                isLoading = false;
-                
-                // إخفاء الزر
-                this.style.display = 'none';
-                
-                // إخفاء رسالة الخطأ
-                const errorElement = document.getElementById('login-error');
-                if (errorElement) {
-                    errorElement.textContent = '';
-                    errorElement.style.display = 'none';
-                }
-                
-                console.log('تم إعادة تعيين حالة تسجيل الدخول');
-            });
-        } else {
-            // إنشاء زر إعادة المحاولة إذا لم يكن موجوداً
-            const loginError = document.getElementById('login-error');
-            if (loginError && loginError.parentNode) {
-                const resetBtn = document.createElement('button');
-                resetBtn.id = 'reset-login-state';
-                resetBtn.className = 'btn btn-secondary';
-                resetBtn.style.display = 'none';
-                resetBtn.style.marginBottom = '10px';
-                resetBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>إعادة المحاولة</span>';
-                
-                resetBtn.addEventListener('click', function() {
-                    isLoading = false;
-                    this.style.display = 'none';
-                    
-                    if (loginError) {
-                        loginError.textContent = '';
-                        loginError.style.display = 'none';
-                    }
-                    
-                    console.log('تم إعادة تعيين حالة تسجيل الدخول');
-                });
-                
-                loginError.parentNode.insertBefore(resetBtn, loginError.nextSibling);
-            }
-        }
-
-        // مستمع لأزرار التبويب
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // إزالة الفئة النشطة من جميع الأزرار
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // إضافة الفئة النشطة للزر الحالي
-                this.classList.add('active');
-                
-                // الحصول على معرف التبويب
-                const tabId = this.getAttribute('data-tab');
-                
-                // إخفاء جميع محتويات التبويب
-                const tabContents = document.querySelectorAll('.tab-content');
-                tabContents.forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // عرض محتوى التبويب المطلوب
-                const activeTab = document.getElementById(`${tabId}-tab`);
-                if (activeTab) {
-                    activeTab.classList.add('active');
-                }
-                
-                // مسح رسائل الخطأ
-                const errorElements = document.querySelectorAll('.error-message');
-                errorElements.forEach(element => {
-                    element.textContent = '';
-                    element.style.display = 'none';
-                });
-            });
+        // إنشاء زر إعادة ضبط حالة النظام
+        const resetButton = document.createElement('button');
+        resetButton.id = 'reset-system-state-btn';
+        resetButton.style.display = 'none';
+        resetButton.addEventListener('click', () => {
+            isLoading = false;
+            console.log('تم إعادة تعيين حالة التحميل');
         });
-
-        // مستمع لزر تسجيل الخروج
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                // تنفيذ تسجيل الخروج
-                logout();
-            });
-        }
-
-        // مستمع لزر قلب البطاقة
-        const flipCardBtn = document.getElementById('flip-card-btn');
-        if (flipCardBtn) {
-            flipCardBtn.addEventListener('click', function() {
-                const card = document.querySelector('.investor-card');
-                if (card) {
-                    card.classList.toggle('flipped');
-                    
-                    // تغيير نص الزر
-                    const isFlipped = card.classList.contains('flipped');
-                    this.querySelector('span').textContent = isFlipped ? 'عرض الأمام' : 'عرض الخلف';
-                }
-            });
-        }
-
-        // مستمع لزر عرض رمز QR
-        const showQrBtn = document.getElementById('show-qr-btn');
-        if (showQrBtn) {
-            showQrBtn.addEventListener('click', function() {
-                const qrModal = document.getElementById('qr-modal');
-                if (qrModal) {
-                    qrModal.classList.add('active');
-                    
-                    // إنشاء رمز QR للبطاقة الحالية
-                    generateQRCodeForCurrentCard();
-                }
-            });
-        }
-
-        // مستمع لزر مشاركة البطاقة
-        const shareCardBtn = document.getElementById('share-card-btn');
-        if (shareCardBtn) {
-            shareCardBtn.addEventListener('click', function() {
-                const shareModal = document.getElementById('share-modal');
-                if (shareModal) {
-                    shareModal.classList.add('active');
-                    
-                    // تحضير محتوى المشاركة
-                    prepareShareContent();
-                }
-            });
-        }
-
-        // مستمع لأزرار الإغلاق في النوافذ المنبثقة
-        const closeButtons = document.querySelectorAll('.modal-close, .modal-close-btn');
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const modal = this.closest('.modal-overlay');
-                if (modal) {
-                    modal.classList.remove('active');
-                }
-            });
-        });
-
-        // مستمع لزر الاتصال بالدعم
-        const contactSupportBtn = document.getElementById('contact-support-btn');
-        if (contactSupportBtn) {
-            contactSupportBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const supportModal = document.getElementById('support-modal');
-                if (supportModal) {
-                    supportModal.classList.add('active');
-                }
-            });
-        }
-
-        // مستمع التنسيق التلقائي لرقم البطاقة
-        const cardNumberInput = document.getElementById('card-number');
-        if (cardNumberInput) {
-            cardNumberInput.addEventListener('input', function() {
-                this.value = formatCardNumber(this.value);
-            });
-        }
-
-        // مستمع التنسيق التلقائي لتاريخ الانتهاء
-        const cardExpiryInput = document.getElementById('card-expiry');
-        if (cardExpiryInput) {
-            cardExpiryInput.addEventListener('input', function() {
-                this.value = formatInputExpiryDate(this.value);
-            });
-        }
+        
+        // إضافة الزر إلى الصفحة بشكل مخفي
+        document.body.appendChild(resetButton);
 
         console.log('تم إعداد مستمعات الأحداث بنجاح');
     }
 
-    // تنسيق رقم البطاقة أثناء الإدخال
-    function formatCardNumber(value) {
-        // إزالة جميع المسافات والأحرف غير الرقمية
-        const cardNumber = value.replace(/\D/g, '');
-        
-        // تقسيم الرقم إلى مجموعات من 4 أرقام
-        return cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+    // تحديث واجهة المستخدم للمستخدم المسجل
+    function updateUIForLoggedInUser(user) {
+        // سيتم تنفيذه من قبل ملف app.js
+        console.log('تم تحديث واجهة المستخدم للمستخدم المسجل');
     }
 
-    // تنسيق تاريخ الانتهاء أثناء الإدخال (MM/YY)
-    function formatInputExpiryDate(value) {
-        // إزالة الأحرف غير الرقمية
-        const expiry = value.replace(/\D/g, '');
-        
-        if (expiry.length > 2) {
-            return `${expiry.substring(0, 2)}/${expiry.substring(2, 4)}`;
+    // تحديث واجهة المستخدم للمستخدم غير المسجل
+    function updateUIForLoggedOutUser() {
+        // إذا كان لدينا بطاقة حالية من التخزين المحلي، سنعرضها مباشرة
+        if (currentCard) {
+            console.log('تم العثور على بطاقة محفوظة، سيتم عرضها');
+            // سيتم تنفيذه من قبل ملف app.js
         } else {
-            return expiry;
+            console.log('لم يتم العثور على بطاقة محفوظة، سيتم عرض شاشة تسجيل الدخول');
+            // سيتم تنفيذه من قبل ملف app.js
         }
+    }
+
+    // عرض تفاصيل البطاقة
+    function displayCardDetails(card) {
+        if (!card) {
+            console.error('لا توجد بيانات للبطاقة');
+            return;
+        }
+        
+        console.log('عرض بيانات البطاقة:', card);
+        
+        // حفظ البطاقة الحالية
+        currentCard = card;
+        saveCurrentCardToLocalStorage();
+        
+        // ستتم معالجة عرض البطاقة في ملف app.js
     }
 
     // تنسيق تاريخ الانتهاء (MM/YY)
@@ -1474,616 +1125,6 @@ const InvestorCardSystem = (function() {
         }
     }
 
-    // تحديث واجهة المستخدم للمستخدم المسجل
-    function updateUIForLoggedInUser(user) {
-        // تغيير اسم المستخدم في الواجهة
-        const userNameElement = document.getElementById('user-name');
-        if (userNameElement) {
-            userNameElement.textContent = user.displayName || user.email || 'المستخدم';
-        }
-        
-        // إخفاء شاشة تسجيل الدخول
-        const loginScreen = document.getElementById('login-screen');
-        if (loginScreen) {
-            loginScreen.style.display = 'none';
-        }
-        
-        // عرض لوحة البطاقات
-        const cardDashboard = document.getElementById('card-dashboard');
-        if (cardDashboard) {
-            cardDashboard.style.display = 'flex';
-        }
-        
-        // تحديث شارة الإشعارات
-        updateNotificationBadge();
-    }
-
-    // تحديث واجهة المستخدم للمستخدم غير المسجل
-    function updateUIForLoggedOutUser() {
-        // إذا كان لدينا بطاقة حالية من التخزين المحلي، سنعرضها مباشرة
-        if (currentCard) {
-            // إخفاء شاشة تسجيل الدخول
-            const loginScreen = document.getElementById('login-screen');
-            if (loginScreen) {
-                loginScreen.style.display = 'none';
-            }
-            
-            // عرض لوحة البطاقات
-            const cardDashboard = document.getElementById('card-dashboard');
-            if (cardDashboard) {
-                cardDashboard.style.display = 'flex';
-            }
-            
-            // عرض بيانات البطاقة
-            displayCardDetails(currentCard);
-        } else {
-            // إظهار شاشة تسجيل الدخول
-            const loginScreen = document.getElementById('login-screen');
-            if (loginScreen) {
-                loginScreen.style.display = 'flex';
-            }
-            
-            // إخفاء لوحة البطاقات
-            const cardDashboard = document.getElementById('card-dashboard');
-            if (cardDashboard) {
-                cardDashboard.style.display = 'none';
-            }
-        }
-    }
-
-    // تحديث شارة الإشعارات
-    function updateNotificationBadge() {
-        // الحصول على عدد الإشعارات غير المقروءة
-        const unreadCount = getUnreadNotificationsCount();
-        
-        // تحديث الشارة
-        const badge = document.querySelector('.notification-badge');
-        if (badge) {
-            badge.textContent = unreadCount;
-            badge.style.display = unreadCount > 0 ? 'flex' : 'none';
-        }
-    }
-
-    // الحصول على عدد الإشعارات غير المقروءة
-    function getUnreadNotificationsCount() {
-        // يمكن تعديل هذه الدالة لجلب الإشعارات الفعلية من النظام
-        return 0; // قيمة مبدئية
-    }
-
-    // عرض تفاصيل البطاقة
-    function displayCardDetails(card) {
-        if (!card) {
-            console.error('لا توجد بيانات للبطاقة');
-            return;
-        }
-        
-        console.log('عرض بيانات البطاقة:', card);
-        
-        // حفظ البطاقة الحالية
-        currentCard = card;
-        saveCurrentCardToLocalStorage();
-        
-        // تحديث بيانات البطاقة في الواجهة
-        const displayCardNumber = document.getElementById('display-card-number');
-        const displayCardExpiry = document.getElementById('display-card-expiry');
-        const displayCardName = document.getElementById('display-card-name');
-        const displayCvv = document.getElementById('display-cvv');
-        const displayPhone = document.getElementById('display-phone');
-        const cardStatusBadge = document.getElementById('card-status-badge');
-        
-        if (displayCardNumber) displayCardNumber.textContent = card.cardNumber || 'XXXX XXXX XXXX XXXX';
-        if (displayCardExpiry) displayCardExpiry.textContent = formatExpiryDate(card.expiryDate) || 'MM/YY';
-        if (displayCardName) displayCardName.textContent = card.investorName || 'اسم المستثمر';
-        if (displayCvv) displayCvv.textContent = card.cvv || '***';
-        if (displayPhone) displayPhone.textContent = card.investorPhone || '';
-        
-        // تحديث حالة البطاقة
-        if (cardStatusBadge) {
-            const isExpired = new Date(card.expiryDate) < new Date();
-            const isActive = card.status === 'active';
-            
-            if (!isActive) {
-                cardStatusBadge.className = 'card-status-badge warning';
-                cardStatusBadge.textContent = 'موقوفة';
-            } else if (isExpired) {
-                cardStatusBadge.className = 'card-status-badge danger';
-                cardStatusBadge.textContent = 'منتهية';
-            } else {
-                cardStatusBadge.className = 'card-status-badge success';
-                cardStatusBadge.textContent = 'نشطة';
-            }
-        }
-        
-        // تعيين نمط البطاقة حسب النوع
-        applyCardStyle(card);
-        
-        // تحديث معلومات المستثمر
-        updateInvestorInfo(card);
-        
-        // تحديث قوائم البيانات
-        updateDataLists(card);
-        
-        // تحديث اسم المستخدم في الواجهة
-        updateUserDisplayName(card.investorName);
-    }
-
-    // تطبيق نمط البطاقة
-    function applyCardStyle(card) {
-        const cardType = card.cardType || 'platinum';
-        const cardElement = document.querySelector('.investor-card');
-        
-        if (!cardElement) return;
-        
-        // الحصول على معلومات التصميم حسب النوع
-        const styleInfo = CARD_TYPES[cardType] || CARD_TYPES.platinum;
-        
-        // تعيين ألوان البطاقة
-        const cardFront = cardElement.querySelector('.card-front');
-        const cardBack = cardElement.querySelector('.card-back');
-        
-        if (cardFront) {
-            cardFront.style.backgroundColor = styleInfo.color;
-            cardFront.style.color = styleInfo.textColor;
-        }
-        
-        if (cardBack) {
-            cardBack.style.backgroundColor = styleInfo.color;
-            cardBack.style.color = styleInfo.textColor;
-        }
-        
-        // تعيين لون الشريحة
-        const cardChip = cardElement.querySelector('.card-chip');
-        if (cardChip) {
-            cardChip.style.background = `linear-gradient(135deg, ${styleInfo.chipColor}88 0%, ${styleInfo.chipColor} 50%, ${styleInfo.chipColor}88 100%)`;
-        }
-        
-        // تحديث اسم النوع في البطاقة
-        const cardBrand = cardElement.querySelector('.card-brand');
-        if (cardBrand) {
-            cardBrand.textContent = styleInfo.name;
-        }
-    }
-
-    // تحديث اسم المستخدم في الواجهة
-    function updateUserDisplayName(name) {
-        const userNameElement = document.getElementById('user-name');
-        const userInitialElement = document.getElementById('user-initial');
-        
-        if (userNameElement && name) {
-            userNameElement.textContent = name;
-            
-            if (userInitialElement) {
-                // وضع الحرف الأول من الاسم
-                userInitialElement.textContent = name.charAt(0);
-            }
-        }
-    }
-
-    // تحديث معلومات المستثمر
-    function updateInvestorInfo(card) {
-        // تحديث معلومات المستثمر في تبويب المعلومات
-        const investorFullName = document.getElementById('investor-full-name');
-        const investorPhoneNumber = document.getElementById('investor-phone-number');
-        const investorAddress = document.getElementById('investor-address');
-        const investorJoinDate = document.getElementById('investor-join-date');
-        
-        if (investorFullName) investorFullName.textContent = card.investorName || '-';
-        if (investorPhoneNumber) investorPhoneNumber.textContent = card.investorPhone || '-';
-        
-        // البحث عن بيانات إضافية للمستثمر
-        if (card.investorId) {
-            const investor = findInvestorById(card.investorId);
-            
-            if (investor) {
-                if (investorAddress) investorAddress.textContent = investor.address || '-';
-                if (investorJoinDate) investorJoinDate.textContent = formatDate(investor.joinDate || investor.createdAt) || '-';
-                
-                // تحديث الإحصائيات المالية
-                updateFinancialStats(investor);
-            }
-        }
-        
-        // تحديث معلومات البطاقة
-        const cardType = document.getElementById('card-type');
-        const cardIssueDate = document.getElementById('card-issue-date');
-        const cardExpiryDate = document.getElementById('card-expiry-date');
-        const cardStatusInfo = document.getElementById('card-status-badge-info');
-        
-        if (cardType) cardType.textContent = getCardTypeName(card.cardType) || 'بلاتينية';
-        if (cardIssueDate) cardIssueDate.textContent = formatDate(card.createdAt) || '-';
-        if (cardExpiryDate) cardExpiryDate.textContent = formatDate(card.expiryDate) || '-';
-        
-        if (cardStatusInfo) {
-            const isExpired = new Date(card.expiryDate) < new Date();
-            const isActive = card.status === 'active';
-            
-            cardStatusInfo.className = 'badge';
-            
-            if (!isActive) {
-                cardStatusInfo.classList.add('badge-warning');
-                cardStatusInfo.textContent = 'موقوفة';
-            } else if (isExpired) {
-                cardStatusInfo.classList.add('badge-danger');
-                cardStatusInfo.textContent = 'منتهية';
-            } else {
-                cardStatusInfo.classList.add('badge-success');
-                cardStatusInfo.textContent = 'نشطة';
-            }
-        }
-        
-        // تحديث مزايا البطاقة
-        const benefitsList = document.getElementById('benefits-list');
-        if (benefitsList) {
-            const benefits = CARD_TYPES[card.cardType]?.benefits || [];
-            
-            let html = '';
-            
-            if (benefits.length > 0) {
-                benefits.forEach(benefit => {
-                    html += `<li>${benefit}</li>`;
-                });
-            } else {
-                html = '<li>لا توجد مزايا محددة</li>';
-            }
-            
-            benefitsList.innerHTML = html;
-        }
-    }
-
-    // تحديث الإحصائيات المالية
-    function updateFinancialStats(investor) {
-        // تحديث الرصيد الإجمالي
-        const totalBalance = document.getElementById('total-balance');
-        if (totalBalance) {
-            totalBalance.textContent = formatCurrency(investor.amount || 0);
-        }
-        
-        // تحديث الربح الشهري
-        const monthlyProfit = document.getElementById('monthly-profit');
-        if (monthlyProfit) {
-            const profit = calculateMonthlyProfit(investor.amount || 0);
-            monthlyProfit.textContent = formatCurrency(profit);
-        }
-        
-        // تحديث أيام الاستثمار
-        const investmentDays = document.getElementById('investment-days');
-        if (investmentDays) {
-            const days = calculateInvestmentDays(investor.joinDate || investor.createdAt);
-            investmentDays.textContent = days;
-        }
-        
-        // تحديث موعد الربح القادم
-        const nextProfitDate = document.getElementById('next-profit-date');
-        if (nextProfitDate) {
-            const nextDate = calculateNextProfitDate(investor.joinDate || investor.createdAt);
-            nextProfitDate.textContent = formatDate(nextDate);
-        }
-        
-        // تحديث تاريخ آخر تحديث
-        const lastUpdateDate = document.getElementById('last-update-date');
-        if (lastUpdateDate) {
-            lastUpdateDate.textContent = formatDate(new Date());
-        }
-    }
-
-    // تحديث قوائم البيانات
-    function updateDataLists(card) {
-        // تحديث قائمة الاستثمارات
-        updateInvestmentsList(card);
-        
-        // تحديث قائمة العمليات
-        updateTransactionsList(card);
-        
-        // تحديث قائمة الأرباح
-        updateProfitsList(card);
-    }
-
-    // تحديث قائمة الاستثمارات
-    function updateInvestmentsList(card) {
-        const investmentsList = document.getElementById('investments-list');
-        if (!investmentsList) return;
-        
-        let html = '';
-        
-        if (card.investorId) {
-            const investor = findInvestorById(card.investorId);
-            
-            if (investor && investor.investments && investor.investments.length > 0) {
-                // عرض الاستثمارات المتعددة
-                investor.investments.forEach(investment => {
-                    html += createInvestmentItemHTML(investment);
-                });
-            } else if (investor && investor.amount) {
-                // عرض الاستثمار الإجمالي
-                const dummyInvestment = {
-                    amount: investor.amount,
-                    date: investor.joinDate || investor.createdAt || card.createdAt,
-                    status: 'active'
-                };
-                
-                html += createInvestmentItemHTML(dummyInvestment);
-            } else {
-                html = '<div class="empty-list">لا توجد استثمارات متاحة</div>';
-            }
-        } else {
-            html = '<div class="empty-list">لا توجد استثمارات متاحة</div>';
-        }
-        
-        investmentsList.innerHTML = html;
-    }
-
-    // إنشاء HTML لعنصر استثمار
-    function createInvestmentItemHTML(investment) {
-        const dailyRatePerMillion = 583333.33333333; // نسبة الربح اليومي لكل مليون
-        const annualRate = (dailyRatePerMillion * 365 / 1000000 * 100).toFixed(2); // معدل العائد السنوي
-        const daysActive = calculateInvestmentDays(investment.date);
-        const statusClass = investment.status === 'active' ? 'badge-success' : 'badge-warning';
-        const statusText = investment.status === 'active' ? 'نشط' : 'غير نشط';
-        
-        return `
-            <div class="data-item">
-                <div class="data-item-header">
-                    <div class="data-item-title">${formatCurrency(investment.amount)}</div>
-                    <div class="data-item-badge ${statusClass}">${statusText}</div>
-                </div>
-                <div class="data-item-details">
-                    <div class="data-detail">
-                        <div class="data-detail-label">تاريخ الاستثمار</div>
-                        <div class="data-detail-value">${formatDate(investment.date)}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">معدل العائد السنوي</div>
-                        <div class="data-detail-value">${annualRate}%</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">الربح اليومي لكل مليون</div>
-                        <div class="data-detail-value">${formatCurrency(dailyRatePerMillion)}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">عدد الأيام</div>
-                        <div class="data-detail-value">${daysActive} يوم</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // تحديث قائمة العمليات
-    function updateTransactionsList(card) {
-        const transactionsList = document.getElementById('transactions-list');
-        if (!transactionsList) return;
-        
-        let html = '';
-        
-        if (card.investorId) {
-            const transactions = getInvestorTransactions(card.investorId);
-            
-            if (transactions && transactions.length > 0) {
-                transactions.forEach(transaction => {
-                    html += createTransactionItemHTML(transaction);
-                });
-            } else {
-                html = '<div class="empty-list">لا توجد عمليات متاحة</div>';
-            }
-        } else {
-            html = '<div class="empty-list">لا توجد عمليات متاحة</div>';
-        }
-        
-        transactionsList.innerHTML = html;
-    }
-
-    // إنشاء HTML لعنصر عملية
-    function createTransactionItemHTML(transaction) {
-        const typeClass = getTransactionTypeClass(transaction.type);
-        const typeText = getTransactionTypeText(transaction.type);
-        
-        return `
-            <div class="data-item">
-                <div class="data-item-header">
-                    <div class="data-item-title">${formatCurrency(transaction.amount)}</div>
-                    <div class="data-item-badge ${typeClass}">${typeText}</div>
-                </div>
-                <div class="data-item-details">
-                    <div class="data-detail">
-                        <div class="data-detail-label">التاريخ</div>
-                        <div class="data-detail-value">${formatDate(transaction.date)}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">الرصيد بعد العملية</div>
-                        <div class="data-detail-value">${formatCurrency(transaction.balance || 0)}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">ملاحظات</div>
-                        <div class="data-detail-value">${transaction.notes || '-'}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // تحديث قائمة الأرباح
-    function updateProfitsList(card) {
-        const profitsList = document.getElementById('profits-list');
-        if (!profitsList) return;
-        
-        // تحديث إجمالي الأرباح المستلمة
-        updateTotalProfits(card.investorId);
-        
-        let html = '';
-        
-        if (card.investorId) {
-            const profits = getInvestorProfits(card.investorId);
-            
-            if (profits && profits.length > 0) {
-                profits.forEach(profit => {
-                    html += createProfitItemHTML(profit);
-                });
-            } else {
-                html = '<div class="empty-list">لا توجد أرباح متاحة</div>';
-            }
-        } else {
-            html = '<div class="empty-list">لا توجد أرباح متاحة</div>';
-        }
-        
-        profitsList.innerHTML = html;
-    }
-
-    // إنشاء HTML لعنصر ربح
-    function createProfitItemHTML(profit) {
-        const statusClass = profit.status === 'paid' ? 'badge-success' : 'badge-warning';
-        const statusText = profit.status === 'paid' ? 'مدفوع' : 'مستحق';
-        
-        return `
-            <div class="data-item">
-                <div class="data-item-header">
-                    <div class="data-item-title">${formatCurrency(profit.amount)}</div>
-                    <div class="data-item-badge ${statusClass}">${statusText}</div>
-                </div>
-                <div class="data-item-details">
-                    <div class="data-detail">
-                        <div class="data-detail-label">تاريخ الاستحقاق</div>
-                        <div class="data-detail-value">${formatDate(profit.dueDate)}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">تاريخ الدفع</div>
-                        <div class="data-detail-value">${profit.paidDate ? formatDate(profit.paidDate) : '-'}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">الدورة</div>
-                        <div class="data-detail-value">${profit.cycle || 'شهرية'}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // تحديث إجمالي الأرباح
-    function updateTotalProfits(investorId) {
-        const totalReceivedProfits = document.getElementById('total-received-profits');
-        const profitPercentage = document.getElementById('profit-percentage');
-        const progressFill = document.querySelector('.progress-fill');
-        const currentProfit = document.getElementById('current-profit');
-        const targetProfit = document.getElementById('target-profit');
-        
-        if (!investorId) return;
-        
-        // الحصول على سجل الأرباح
-        const profits = getInvestorProfits(investorId);
-        
-        // حساب إجمالي الأرباح المستلمة
-        const totalPaid = profits
-            .filter(profit => profit.status === 'paid')
-            .reduce((sum, profit) => sum + profit.amount, 0);
-        
-        if (totalReceivedProfits) {
-            totalReceivedProfits.textContent = formatCurrency(totalPaid);
-        }
-        
-        // الحصول على معلومات المستثمر
-        const investor = findInvestorById(investorId);
-        
-        if (investor) {
-            // حساب الربح الحالي والمستهدف
-            const currentMonthProfit = calculateCurrentMonthProfit(investor);
-            const monthlyTarget = calculateMonthlyProfit(investor.amount || 0);
-            
-            // حساب النسبة المئوية
-            const percentage = monthlyTarget > 0 ? 
-                               Math.min(100, Math.floor((currentMonthProfit / monthlyTarget) * 100)) : 
-                               0;
-            
-            // تحديث شريط التقدم
-            if (profitPercentage) {
-                profitPercentage.textContent = `${percentage}%`;
-            }
-            
-            if (progressFill) {
-                progressFill.style.width = `${percentage}%`;
-            }
-            
-            if (currentProfit) {
-                currentProfit.textContent = formatCurrency(currentMonthProfit);
-            }
-            
-            if (targetProfit) {
-                targetProfit.textContent = formatCurrency(monthlyTarget);
-            }
-        }
-    }
-
-    // إنشاء رمز QR للبطاقة الحالية
-    function generateQRCodeForCurrentCard() {
-        if (!currentCard) return;
-        
-        const qrContainer = document.getElementById('card-qr-code');
-        if (!qrContainer) return;
-        
-        // تحضير البيانات للرمز
-        const cardData = {
-            id: currentCard.id,
-            number: currentCard.cardNumber,
-            name: currentCard.investorName,
-            expiry: formatExpiryDate(currentCard.expiryDate)
-        };
-        
-        // تحويل البيانات إلى سلسلة JSON
-        const dataString = JSON.stringify(cardData);
-        
-        // مسح المحتوى السابق
-        qrContainer.innerHTML = '';
-        
-        // التحقق من وجود مكتبة QRCode
-        if (typeof QRCode !== 'undefined') {
-            // إنشاء الرمز باستخدام المكتبة
-            new QRCode(qrContainer, {
-                text: dataString,
-                width: 200,
-                height: 200,
-                colorDark: '#000000',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        } else {
-            // استخدام خدمة خارجية لإنشاء الرمز
-            const encodedData = encodeURIComponent(dataString);
-            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedData}" alt="QR Code">`;
-        }
-    }
-
-    // تحضير محتوى المشاركة
-    function prepareShareContent() {
-        if (!currentCard) return;
-        
-        const shareText = document.getElementById('share-text');
-        if (!shareText) return;
-        
-        // إنشاء نص المشاركة
-        const content = `بطاقة المستثمر
-الاسم: ${currentCard.investorName}
-رقم البطاقة: ${maskCardNumber(currentCard.cardNumber)}
-تاريخ الانتهاء: ${formatExpiryDate(currentCard.expiryDate)}
-نوع البطاقة: ${getCardTypeName(currentCard.cardType)}`;
-        
-        // تعيين النص
-        shareText.value = content;
-    }
-
-    // إخفاء جزء من رقم البطاقة
-    function maskCardNumber(cardNumber) {
-        if (!cardNumber) return 'XXXX XXXX XXXX XXXX';
-        
-        // إخفاء كل الأرقام ما عدا آخر 4
-        const parts = cardNumber.split(' ');
-        if (parts.length === 4) {
-            return `XXXX XXXX XXXX ${parts[3]}`;
-        } else {
-            // للتنسيقات الأخرى
-            const clean = cardNumber.replace(/\s/g, '');
-            const lastFour = clean.slice(-4);
-            return `XXXX XXXX XXXX ${lastFour}`;
-        }
-    }
-
     // تسجيل الخروج
     function logout() {
         // تنفيذ تسجيل الخروج من Firebase إذا كان المستخدم مسجلاً
@@ -2105,38 +1146,7 @@ const InvestorCardSystem = (function() {
         currentCard = null;
         localStorage.removeItem(LOCAL_STORAGE_KEYS.CURRENT_CARD);
         
-        // إظهار شاشة تسجيل الدخول
-        const loginScreen = document.getElementById('login-screen');
-        if (loginScreen) {
-            loginScreen.style.display = 'flex';
-            
-            // مسح حقول النموذج
-            const cardLoginForm = document.getElementById('card-login-form');
-            const phoneLoginForm = document.getElementById('phone-login-form');
-            
-            if (cardLoginForm) cardLoginForm.reset();
-            if (phoneLoginForm) phoneLoginForm.reset();
-            
-            // مسح رسائل الخطأ
-            const loginError = document.getElementById('login-error');
-            const phoneLoginError = document.getElementById('phone-login-error');
-            
-            if (loginError) {
-                loginError.textContent = '';
-                loginError.style.display = 'none';
-            }
-            
-            if (phoneLoginError) {
-                phoneLoginError.textContent = '';
-                phoneLoginError.style.display = 'none';
-            }
-        }
-        
-        // إخفاء لوحة البطاقات
-        const cardDashboard = document.getElementById('card-dashboard');
-        if (cardDashboard) {
-            cardDashboard.style.display = 'none';
-        }
+        // سيتم تنفيذ تحديث واجهة المستخدم في ملف app.js
     }
 
     // البحث عن مستثمر بواسطة المعرف
@@ -2145,236 +1155,6 @@ const InvestorCardSystem = (function() {
         
         // البحث في القائمة المحلية
         return investorsList.find(investor => investor.id === investorId) || null;
-    }
-
-    // الحصول على عمليات المستثمر
-    function getInvestorTransactions(investorId) {
-        if (!investorId) return [];
-        
-        // محاولة الحصول على العمليات من النافذة العامة
-        if (window.transactions && Array.isArray(window.transactions)) {
-            return window.transactions.filter(transaction => transaction.investorId === investorId);
-        }
-        
-        // إنشاء عمليات افتراضية
-        return generateDummyTransactions(investorId);
-    }
-
-    // الحصول على أرباح المستثمر
-    function getInvestorProfits(investorId) {
-        if (!investorId) return [];
-        
-        // محاولة الحصول على الأرباح من النافذة العامة
-        if (window.profits && Array.isArray(window.profits)) {
-            return window.profits.filter(profit => profit.investorId === investorId);
-        }
-        
-        // إنشاء أرباح افتراضية
-        return generateDummyProfits(investorId);
-    }
-
-    // حساب الربح اليومي
-    function calculateDailyProfit(amount) {
-        const dailyRatePerMillion = 583333.33333333; // نسبة الربح اليومي لكل مليون
-        const amountInMillions = amount / 1000000; // تحويل المبلغ إلى ملايين
-        return amountInMillions * dailyRatePerMillion; // حساب الربح اليومي
-    }
-
-    // تعديل دالة حساب الربح الشهري
-    function calculateMonthlyProfit(amount) {
-        const averageDaysInMonth = 30.4167; // متوسط عدد أيام الشهر
-        return calculateDailyProfit(amount) * averageDaysInMonth; // الربح الشهري
-    }
-
-    // تعديل دالة حساب الربح السنوي
-    function calculateAnnualProfit(amount) {
-        return calculateDailyProfit(amount) * 365; // الربح السنوي
-    }
-
-    // تعديل حساب الربح الحالي للشهر
-    function calculateCurrentMonthProfit(investor) {
-        const amount = investor.amount || 0;
-        const today = new Date();
-        const currentDay = today.getDate(); // اليوم الحالي من الشهر
-        const dailyProfit = calculateDailyProfit(amount); // الربح اليومي
-        return dailyProfit * currentDay; // الربح المتراكم حتى اليوم الحالي
-    }
-
-    // تعديل دالة إنشاء عمليات الربح الافتراضية
-    function generateDummyTransactions(investorId) {
-        const investor = findInvestorById(investorId);
-        if (!investor) return [];
-        const transactions = [];
-        const amount = investor.amount || 0;
-        const joinDate = new Date(investor.joinDate || investor.createdAt || new Date());
-        const today = new Date();
-        transactions.push({
-            id: `tr-${investorId}-1`,
-            investorId: investorId,
-            type: 'deposit',
-            amount: amount,
-            balance: amount,
-            date: joinDate.toISOString(),
-            notes: 'الإيداع الأولي'
-        });
-        let currentDate = new Date(joinDate);
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        let currentBalance = amount;
-        let counter = 2;
-        while (currentDate < today) {
-            const profit = calculateMonthlyProfit(amount);
-            currentBalance += profit;
-            transactions.push({
-                id: `tr-${investorId}-${counter}`,
-                investorId: investorId,
-                type: 'profit',
-                amount: profit,
-                balance: currentBalance,
-                date: currentDate.toISOString(),
-                notes: 'ربح شهري'
-            });
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            counter++;
-        }
-        return transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-    }
-
-    // تعديل دالة إنشاء أرباح افتراضية
-    function generateDummyProfits(investorId) {
-        const investor = findInvestorById(investorId);
-        if (!investor) return [];
-        const profits = [];
-        const amount = investor.amount || 0;
-        const monthlyProfit = calculateMonthlyProfit(amount);
-        const joinDate = new Date(investor.joinDate || investor.createdAt || new Date());
-        const today = new Date();
-        let currentDate = new Date(joinDate);
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        let counter = 1;
-        while (currentDate <= today) {
-            const isPaid = currentDate < today;
-            let paidDate = null;
-            if (isPaid) {
-                paidDate = new Date(currentDate);
-                paidDate.setDate(paidDate.getDate() + Math.floor(Math.random() * 3) + 1);
-            }
-            profits.push({
-                id: `profit-${investorId}-${counter}`,
-                investorId: investorId,
-                amount: monthlyProfit,
-                dueDate: currentDate.toISOString(),
-                paidDate: paidDate ? paidDate.toISOString() : null,
-                status: isPaid ? 'paid' : 'pending',
-                cycle: 'شهرية'
-            });
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            counter++;
-        }
-        return profits.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
-    }
-
-    // تعديل دالة إنشاء HTML لعنصر استثمار
-    function createInvestmentItemHTML(investment) {
-        const dailyRatePerMillion = 583333.33333333; // نسبة الربح اليومي لكل مليون
-        const annualRate = (dailyRatePerMillion * 365 / 1000000 * 100).toFixed(2); // معدل العائد السنوي
-        const daysActive = calculateInvestmentDays(investment.date);
-        const statusClass = investment.status === 'active' ? 'badge-success' : 'badge-warning';
-        const statusText = investment.status === 'active' ? 'نشط' : 'غير نشط';
-        
-        return `
-            <div class="data-item">
-                <div class="data-item-header">
-                    <div class="data-item-title">${formatCurrency(investment.amount)}</div>
-                    <div class="data-item-badge ${statusClass}">${statusText}</div>
-                </div>
-                <div class="data-item-details">
-                    <div class="data-detail">
-                        <div class="data-detail-label">تاريخ الاستثمار</div>
-                        <div class="data-detail-value">${formatDate(investment.date)}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">معدل العائد السنوي</div>
-                        <div class="data-detail-value">${annualRate}%</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">الربح اليومي لكل مليون</div>
-                        <div class="data-detail-value">${formatCurrency(dailyRatePerMillion)}</div>
-                    </div>
-                    <div class="data-detail">
-                        <div class="data-detail-label">عدد الأيام</div>
-                        <div class="data-detail-value">${daysActive} يوم</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // حساب الربح الشهري
-    function calculateMonthlyProfit(amount) {
-        // نسبة الربح السنوية 17.5%
-        const annualRate = 0.175;
-        
-        // الربح الشهري
-        return amount * annualRate / 12;
-    }
-
-    // حساب الربح الحالي للشهر
-    function calculateCurrentMonthProfit(investor) {
-        const amount = investor.amount || 0;
-        
-        // نسبة الربح السنوية 17.5%
-        const annualRate = 0.175;
-        
-        // الربح اليومي
-        const dailyRate = annualRate / 365;
-        
-        // الحصول على اليوم الحالي من الشهر
-        const today = new Date();
-        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-        const currentDay = today.getDate();
-        
-        // النسبة المئوية من الشهر
-        const monthPercentage = currentDay / daysInMonth;
-        
-        // الربح الحالي
-        return amount * annualRate / 12 * monthPercentage;
-    }
-
-    // حساب عدد أيام الاستثمار
-    function calculateInvestmentDays(startDate) {
-        if (!startDate) return 0;
-        
-        // تحويل إلى كائن تاريخ
-        const start = new Date(startDate);
-        const today = new Date();
-        
-        // حساب الفرق بالأيام
-        const diffTime = today - start;
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
-        return diffDays;
-    }
-
-    // حساب تاريخ الربح التالي
-    function calculateNextProfitDate(startDate) {
-        if (!startDate) return null;
-        
-        // تحويل إلى كائن تاريخ
-        const start = new Date(startDate);
-        const today = new Date();
-        
-        // يوم الاستحقاق هو نفس يوم البداية في كل شهر
-        const profitDay = start.getDate();
-        
-        // إنشاء تاريخ الاستحقاق التالي
-        let nextDate = new Date(today.getFullYear(), today.getMonth(), profitDay);
-        
-        // إذا كان اليوم الحالي بعد يوم الاستحقاق، ننتقل للشهر التالي
-        if (today.getDate() >= profitDay) {
-            nextDate.setMonth(nextDate.getMonth() + 1);
-        }
-        
-        return nextDate;
     }
 
     // تنسيق التاريخ
@@ -2419,40 +1199,14 @@ const InvestorCardSystem = (function() {
 
     // الحصول على اسم نوع البطاقة
     function getCardTypeName(cardType) {
-        const cardTypeNames = {
-            platinum: 'بلاتينية',
-            gold: 'ذهبية',
-            premium: 'بريميوم',
-            diamond: 'ماسية',
-            islamic: 'إسلامية',
-            custom: 'مخصصة'
-        };
-        
-        return cardTypeNames[cardType] || 'بلاتينية';
+        const cardTypeInfo = CARD_TYPES[cardType];
+        return cardTypeInfo ? cardTypeInfo.name : 'بلاتينية';
     }
 
-    // الحصول على فئة نوع العملية
-    function getTransactionTypeClass(type) {
-        const typeClasses = {
-            deposit: 'badge-success',
-            withdraw: 'badge-danger',
-            profit: 'badge-primary',
-            transfer: 'badge-warning'
-        };
-        
-        return typeClasses[type] || 'badge-secondary';
-    }
-
-    // الحصول على نص نوع العملية
-    function getTransactionTypeText(type) {
-        const typeTexts = {
-            deposit: 'إيداع',
-            withdraw: 'سحب',
-            profit: 'ربح',
-            transfer: 'تحويل'
-        };
-        
-        return typeTexts[type] || type;
+    // الحصول على مزايا البطاقة
+    function getCardBenefits(cardType) {
+        const cardTypeInfo = CARD_TYPES[cardType];
+        return cardTypeInfo ? cardTypeInfo.benefits : CARD_TYPES.platinum.benefits;
     }
 
     // تصدير الواجهة العامة للنظام
@@ -2468,60 +1222,16 @@ const InvestorCardSystem = (function() {
         getInvestorById: findInvestorById,
         formatCurrency,
         formatDate,
-        getCardTypeName
+        getCardTypeName,
+        getCardBenefits,
+        CARD_TYPES
     };
 })();
 
 // تلقائي: تهيئة النظام عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة زر إعادة ضبط حالة النظام للصفحة
-    const loginForm = document.getElementById('card-login-form');
-    if (loginForm) {
-        // التحقق من وجود زر إعادة المحاولة
-        if (!document.getElementById('reset-login-state')) {
-            const resetBtn = document.createElement('button');
-            resetBtn.id = 'reset-login-state';
-            resetBtn.className = 'btn btn-secondary btn-block';
-            resetBtn.style.display = 'none';
-            resetBtn.style.marginBottom = '10px';
-            resetBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>إعادة المحاولة</span>';
-            
-            const loginErrorDiv = document.getElementById('login-error');
-            if (loginErrorDiv) {
-                loginForm.insertBefore(resetBtn, loginErrorDiv.nextSibling);
-            } else {
-                loginForm.appendChild(resetBtn);
-            }
-            
-            resetBtn.addEventListener('click', function() {
-                // إعادة تعيين حالة التحميل في النظام
-                if (window.InvestorCardSystem) {
-                    // إعادة تعيين المتغير isLoading
-                    window.InvestorCardSystem.isLoading = false;
-                    console.log('تمت إعادة تعيين حالة التحميل');
-                }
-                
-                // إخفاء الزر
-                this.style.display = 'none';
-                
-                // إخفاء رسالة الخطأ
-                const errorElement = document.getElementById('login-error');
-                if (errorElement) {
-                    errorElement.textContent = '';
-                    errorElement.style.display = 'none';
-                }
-            });
-        }
-    }
-
-    // تهيئة نظام بطاقات المستثمرين
-    InvestorCardSystem.initialize()
-        .then(success => {
-            console.log('تم تهيئة نظام بطاقات المستثمرين بنجاح');
-        })
-        .catch(error => {
-            console.error('حدث خطأ أثناء تهيئة نظام بطاقات المستثمرين:', error);
-        });
+    // سيتم استدعاء تهيئة النظام من خلال ملف app.js
+    console.log('تم تحميل وحدة ربط البطاقات مع Firebase');
 });
 
 // إضافة دالة إعادة تعيين حالة النظام إلى النافذة العامة
@@ -2531,58 +1241,8 @@ window.resetInvestorCardSystemState = function() {
         window.InvestorCardSystem.isLoading = false;
         console.log('تمت إعادة تعيين حالة التحميل');
         
-        // إخفاء الأخطاء
-        const errorElements = document.querySelectorAll('.error-message');
-        errorElements.forEach(element => {
-            element.textContent = '';
-            element.style.display = 'none';
-        });
-        
-        // إخفاء زر إعادة المحاولة
-        const resetBtn = document.getElementById('reset-login-state');
-        if (resetBtn) {
-            resetBtn.style.display = 'none';
-        }
-        
         return true;
     }
     
     return false;
 };
-
-// En el sistema principal (InvestmentSystem)
-function shareDataWithCardSystem() {
-    // Compartir inversionistas
-    window.investors = this.getAllInvestors();
-    
-    // Compartir transacciones
-    window.transactions = this.getAllTransactions();
-    
-    // Compartir configuración
-    window.systemConfig = this.getConfig();
-    
-    // Notificar que los datos están disponibles
-    document.dispatchEvent(new CustomEvent('main-system:data-shared'));
-}
-
-// Llamar a esta función cuando se actualicen los datos
-
-// En investor-card-integration.js
-document.addEventListener('main-system:data-shared', function() {
-    console.log('Datos del sistema principal compartidos, actualizando...');
-    
-    if (window.InvestorCardSystem) {
-        // إعادة تحميل بيانات البطاقات
-        window.InvestorCardSystem.loadCardsData()
-            .then(() => {
-                console.log('تم تحديث بيانات البطاقات بنجاح');
-                
-                // تحديث البطاقة الحالية إذا كانت موجودة
-                const currentCard = window.InvestorCardSystem.getCurrentCard();
-                if (currentCard) {
-                    window.InvestorCardSystem.displayCardDetails(currentCard);
-                }
-            });
-    }
-});
-
