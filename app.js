@@ -3,7 +3,7 @@
  * Main application script for Investor Card System
  * Handles UI interactions, animations, and integrates with Firebase connector
  * 
- * @version 3.0.0
+ * @version 2.0.0
  */
 
 // Application namespace
@@ -12,7 +12,6 @@ const App = (function() {
     let currentScreen = null;
     let isInitialized = false;
     let isFirstLoad = true;
-    let activeSection = null;
     
     // DOM elements cache
     const screens = {
@@ -20,10 +19,6 @@ const App = (function() {
         login: document.getElementById('login-screen'),
         dashboard: document.getElementById('card-dashboard')
     };
-    
-    // Charts instances
-    let profitsChart = null;
-    let transactionsChart = null;
     
     // Public methods
     return {
@@ -286,39 +281,12 @@ const App = (function() {
                 });
             });
             
-            // Icon Grid Menu Items
-            const iconGridItems = document.querySelectorAll('.icon-grid-item');
-            iconGridItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const section = item.getAttribute('data-section');
-                    if (section) {
-                        this.showSection(section);
-                    }
-                });
-            });
-            
-            // Back buttons in section screens
-            const backButtons = document.querySelectorAll('.back-btn');
-            backButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    this.hideSection();
-                });
-            });
-            
             // Support contact button
             const contactSupportBtn = document.getElementById('contact-support-btn');
             if (contactSupportBtn) {
                 contactSupportBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    this.showSection('contact');
-                });
-            }
-            
-            // Contact button in info section
-            const contactBtn = document.getElementById('contact-btn');
-            if (contactBtn) {
-                contactBtn.addEventListener('click', () => {
-                    this.showSection('contact');
+                    this.showModal('support-modal');
                 });
             }
             
@@ -380,14 +348,6 @@ const App = (function() {
                 });
             }
             
-            // QR scan button
-            const scanQrBtn = document.getElementById('scan-qr-btn');
-            if (scanQrBtn) {
-                scanQrBtn.addEventListener('click', () => {
-                    this.showQRScanner();
-                });
-            }
-            
             console.log('Event listeners set up successfully');
         },
         
@@ -419,79 +379,6 @@ const App = (function() {
         },
         
         /**
-         * Show a specific section
-         * @param {string} sectionName - Name of the section to show
-         */
-        showSection: function(sectionName) {
-            const sectionScreens = document.getElementById('section-screens');
-            const targetSection = document.getElementById(`${sectionName}-screen`);
-            
-            if (!sectionScreens || !targetSection) {
-                console.error(`Section "${sectionName}" not found`);
-                return;
-            }
-            
-            // Show the section container
-            sectionScreens.style.display = 'block';
-            
-            // Hide all sections
-            const allSections = document.querySelectorAll('.section-screen');
-            allSections.forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Show the target section
-            targetSection.classList.add('active');
-            activeSection = sectionName;
-            
-            // Load section-specific data
-            this.loadSectionData(sectionName);
-        },
-        
-        /**
-         * Hide current section and return to dashboard
-         */
-        hideSection: function() {
-            const sectionScreens = document.getElementById('section-screens');
-            
-            if (sectionScreens) {
-                // Animate hiding
-                sectionScreens.style.display = 'none';
-                
-                // Reset active section
-                activeSection = null;
-            }
-        },
-        
-        /**
-         * Load data for a specific section
-         * @param {string} sectionName - Name of the section to load data for
-         */
-        loadSectionData: function(sectionName) {
-            switch (sectionName) {
-                case 'investments':
-                    this.loadInvestments();
-                    break;
-                    
-                case 'transactions':
-                    this.loadTransactions();
-                    break;
-                    
-                case 'profits':
-                    this.loadProfits();
-                    break;
-                    
-                case 'info':
-                    this.loadInfoData();
-                    break;
-                    
-                case 'stats':
-                    this.loadStatsData();
-                    break;
-            }
-        },
-        
-        /**
          * Initialize screen-specific content and functionality
          * @param {string} screenName - Name of the screen to initialize
          */
@@ -504,23 +391,21 @@ const App = (function() {
                     // Update financial information
                     this.updateFinancialInfo();
                     
+                    // Load lists data
+                    this.loadInvestments();
+                    this.loadTransactions();
+                    this.loadProfits();
+                    
                     // Update notification badge
                     this.updateNotificationBadge();
-                    
-                    // Reset active section
-                    activeSection = null;
-                    
-                    // Always start with home nav active
-                    const navItems = document.querySelectorAll('.bottom-navbar .nav-item');
-                    navItems.forEach(item => item.classList.remove('active'));
-                    const homeNav = document.querySelector('.bottom-navbar .nav-item[href="#home"]');
-                    if (homeNav) homeNav.classList.add('active');
                     break;
                     
                 case 'login':
                     // Reset login forms
                     this.resetLoginForms();
                     break;
+                    
+                // Add other screen initializations as needed
             }
         },
         
@@ -699,33 +584,29 @@ const App = (function() {
          * @param {string} targetSection - The section to navigate to
          */
         handleNavigation: function(targetSection) {
-            // Hide any open section
-            this.hideSection();
-            
             switch (targetSection) {
                 case 'home':
-                    // Show main dashboard/home view
+                    // Already on dashboard, show main tab
+                    const homeTabBtn = document.querySelector('.info-tabs .tab-btn[data-tab="investments"]');
+                    if (homeTabBtn) this.switchTab(homeTabBtn, 'investments');
                     break;
                     
-                case 'card':
-                    // Focus on the card
-                    const cardContainer = document.querySelector('.card-container');
-                    if (cardContainer) {
-                        cardContainer.scrollIntoView({ behavior: 'smooth' });
-                    }
+                case 'transactions':
+                    // Switch to transactions tab
+                    const transactionsTabBtn = document.querySelector('.info-tabs .tab-btn[data-tab="transactions"]');
+                    if (transactionsTabBtn) this.switchTab(transactionsTabBtn, 'transactions');
                     break;
                     
-                case 'menu':
-                    // Focus on the icon grid menu
-                    const iconGrid = document.querySelector('.icon-grid-menu');
-                    if (iconGrid) {
-                        iconGrid.scrollIntoView({ behavior: 'smooth' });
-                    }
+                case 'profits':
+                    // Switch to profits tab
+                    const profitsTabBtn = document.querySelector('.info-tabs .tab-btn[data-tab="profits"]');
+                    if (profitsTabBtn) this.switchTab(profitsTabBtn, 'profits');
                     break;
                     
                 case 'profile':
-                    // Show info section
-                    this.showSection('info');
+                    // Switch to info tab
+                    const infoTabBtn = document.querySelector('.info-tabs .tab-btn[data-tab="info"]');
+                    if (infoTabBtn) this.switchTab(infoTabBtn, 'info');
                     break;
             }
         },
@@ -773,113 +654,6 @@ const App = (function() {
             
             if (userName) userName.textContent = card.investorName || 'المستثمر';
             if (userInitial && card.investorName) userInitial.textContent = card.investorName.charAt(0);
-            
-            // Update investor info
-            this.updateInvestorInfo(card);
-        },
-        
-        /**
-         * Load investor information in the info section
-         */
-        loadInfoData: function() {
-            const card = InvestorCardSystem.getCurrentCard();
-            if (!card) return;
-            
-            // Update investor info
-            this.updateInvestorInfo(card);
-            
-            // Update card info
-            this.updateCardInfo(card);
-            
-            // Update card benefits
-            this.updateCardBenefits(card.cardType || 'platinum');
-        },
-        
-        /**
-         * Update investor information
-         * @param {Object} card - Card object
-         */
-        updateInvestorInfo: function(card) {
-            if (!card) return;
-            
-            // Get investor details from the card or from InvestorCardSystem
-            let investor = null;
-            if (card.investorId) {
-                investor = InvestorCardSystem.getInvestorById(card.investorId);
-            }
-            
-            const investorName = document.getElementById('investor-full-name');
-            const investorPhone = document.getElementById('investor-phone-number');
-            const investorAddress = document.getElementById('investor-address');
-            const investorJoinDate = document.getElementById('investor-join-date');
-            
-            if (investorName) investorName.textContent = card.investorName || '-';
-            if (investorPhone) investorPhone.textContent = card.investorPhone || '-';
-            
-            if (investor) {
-                if (investorAddress) investorAddress.textContent = investor.address || '-';
-                if (investorJoinDate) investorJoinDate.textContent = InvestorCardSystem.formatDate(investor.joinDate || investor.createdAt || card.createdAt);
-            } else {
-                if (investorAddress) investorAddress.textContent = '-';
-                if (investorJoinDate) investorJoinDate.textContent = InvestorCardSystem.formatDate(card.createdAt);
-            }
-        },
-        
-        /**
-         * Update card information
-         * @param {Object} card - Card object
-         */
-        updateCardInfo: function(card) {
-            if (!card) return;
-            
-            const cardType = document.getElementById('card-type');
-            const cardIssueDate = document.getElementById('card-issue-date');
-            const cardExpiryDate = document.getElementById('card-expiry-date');
-            const cardStatusBadgeInfo = document.getElementById('card-status-badge-info');
-            
-            if (cardType) cardType.textContent = InvestorCardSystem.getCardTypeName(card.cardType || 'platinum');
-            if (cardIssueDate) cardIssueDate.textContent = InvestorCardSystem.formatDate(card.createdAt);
-            if (cardExpiryDate) cardExpiryDate.textContent = card.expiryDate || '-';
-            
-            // Update card status badge in info section
-            if (cardStatusBadgeInfo) {
-                const isExpired = new Date(card.expiryDate) < new Date();
-                const isActive = card.status === 'active';
-                
-                cardStatusBadgeInfo.className = 'badge';
-                
-                if (!isActive) {
-                    cardStatusBadgeInfo.classList.add('badge-warning');
-                    cardStatusBadgeInfo.textContent = 'موقوفة';
-                } else if (isExpired) {
-                    cardStatusBadgeInfo.classList.add('badge-danger');
-                    cardStatusBadgeInfo.textContent = 'منتهية';
-                } else {
-                    cardStatusBadgeInfo.classList.add('badge-success');
-                    cardStatusBadgeInfo.textContent = 'نشطة';
-                }
-            }
-        },
-        
-        /**
-         * Update card benefits list
-         * @param {string} cardType - Type of card
-         */
-        updateCardBenefits: function(cardType) {
-            const benefitsList = document.getElementById('benefits-list');
-            if (!benefitsList) return;
-            
-            const benefits = InvestorCardSystem.getCardBenefits(cardType);
-            
-            if (benefits && benefits.length) {
-                let html = '';
-                benefits.forEach(benefit => {
-                    html += `<li>${benefit}</li>`;
-                });
-                benefitsList.innerHTML = html;
-            } else {
-                benefitsList.innerHTML = '<li>لا توجد مزايا متاحة</li>';
-            }
         },
         
         /**
@@ -971,8 +745,8 @@ const App = (function() {
             // Update monthly profit
             const monthlyProfit = document.getElementById('monthly-profit');
             if (monthlyProfit) {
-                // Calculate monthly profit (1.75% monthly return)
-                const profit = (investor.amount || 0) * 0.0175; 
+                // Calculate monthly profit (simplified example)
+                const profit = (investor.amount || 0) * 0.015; // 1.5% monthly return
                 monthlyProfit.textContent = InvestorCardSystem.formatCurrency(profit);
             }
             
@@ -1053,8 +827,8 @@ const App = (function() {
          * @returns {string} HTML for the investment item
          */
         createInvestmentHTML: function(investment) {
-            // Calculate return rate
-            const annualRate = 21; // 21% annual return (1.75% monthly)
+            // Calculate return rate (simplified example)
+            const annualRate = 18; // 18% annual return
             const statusClass = investment.status === 'active' ? 'badge-success' : 'badge-warning';
             const statusText = investment.status === 'active' ? 'نشط' : 'غير نشط';
             
@@ -1081,7 +855,7 @@ const App = (function() {
                         </div>
                         <div class="data-detail">
                             <div class="data-detail-label">الربح الشهري المتوقع</div>
-                            <div class="data-detail-value">${InvestorCardSystem.formatCurrency(investment.amount * 0.0175)}</div>
+                            <div class="data-detail-value">${InvestorCardSystem.formatCurrency(investment.amount * annualRate / 100 / 12)}</div>
                         </div>
                         <div class="data-detail">
                             <div class="data-detail-label">عدد الأيام</div>
@@ -1160,8 +934,8 @@ const App = (function() {
             let counter = 2;
             
             while (currentDate < today) {
-                // Monthly profit (1.75% per month)
-                const profit = amount * 0.0175;
+                // Monthly profit (1.5% per month)
+                const profit = amount * 0.015;
                 currentBalance += profit;
                 
                 transactions.push({
@@ -1265,166 +1039,6 @@ const App = (function() {
         },
         
         /**
-         * Load statistics and charts
-         */
-        loadStatsData: function() {
-            const card = InvestorCardSystem.getCurrentCard();
-            if (!card) return;
-            
-            // Load profits chart
-            this.initProfitsChart(card.investorId);
-            
-            // Load transactions chart
-            this.initTransactionsChart(card.investorId);
-        },
-        
-        /**
-         * Initialize profits chart
-         * @param {string} investorId - ID of the investor
-         */
-        initProfitsChart: function(investorId) {
-            if (!investorId) return;
-            
-            const profitsChartCanvas = document.getElementById('profits-chart');
-            if (!profitsChartCanvas) return;
-            
-            // Get profits data
-            const profits = this.getProfits(investorId);
-            
-            // Prepare chart data
-            const months = [];
-            const profitValues = [];
-            
-            // Use last 6 profits for the chart
-            const lastSixProfits = profits.slice(0, 6).reverse();
-            
-            lastSixProfits.forEach(profit => {
-                const date = new Date(profit.dueDate);
-                const monthName = new Intl.DateTimeFormat('ar', { month: 'short' }).format(date);
-                months.push(monthName);
-                profitValues.push(profit.amount);
-            });
-            
-            // Destroy previous chart instance if it exists
-            if (profitsChart) {
-                profitsChart.destroy();
-            }
-            
-            // Create new chart
-            profitsChart = new Chart(profitsChartCanvas, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'الأرباح الشهرية',
-                        data: profitValues,
-                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                        borderColor: '#3498db',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        },
-        
-        /**
-         * Initialize transactions chart
-         * @param {string} investorId - ID of the investor
-         */
-        initTransactionsChart: function(investorId) {
-            if (!investorId) return;
-            
-            const transactionsChartCanvas = document.getElementById('transactions-chart');
-            if (!transactionsChartCanvas) return;
-            
-            // Get transactions data
-            const transactions = this.getTransactions(investorId);
-            
-            // Count transactions by type
-            const transactionCounts = {
-                deposit: 0,
-                withdraw: 0,
-                profit: 0,
-                transfer: 0
-            };
-            
-            transactions.forEach(transaction => {
-                if (transactionCounts.hasOwnProperty(transaction.type)) {
-                    transactionCounts[transaction.type]++;
-                }
-            });
-            
-            // Prepare chart data
-            const typeLabels = {
-                deposit: 'إيداع',
-                withdraw: 'سحب',
-                profit: 'ربح',
-                transfer: 'تحويل'
-            };
-            
-            const colors = {
-                deposit: '#2ecc71',
-                withdraw: '#e74c3c',
-                profit: '#3498db',
-                transfer: '#f39c12'
-            };
-            
-            const labels = [];
-            const data = [];
-            const backgroundColors = [];
-            
-            // Add data for each transaction type with counts > 0
-            for (const type in transactionCounts) {
-                if (transactionCounts[type] > 0) {
-                    labels.push(typeLabels[type] || type);
-                    data.push(transactionCounts[type]);
-                    backgroundColors.push(colors[type] || '#999');
-                }
-            }
-            
-            // Destroy previous chart instance if it exists
-            if (transactionsChart) {
-                transactionsChart.destroy();
-            }
-            
-            // Create new chart
-            transactionsChart = new Chart(transactionsChartCanvas, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: backgroundColors
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        },
-        
-        /**
          * Load profits data into the UI
          */
         loadProfits: function() {
@@ -1470,7 +1084,7 @@ const App = (function() {
             
             const profits = [];
             const amount = investor.amount || 0;
-            const monthlyProfit = amount * 0.0175; // 1.75% monthly return
+            const monthlyProfit = amount * 0.015; // 1.5% monthly return
             const joinDate = new Date(investor.joinDate || investor.createdAt || new Date());
             const today = new Date();
             
@@ -1561,7 +1175,7 @@ const App = (function() {
             if (!investor) return;
             
             const amount = investor.amount || 0;
-            const monthlyTarget = amount * 0.0175; // 1.75% monthly return
+            const monthlyTarget = amount * 0.015; // 1.5% monthly return
             // Calculate progress based on current day of month
             const today = new Date();
             const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -1933,12 +1547,12 @@ const App = (function() {
             // For demo purposes, we'll just show a success message
             alert('تم إرسال رسالتك بنجاح. سيتم التواصل معك قريباً.');
             
-            // Clear form
+            // Close modal
+            this.hideModal('support-modal');
+            
+            // Reset form
             document.getElementById('support-subject').value = '';
             document.getElementById('support-message').value = '';
-            
-            // Return to dashboard
-            this.hideSection();
         },
         
         /**
@@ -2030,194 +1644,6 @@ const App = (function() {
             });
             
             pinField.value = pin;
-        },
-        
-        /**
-         * Show QR scanner modal
-         */
-        showQRScanner: function() {
-            // Show the modal
-            this.showModal('qr-scanner-modal');
-            
-            // Initialize QR scanner
-            this.initQRScanner();
-        },
-        
-        /**
-         * Initialize QR Code scanner
-         */
-        initQRScanner: function() {
-            const qrReader = document.getElementById('qr-reader');
-            const resultsContainer = document.getElementById('qr-reader-results');
-            
-            if (!qrReader || !resultsContainer || typeof Html5Qrcode === 'undefined') {
-                if (resultsContainer) {
-                    resultsContainer.innerHTML = '<p class="scan-error">Cannot initialize QR scanner. Ensure camera access is allowed.</p>';
-                }
-                return;
-            }
-            
-            resultsContainer.innerHTML = ''; // Clear previous results
-            
-            const html5QrCode = new Html5Qrcode("qr-reader");
-            this.currentQrScanner = html5QrCode; // Store scanner reference
-            
-            const config = {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
-                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
-            };
-            
-            html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                this.onQRCodeScanned.bind(this),
-                this.onQRScanError.bind(this)
-            ).catch(err => {
-                resultsContainer.innerHTML = `<p class="scan-error">Camera error: ${err}</p>`;
-            });
-            
-            const stopScannerFn = () => {
-                if (this.currentQrScanner) {
-                    this.currentQrScanner.stop()
-                        .then(() => console.log('QR scanner stopped'))
-                        .catch(err => console.error('Error stopping QR scanner:', err));
-                    this.currentQrScanner = null;
-                }
-            };
-            
-            const modalClose = document.querySelector('#qr-scanner-modal .modal-close');
-            const modalCloseBtn = document.querySelector('#qr-scanner-modal .modal-close-btn');
-            const modalOverlay = document.querySelector('#qr-scanner-modal .modal-overlay');
-            
-            if (modalClose) modalClose.addEventListener('click', stopScannerFn, { once: true });
-            if (modalCloseBtn) modalCloseBtn.addEventListener('click', stopScannerFn, { once: true });
-            if (modalOverlay) {
-                modalOverlay.addEventListener('click', (e) => {
-                    if (e.target === modalOverlay) stopScannerFn();
-                }, { once: true });
-            }
-        },
-        
-        /**
-         * Handle QR code scan results
-         * @param {string} decodedText - Decoded QR code text
-         */
-        onQRCodeScanned: function(decodedText) {
-            console.log('QR Code scanned:', decodedText);
-            
-            const resultsContainer = document.getElementById('qr-reader-results');
-            if (!resultsContainer) return;
-            
-            resultsContainer.innerHTML = '<p class="scan-success">QR code scanned successfully! Verifying...</p>';
-            
-            if (this.currentQrScanner) {
-                this.currentQrScanner.stop()
-                    .then(() => console.log('QR scanner stopped after success'))
-                    .catch(err => console.error('Error stopping QR scanner:', err));
-                this.currentQrScanner = null;
-            }
-            
-            try {
-                let cardData = null;
-                try {
-                    cardData = JSON.parse(decodedText);
-                } catch {
-                    cardData = this.parseCardDataFromText(decodedText);
-                }
-                
-                if (cardData && (cardData.number || cardData.id)) {
-                    this.processScannedCardData(cardData);
-                } else {
-                    resultsContainer.innerHTML = '<p class="scan-error">Invalid QR data. Please try again.</p>';
-                }
-            } catch (error) {
-                console.error('Error processing QR data:', error);
-                resultsContainer.innerHTML = '<p class="scan-error">Error processing data. Please try again.</p>';
-            }
-        },
-        
-        /**
-         * Handle QR scan errors
-         * @param {string} errorMessage - Error message
-         */
-        onQRScanError: function(errorMessage) {
-            console.log('QR scan error (normal during scanning):', errorMessage);
-        },
-        
-        /**
-         * Parse card data from text
-         * @param {string} text - Extracted QR code text
-         * @returns {Object|null} - Parsed card data or null
-         */
-        parseCardDataFromText: function(text) {
-            const cardNumberRegex = /\b(\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4})\b/;
-            const expiryRegex = /\b(0[1-9]|1[0-2])\s*\/\s*([0-9]{2})\b/;
-            
-            const cardNumberMatch = text.match(cardNumberRegex);
-            const expiryMatch = text.match(expiryRegex);
-            
-            if (cardNumberMatch) {
-                const result = { number: cardNumberMatch[1].replace(/\s/g, '') };
-                if (expiryMatch) result.expiry = `${expiryMatch[1]}/${expiryMatch[2]}`;
-                return result;
-            }
-            return null;
-        },
-        
-        /**
-         * Process scanned card data
-         * @param {Object} cardData - Extracted card data
-         */
-        processScannedCardData: function(cardData) {
-            const resultsContainer = document.getElementById('qr-reader-results');
-            
-            if (!cardData || (!cardData.number && !cardData.id)) {
-                if (resultsContainer) {
-                    resultsContainer.innerHTML = '<p class="scan-error">Incomplete QR data. Please try again.</p>';
-                }
-                return;
-            }
-            
-            if (cardData.number) {
-                const cardNumberInput = document.getElementById('card-number');
-                const cardExpiryInput = document.getElementById('card-expiry');
-                
-                if (cardNumberInput) cardNumberInput.value = this.formatCardNumber(cardData.number);
-                if (cardExpiryInput && cardData.expiry) cardExpiryInput.value = cardData.expiry;
-                
-                this.hideModal('qr-scanner-modal');
-                
-                if (cardData.expiry) {
-                    setTimeout(() => this.handleCardLogin(), 500);
-                } else if (cardExpiryInput) {
-                    cardExpiryInput.focus();
-                }
-            } else if (cardData.id) {
-                if (resultsContainer) {
-                    resultsContainer.innerHTML = '<p class="scan-success">Logging in...</p>';
-                }
-                
-                InvestorCardSystem.findCardById(cardData.id)
-                    .then(card => {
-                        if (card) {
-                            InvestorCardSystem.setCurrentCard(card);
-                            this.hideModal('qr-scanner-modal');
-                            this.showScreen('dashboard');
-                        } else {
-                            if (resultsContainer) {
-                                resultsContainer.innerHTML = '<p class="scan-error">Card not found. Please check the QR code.</p>';
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error finding card:', error);
-                        if (resultsContainer) {
-                            resultsContainer.innerHTML = '<p class="scan-error">Error finding card. Please try again.</p>';
-                        }
-                    });
-            }
         }
     };
 })();
@@ -2242,22 +1668,333 @@ window.resetInvestorCardSystemState = function() {
             element.style.display = 'none';
         });
         
-       // Hide reset button
-       const resetBtn = document.getElementById('reset-login-state');
-       if (resetBtn) {
-           resetBtn.style.display = 'none';
-       }
-       
-       return true;
-   }
-   
-   return false;
+        // Hide reset button
+        const resetBtn = document.getElementById('reset-login-state');
+        if (resetBtn) {
+            resetBtn.style.display = 'none';
+        }
+        
+        return true;
+    }
+    
+    return false;
 };
 
+/**
+ * إضافة أكواد معالجة تحميل صور QR من الجهاز
+ * أضف هذا الكود في وظيفة setupEventListeners في ملف app.js
+ */
 
+// أزرار تبديل وضع المسح (كاميرا/ملف)
+const cameraScanBtn = document.getElementById('camera-scan-btn');
+const fileScanBtn = document.getElementById('file-scan-btn');
+if (cameraScanBtn && fileScanBtn) {
+    cameraScanBtn.addEventListener('click', () => {
+        this.switchScanMode('camera');
+    });
+    
+    fileScanBtn.addEventListener('click', () => {
+        this.switchScanMode('file');
+    });
+}
 
+// أزرار تحميل الملفات
+const browseFileBtn = document.getElementById('browse-file-btn');
+const qrFileInput = document.getElementById('qr-file-input');
+if (browseFileBtn && qrFileInput) {
+    browseFileBtn.addEventListener('click', () => {
+        qrFileInput.click();
+    });
+    
+    qrFileInput.addEventListener('change', (e) => {
+        this.handleQRFileSelected(e);
+    });
+}
 
+// زر مسح الملف المحدد
+const scanSelectedFileBtn = document.getElementById('scan-selected-file-btn');
+if (scanSelectedFileBtn) {
+    scanSelectedFileBtn.addEventListener('click', () => {
+        this.scanSelectedQRFile();
+    });
+}
 
+/**
+ * أضف هذه الدوال في كائن App (قبل return)
+ */
 
+/**
+ * تبديل وضع المسح بين الكاميرا وتحميل الملفات
+ * @param {string} mode - وضع المسح: 'camera' أو 'file'
+ */
+switchScanMode: function(mode) {
+    const cameraScanBtn = document.getElementById('camera-scan-btn');
+    const fileScanBtn = document.getElementById('file-scan-btn');
+    const cameraScanContainer = document.getElementById('camera-scan-container');
+    const fileScanContainer = document.getElementById('file-scan-container');
+    const resultsContainer = document.getElementById('qr-reader-results');
+    
+    if (!cameraScanBtn || !fileScanBtn || !cameraScanContainer || !fileScanContainer) {
+        return;
+    }
+    
+    // إعادة تعيين نتائج المسح
+    if (resultsContainer) {
+        resultsContainer.innerHTML = '';
+    }
+    
+    // إيقاف الماسح الحالي إذا كان قيد التشغيل
+    if (this.currentQrScanner) {
+        this.currentQrScanner.stop()
+            .then(() => console.log('تم إيقاف قارئ QR الحالي'))
+            .catch(err => console.error('خطأ في إيقاف قارئ QR:', err));
+        this.currentQrScanner = null;
+    }
+    
+    if (mode === 'camera') {
+        // تنشيط وضع الكاميرا
+        cameraScanBtn.classList.add('active');
+        fileScanBtn.classList.remove('active');
+        
+        cameraScanContainer.classList.remove('hidden');
+        fileScanContainer.classList.add('hidden');
+        
+        // إعادة تشغيل ماسح الكاميرا
+        this.initQRScanner();
+    } else if (mode === 'file') {
+        // تنشيط وضع تحميل الملفات
+        fileScanBtn.classList.add('active');
+        cameraScanBtn.classList.remove('active');
+        
+        fileScanContainer.classList.remove('hidden');
+        cameraScanContainer.classList.add('hidden');
+        
+        // إعادة تعيين حقل تحميل الملفات
+        const qrFileInput = document.getElementById('qr-file-input');
+        if (qrFileInput) {
+            qrFileInput.value = '';
+        }
+        
+        // إخفاء معلومات الملف المحدد
+        const selectedFileInfo = document.getElementById('selected-file-info');
+        if (selectedFileInfo) {
+            selectedFileInfo.classList.add('hidden');
+        }
+        
+        // مسح معاينة الصورة
+        const previewContainer = document.querySelector('.selected-image-preview');
+        if (previewContainer) {
+            previewContainer.innerHTML = '';
+        }
+    }
+},
 
+/**
+ * معالجة اختيار ملف صورة QR
+ * @param {Event} event - حدث تغيير ملف الإدخال
+ */
+handleQRFileSelected: function(event) {
+    const resultsContainer = document.getElementById('qr-reader-results');
+    const selectedFileInfo = document.getElementById('selected-file-info');
+    const selectedFileName = document.querySelector('.selected-file-name');
+    const previewContainer = document.querySelector('.selected-image-preview');
+    
+    if (!event.target.files || !event.target.files.length) {
+        return;
+    }
+    
+    // الحصول على الملف المحدد
+    const file = event.target.files[0];
+    
+    // التحقق من أن الملف صورة
+    if (!file.type.match('image.*')) {
+        if (resultsContainer) {
+            resultsContainer.innerHTML = '<p class="scan-error">يرجى اختيار ملف صورة صالح.</p>';
+        }
+        return;
+    }
+    
+    // عرض معلومات الملف المحدد
+    if (selectedFileInfo && selectedFileName) {
+        selectedFileInfo.classList.remove('hidden');
+        selectedFileName.innerHTML = `<i class="fas fa-file-image"></i> ${file.name}`;
+    }
+    
+    // إنشاء معاينة للصورة
+    if (previewContainer) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `<img src="${e.target.result}" alt="معاينة صورة QR">`;
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    // إعادة تعيين نتائج المسح
+    if (resultsContainer) {
+        resultsContainer.innerHTML = '';
+    }
+},
 
+/**
+ * مسح ملف صورة QR المحدد
+ */
+scanSelectedQRFile: function() {
+    const qrFileInput = document.getElementById('qr-file-input');
+    const resultsContainer = document.getElementById('qr-reader-results');
+    
+    if (!qrFileInput || !qrFileInput.files || !qrFileInput.files.length) {
+        if (resultsContainer) {
+            resultsContainer.innerHTML = '<p class="scan-error">يرجى اختيار ملف صورة أولاً.</p>';
+        }
+        return;
+    }
+    
+    const file = qrFileInput.files[0];
+    
+    if (resultsContainer) {
+        resultsContainer.innerHTML = '<p>جاري مسح الصورة...</p>';
+    }
+    
+    // استخدام Html5Qrcode لقراءة الصورة
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    
+    // قراءة الملف
+    html5QrCode.scanFile(file, true)
+        .then(decodedText => {
+            // تم مسح الرمز بنجاح
+            this.onQRCodeScanned(decodedText);
+        })
+        .catch(error => {
+            // خطأ في مسح الرمز
+            console.error("خطأ في مسح ملف QR:", error);
+            if (resultsContainer) {
+                resultsContainer.innerHTML = '<p class="scan-error">لم يتم العثور على رمز QR في الصورة. يرجى التأكد من اختيار صورة واضحة تحتوي على رمز QR.</p>';
+            }
+        });
+},
+
+/**
+ * تعديل دالة showQRScanner لإعداد الواجهة
+ */
+showQRScanner: function() {
+    // عرض المودال
+    this.showModal('qr-scanner-modal');
+    
+    // تنشيط وضع الكاميرا افتراضياً
+    this.switchScanMode('camera');
+},
+
+/**
+ * تعديل دالة initQRScanner لتحسين الأداء
+ */
+initQRScanner: function() {
+    // التحقق من وجود الماسح والمكتبة
+    const qrReader = document.getElementById('qr-reader');
+    const resultsContainer = document.getElementById('qr-reader-results');
+    
+    if (!qrReader || typeof Html5Qrcode === 'undefined') {
+        if (resultsContainer) {
+            resultsContainer.innerHTML = '<p class="scan-error">لا يمكن تهيئة قارئ QR. تأكد من السماح بالوصول للكاميرا.</p>';
+        }
+        return;
+    }
+    
+    // تفريغ نتائج سابقة
+    if (resultsContainer) {
+        resultsContainer.innerHTML = '';
+    }
+    
+    // التحقق من أن العنصر فارغ قبل التهيئة
+    if (qrReader.childElementCount > 0) {
+        qrReader.innerHTML = '';
+    }
+    
+    // إنشاء كائن قارئ QR
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    
+    // تخزين مرجع القارئ الحالي (لإيقافه لاحقاً)
+    this.currentQrScanner = html5QrCode;
+    
+    // خيارات المسح
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+    };
+    
+    // التحقق من وجود كاميرات
+    Html5Qrcode.getCameras()
+        .then(cameras => {
+            if (cameras && cameras.length) {
+                // اختيار الكاميرا الخلفية إذا وجدت
+                let cameraId = cameras[0].id;
+                
+                // البحث عن الكاميرا الخلفية
+                const backCamera = cameras.find(camera => 
+                    camera.label.toLowerCase().includes('back') || 
+                    camera.label.toLowerCase().includes('خلفية')
+                );
+                
+                if (backCamera) {
+                    cameraId = backCamera.id;
+                }
+                
+                // بدء المسح بالكاميرا
+                return html5QrCode.start(
+                    cameraId,
+                    config,
+                    this.onQRCodeScanned.bind(this),
+                    this.onQRScanError.bind(this)
+                );
+            } else {
+                // لا توجد كاميرات متاحة
+                throw new Error('لم يتم العثور على كاميرات');
+            }
+        })
+        .catch(err => {
+            console.error('خطأ في تهيئة الكاميرا:', err);
+            
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `
+                    <p class="scan-error">تعذر الوصول إلى الكاميرا. ${err.message || ''}.</p>
+                    <p class="mt-sm">يمكنك استخدام خيار تحميل صورة بدلاً من ذلك.</p>
+                `;
+            }
+            
+            // التبديل إلى وضع تحميل الملفات
+            this.switchScanMode('file');
+        });
+    
+    // إيقاف القارئ عند إغلاق المودال
+    const modalClose = document.querySelector('#qr-scanner-modal .modal-close');
+    const modalCloseBtn = document.querySelector('#qr-scanner-modal .modal-close-btn');
+    const modalOverlay = document.querySelector('#qr-scanner-modal .modal-overlay');
+    
+    const stopScannerFn = () => {
+        if (this.currentQrScanner) {
+            this.currentQrScanner.stop()
+                .then(() => console.log('تم إيقاف قارئ QR'))
+                .catch(err => console.error('خطأ في إيقاف قارئ QR:', err));
+            this.currentQrScanner = null;
+        }
+    };
+    
+    if (modalClose) {
+        modalClose.addEventListener('click', stopScannerFn, { once: true });
+    }
+    
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', stopScannerFn, { once: true });
+    }
+    
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                stopScannerFn();
+            }
+        }, { once: true });
+    }
+}
