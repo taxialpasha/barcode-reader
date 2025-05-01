@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام باركود بطاقات المستثمرين</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة QRCode -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --primary-light: #5dade2;
+            --primary-gradient: linear-gradient(135deg, #3498db, #2c3e50);
+            
+            --secondary-color: #2ecc71;
+            --secondary-dark: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #1abc9c;
+            
+            --background-color: #f8f9fa;
+            --surface-color: #ffffff;
+            --text-color: #333333;
+            --text-light: #666666;
+            
+            --border-radius: 10px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: var(--text-light);
+        }
+        
+        .card {
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .form-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            text-align: center;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-success:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -10px;
+        }
+        
+        .col {
+            flex: 1;
+            padding: 10px;
+            min-width: 300px;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: 250px;
+        }
+        
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background-color: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .qr-placeholder i {
+            font-size: 3rem;
+            color: #ddd;
+        }
+        
+        .qr-code {
+            margin-bottom: 20px;
+        }
+        
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .qr-text {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-family: 'Tajawal', sans-serif;
+            resize: none;
+            margin-top: 20px;
+        }
+        
+        .card-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .card-type-option {
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .card-type-option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .card-type-option.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #27ae60;
+        }
+        
+        .status-error {
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+        }
+        
+        .card-preview {
+            width: 100%;
+            max-width: 350px;
+            height: 200px;
+            margin: 0 auto;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            background: linear-gradient(135deg, #1F3A5F, #3A6A9F);
+            color: white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+        }
+        
+        .card-logo-circle {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+        }
+        
+        .card-logo-circle.red {
+            background-color: #eb001b;
+        }
+        
+        .card-logo-circle.yellow {
+            background-color: #f79e1b;
+            margin-right: -10px;
+        }
+        
+        .card-brand {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        
+        .card-number {
+            position: absolute;
+            bottom: 70px;
+            width: 100%;
+            text-align: center;
+            left: 0;
+            font-size: 1.25rem;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        
+        .card-expiry {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .card-holder {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .col {
+                flex: 100%;
+            }
+            
+            .card-preview {
+                max-width: 300px;
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>نظام إنشاء باركود بطاقات المستثمرين</h1>
+            <p>أدخل معلومات البطاقة لإنشاء رمز QR وحفظها في قاعدة البيانات</p>
+        </div>
+        
+        <!-- رسالة الحالة -->
+        <div id="status-message" class="status-message"></div>
+        
+        <div class="row">
+            <!-- نموذج إدخال البيانات -->
+            <div class="col">
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-credit-card"></i>
+                        معلومات البطاقة
+                    </h2>
+                    
+                    <form id="card-form">
+                        <div class="form-group">
+                            <label class="form-label">اسم المستثمر</label>
+                            <input type="text" id="investor-name" class="form-input" placeholder="أدخل اسم المستثمر الكامل" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">رقم البطاقة</label>
+                            <input type="text" id="card-number" class="form-input" placeholder="XXXX XXXX XXXX XXXX" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ الانتهاء</label>
+                                    <input type="text" id="expiry-date" class="form-input" placeholder="MM/YY" required>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">رمز الأمان CVV</label>
+                                    <input type="text" id="card-cvv" class="form-input" placeholder="123" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">نوع البطاقة</label>
+                            <div class="card-types">
+                                <div class="card-type-option selected" data-type="premium">بريميوم</div>
+                                <div class="card-type-option" data-type="platinum">بلاتينية</div>
+                                <div class="card-type-option" data-type="gold">ذهبية</div>
+                                <div class="card-type-option" data-type="diamond">ماسية</div>
+                                <div class="card-type-option" data-type="islamic">إسلامية</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">رقم الهاتف</label>
+                            <input type="tel" id="phone-number" class="form-input" placeholder="أدخل رقم الهاتف">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-block">
+                            <i class="fas fa-qrcode"></i>
+                            إنشاء باركود وحفظ البطاقة
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- معاينة البطاقة -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-eye"></i>
+                        معاينة البطاقة
+                    </h2>
+                    
+                    <div class="card-preview" id="card-preview">
+                        <div class="card-logo">
+                            <div class="card-logo-circle red"></div>
+                            <div class="card-logo-circle yellow"></div>
+                        </div>
+                        <div class="card-brand">بريميوم</div>
+                        <div class="card-number">XXXX XXXX XXXX XXXX</div>
+                        <div class="card-holder">اسم المستثمر</div>
+                        <div class="card-expiry">MM/YY</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- عرض الباركود -->
+            <div class="col">
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-qrcode"></i>
+                        باركود البطاقة
+                    </h2>
+                    
+                    <div class="qr-container">
+                        <div id="qr-placeholder" class="qr-placeholder">
+                            <i class="fas fa-qrcode"></i>
+                        </div>
+                        
+                        <div id="qr-code" class="qr-code"></div>
+                        
+                        <div class="qr-actions">
+                            <button id="save-qr-btn" class="btn" disabled>
+                                <i class="fas fa-download"></i>
+                                تنزيل الباركود
+                            </button>
+                            
+                            <button id="print-qr-btn" class="btn" disabled>
+                                <i class="fas fa-print"></i>
+                                طباعة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <textarea id="qr-text" class="qr-text" readonly placeholder="سيظهر هنا نص الباركود..."></textarea>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-history"></i>
+                        آخر البطاقات
+                    </h2>
+                    
+                    <div id="recent-cards">
+                        <p class="text-center" id="no-cards-message">لا توجد بطاقات حديثة</p>
+                        <ul id="cards-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- سكريبت نظام البطاقات وإنشاء الباركود -->
+    <script>
+        // تهيئة Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+            authDomain: "messageemeapp.firebaseapp.com",
+            databaseURL: "https://messageemeapp-default-rtdb.firebaseio.com",
+            projectId: "messageemeapp",
+            storageBucket: "messageemeapp.appspot.com",
+            messagingSenderId: "255034474844",
+            appId: "1:255034474844:web:5e3b7a6bc4b2fb94cc4199"
+        };
+
+        // متغيرات للنظام
+        let firebaseInitialized = false;
+        let database = null;
+        let currentCardType = 'premium';
+        let cardData = null;
+        let recentCards = [];
+
+        // العناصر DOM
+        let cardForm, qrPlaceholder, qrCodeContainer, qrTextArea, saveQrBtn, printQrBtn, cardPreview, cardsList, noCardsMessage;
+
+        // كائن مولد باركود البطاقات
+        const CardQrGenerator = {
+            // توليد باركود للبطاقة
+            generateQrCode: function(card, container) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        // توليد نص الباركود
+                        const qrText = this.generateQrPlainText(card);
+                        
+                        // التحقق من وجود مكتبة QRCode
+                        if (typeof QRCode !== 'undefined') {
+                            // مسح المحتوى السابق للحاوية
+                            container.innerHTML = '';
+                            
+                            // إنشاء باركود جديد
+                            new QRCode(container, {
+                                text: qrText,
+                                width: 200,
+                                height: 200,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+                            
+                            resolve();
+                        } else {
+                            // استخدام خدمة خارجية إذا كانت المكتبة غير متوفرة
+                            const encodedText = encodeURIComponent(qrText);
+                            container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedText}" alt="QR Code">`;
+                            resolve();
+                        }
+                    } catch (error) {
+                        console.error("خطأ في إنشاء الباركود:", error);
+                        // استخدام خدمة خارجية كحل بديل
+                        try {
+                            const qrText = this.generateQrPlainText(card);
+                            const encodedText = encodeURIComponent(qrText);
+                            container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedText}" alt="QR Code">`;
+                            resolve();
+                        } catch (fallbackError) {
+                            reject(fallbackError);
+                        }
+                    }
+                });
+            },
+            
+            // إنشاء نص الباركود
+            generateQrPlainText: function(card) {
+                // تنسيق تاريخ الانتهاء
+                let expiryDate = '';
+                try {
+                    const date = new Date(card.expiryDate);
+                    const month = date.getMonth() + 1;
+                    const year = date.getFullYear().toString().slice(2);
+                    expiryDate = `${month}/${year}`;
+                } catch (e) {
+                    expiryDate = card.expiryDate || '';
+                }
+                
+                // تحديد اسم نوع البطاقة
+                const cardTypes = {
+                    'platinum': 'بلاتينية',
+                    'gold': 'ذهبية',
+                    'premium': 'بريميوم',
+                    'diamond': 'ماسية',
+                    'islamic': 'إسلامية'
+                };
+                
+                const cardTypeName = cardTypes[card.cardType] || card.cardType;
+                
+                // إنشاء النص
+                return `اسم المستثمر: ${card.investorName || ''}
+رقم البطاقة: ${card.cardNumber || ''}
+تاريخ الانتهاء: ${expiryDate}
+نوع البطاقة: ${cardTypeName}
+رمز الأمان CVV: ${card.cvv || ''}
+معرف البطاقة: ${card.id}`;
+            }
+        };
+
+        // تهيئة صفحة النظام عند التحميل
+        document.addEventListener('DOMContentLoaded', function() {
+            // تعريف عناصر DOM
+            initializeDOMElements();
+            
+            // محاولة تهيئة Firebase
+            try {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                firebaseInitialized = true;
+                console.log("تم تهيئة Firebase بنجاح");
+            } catch (error) {
+                console.error("خطأ في تهيئة Firebase:", error);
+                showStatusMessage("حدث خطأ في الاتصال بقاعدة البيانات", "error");
+            }
+            
+            // إعداد مستمعي الأحداث
+            setupEventListeners();
+            
+            // تحميل آخر البطاقات
+            loadRecentCards();
+        });
+
+        // تعريف عناصر DOM
+        function initializeDOMElements() {
+            cardForm = document.getElementById('card-form');
+            qrPlaceholder = document.getElementById('qr-placeholder');
+            qrCodeContainer = document.getElementById('qr-code');
+            qrTextArea = document.getElementById('qr-text');
+            saveQrBtn = document.getElementById('save-qr-btn');
+            printQrBtn = document.getElementById('print-qr-btn');
+            cardPreview = document.getElementById('card-preview');
+            cardsList = document.getElementById('cards-list');
+            noCardsMessage = document.getElementById('no-cards-message');
+        }
+
+        // إعداد مستمعي الأحداث
+        function setupEventListeners() {
+            // مستمع لتقديم النموذج
+            cardForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                generateCardAndQr();
+            });
+            
+            // مستمع لخيارات نوع البطاقة
+            document.querySelectorAll('.card-type-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // إزالة الفئة المحددة من جميع الخيارات
+                    document.querySelectorAll('.card-type-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // إضافة الفئة المحددة للخيار المختار
+                    this.classList.add('selected');
+                    
+                    // تحديث نوع البطاقة الحالي
+                    currentCardType = this.getAttribute('data-type');
+                    
+                    // تحديث معاينة البطاقة
+                    updateCardPreview();
+                });
+            });
+            
+            // مستمع لتغييرات حقول النموذج - لتحديث المعاينة
+            ['investor-name', 'card-number', 'expiry-date'].forEach(fieldId => {
+                document.getElementById(fieldId).addEventListener('input', updateCardPreview);
+            });
+            
+            // مستمع لتنسيق رقم البطاقة
+            document.getElementById('card-number').addEventListener('input', function(e) {
+                e.target.value = formatCardNumber(e.target.value);
+            });
+            
+            // مستمع لتنسيق تاريخ الانتهاء
+            document.getElementById('expiry-date').addEventListener('input', function(e) {
+                e.target.value = formatExpiryDate(e.target.value);
+            });
+            
+            // مستمع لتنسيق رمز CVV
+            document.getElementById('card-cvv').addEventListener('input', function(e) {
+                // عدم السماح إلا بالأرقام وبحد أقصى 3 أرقام
+                e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
+            });
+            
+            // مستمع لزر تنزيل الباركود
+            saveQrBtn.addEventListener('click', function() {
+                downloadQrCode();
+            });
+            
+            // مستمع لزر طباعة الباركود
+            printQrBtn.addEventListener('click', function() {
+                printQrCode();
+            });
+        }
+
+        // إنشاء البطاقة والباركود
+        function generateCardAndQr() {
+            // الحصول على قيم الحقول
+            const investorName = document.getElementById('investor-name').value;
+            const cardNumber = document.getElementById('card-number').value;
+            const expiryDate = document.getElementById('expiry-date').value;
+            const cardCvv = document.getElementById('card-cvv').value;
+            const phoneNumber = document.getElementById('phone-number').value;
+            
+            // التحقق من البيانات
+            if (!investorName || !cardNumber || !expiryDate || !cardCvv) {
+                showStatusMessage("يرجى إدخال جميع الحقول المطلوبة", "error");
+                return;
+            }
+            
+            // إنشاء معرف فريد
+            const cardId = 'card_' + Date.now();
+            
+            // تحويل تاريخ الانتهاء إلى التنسيق المناسب
+            const expiryParts = expiryDate.split('/');
+            if (expiryParts.length !== 2) {
+                showStatusMessage("تنسيق تاريخ الانتهاء غير صحيح", "error");
+                return;
+            }
+            
+            const month = parseInt(expiryParts[0]);
+            const year = parseInt("20" + expiryParts[1]);
+            
+            if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
+                showStatusMessage("تاريخ الانتهاء غير صحيح", "error");
+                return;
+            }
+            
+            // إنشاء تاريخ الانتهاء بتنسيق ISO
+            const expiryDateIso = `${year}-${month.toString().padStart(2, '0')}-01`;
+            
+            // إنشاء كائن البطاقة
+            cardData = {
+                id: cardId,
+                investorName: investorName,
+                cardNumber: cardNumber,
+                expiryDate: expiryDateIso,
+                cardType: currentCardType,
+                cvv: cardCvv,
+                investorPhone: phoneNumber || '',
+                createdAt: new Date().toISOString()
+            };
+            
+            // توليد الباركود
+            generateQrCode(cardData);
+            
+            // حفظ البطاقة في Firebase
+            saveCardToFirebase(cardData);
+        }
+
+        // إنشاء باركود للبطاقة
+        function generateQrCode(card) {
+            // إخفاء المساحة البديلة وإظهار الباركود
+            qrPlaceholder.style.display = 'none';
+            qrCodeContainer.style.display = 'block';
+            
+            // تفريغ محتوى حاوية الباركود أولاً
+            qrCodeContainer.innerHTML = '';
+            
+            // استدعاء مولد الباركود
+            CardQrGenerator.generateQrCode(card, qrCodeContainer)
+                .then(() => {
+                    console.log("تم إنشاء الباركود بنجاح");
+                    
+                    // تحديث نص الباركود
+                    const qrText = CardQrGenerator.generateQrPlainText(card);
+                    qrTextArea.value = qrText;
+                    
+                    // تفعيل أزرار التنزيل والطباعة
+                    saveQrBtn.disabled = false;
+                    printQrBtn.disabled = false;
+                })
+                .catch(error => {
+                    console.error("خطأ في إنشاء الباركود:", error);
+                    
+                    // محاولة بديلة باستخدام API عبر الإنترنت
+                    try {
+                        const qrText = CardQrGenerator.generateQrPlainText(card);
+                        qrTextArea.value = qrText;
+                        
+                        const encodedText = encodeURIComponent(qrText);
+                        qrCodeContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodedText}" alt="QR Code">`;
+                        
+                        // تفعيل أزرار التنزيل والطباعة
+                        saveQrBtn.disabled = false;
+                        printQrBtn.disabled = false;
+                    } catch (fallbackError) {
+                        showStatusMessage("حدث خطأ في إنشاء الباركود", "error");
+                    }
+                });
+        }
+
+        // حفظ البطاقة في Firebase
+        function saveCardToFirebase(card) {
+            if (!firebaseInitialized || !database) {
+                showStatusMessage("لا يمكن الاتصال بقاعدة البيانات", "error");
+                return;
+            }
+            
+            // إنشاء مسار عشوائي للبطاقة
+            const cardRef = database.ref('investor_cards').push();
+            
+            // تعيين معرف البطاقة إذا لم يكن موجودًا
+            if (!card.id) {
+                card.id = cardRef.key;
+            }
+            
+            // حفظ البطاقة
+            cardRef.set(card)
+                .then(() => {
+                    console.log("تم حفظ البطاقة في قاعدة البيانات", card);
+                    showStatusMessage("تم إنشاء الباركود وحفظ البطاقة بنجاح", "success");
+                    
+                    // إضافة البطاقة إلى القائمة المحلية
+                    recentCards.unshift(card);
+                    if (recentCards.length > 5) {
+                        recentCards.pop();
+                    }
+                    
+                    // تحديث قائمة البطاقات
+                    updateRecentCardsList();
+                })
+                .catch(error => {
+                    console.error("خطأ في حفظ البطاقة:", error);
+                    showStatusMessage("حدث خطأ في حفظ البطاقة", "error");
+                });
+        }
+
+        // تحميل آخر البطاقات من Firebase
+        function loadRecentCards() {
+            if (!firebaseInitialized || !database) {
+                console.warn("لا يمكن تحميل البطاقات بدون اتصال بقاعدة البيانات");
+                return;
+            }
+            
+            // الحصول على آخر 5 بطاقات
+            database.ref('investor_cards').orderByChild('createdAt').limitToLast(5).once('value')
+                .then(snapshot => {
+                    const data = snapshot.val();
+                    
+                    if (data) {
+                        // تحويل البيانات إلى مصفوفة
+                        recentCards = Object.values(data).sort((a, b) => {
+                            return new Date(b.createdAt) - new Date(a.createdAt);
+                        });
+                        
+                        // تحديث القائمة
+                        updateRecentCardsList();
+                    }
+                })
+                .catch(error => {
+                    console.error("خطأ في تحميل البطاقات:", error);
+                });
+        }
+
+        // تحديث قائمة البطاقات الحديثة
+        function updateRecentCardsList() {
+            if (recentCards.length === 0) {
+                noCardsMessage.style.display = 'block';
+                cardsList.innerHTML = '';
+                return;
+            }
+            
+            noCardsMessage.style.display = 'none';
+            cardsList.innerHTML = '';
+            
+            recentCards.forEach(card => {
+                const listItem = document.createElement('li');
+                listItem.style.padding = '10px';
+                listItem.style.borderBottom = '1px solid #eee';
+                listItem.style.cursor = 'pointer';
+                
+                // تنسيق تاريخ الإنشاء
+                const date = new Date(card.createdAt);
+                const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                
+                listItem.innerHTML = `
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong>${card.investorName}</strong>
+                        <span style="font-size: 0.8rem; color: #777;">${formattedDate}</span>
+                    </div>
+                    <div style="color: #666; font-size: 0.9rem;">${card.cardNumber}</div>
+                `;
+                
+                // مستمع لعرض البطاقة
+                listItem.addEventListener('click', function() {
+                    // تعبئة النموذج ببيانات البطاقة
+                    document.getElementById('investor-name').value = card.investorName;
+                    document.getElementById('card-number').value = card.cardNumber;
+                    
+                    // تنسيق تاريخ الانتهاء
+                    let expiryDate = '';
+                    try {
+                        const date = new Date(card.expiryDate);
+                        const month = date.getMonth() + 1;
+                        const year = date.getFullYear().toString().slice(2);
+                        expiryDate = `${month.toString().padStart(2, '0')}/${year}`;
+                    } catch (e) {
+                        expiryDate = '';
+                    }
+                    
+                    document.getElementById('expiry-date').value = expiryDate;
+                    document.getElementById('card-cvv').value = card.cvv || '';
+                    document.getElementById('phone-number').value = card.investorPhone || '';
+                    
+                    // تحديد نوع البطاقة
+                    document.querySelectorAll('.card-type-option').forEach(option => {
+                        option.classList.remove('selected');
+                        
+                        if (option.getAttribute('data-type') === card.cardType) {
+                            option.classList.add('selected');
+                            currentCardType = card.cardType;
+                        }
+                    });
+                    
+                    // تحديث معاينة البطاقة
+                    updateCardPreview();
+                    
+                    // توليد الباركود
+                    generateQrCode(card);
+                    
+                    // الانتقال إلى أعلى الصفحة
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                
+                cardsList.appendChild(listItem);
+            });
+        }
+
+        // تحديث معاينة البطاقة
+        function updateCardPreview() {
+            const investorName = document.getElementById('investor-name').value || 'اسم المستثمر';
+            const cardNumber = document.getElementById('card-number').value || 'XXXX XXXX XXXX XXXX';
+            const expiryDate = document.getElementById('expiry-date').value || 'MM/YY';
+            
+            // تحديد لون البطاقة حسب النوع
+            const cardBackgrounds = {
+                'platinum': 'linear-gradient(135deg, #303030, #505050)',
+                'gold': 'linear-gradient(135deg, #D4AF37, #FFDC73)',
+                'premium': 'linear-gradient(135deg, #1F3A5F, #3A6A9F)',
+                'diamond': 'linear-gradient(135deg, #16213E, #304879)',
+                'islamic': 'linear-gradient(135deg, #006B3C, #00A15C)'
+            };
+            
+            const textColors = {
+                'platinum': 'white',
+                'gold': 'black',
+                'premium': 'white',
+                'diamond': 'white',
+                'islamic': 'white'
+            };
+            
+            const cardTypes = {
+                'platinum': 'بلاتينية',
+                'gold': 'ذهبية',
+                'premium': 'بريميوم',
+                'diamond': 'ماسية',
+                'islamic': 'إسلامية'
+            };
+            
+            // تحديث أنماط البطاقة
+            cardPreview.style.background = cardBackgrounds[currentCardType] || cardBackgrounds['premium'];
+            cardPreview.style.color = textColors[currentCardType] || 'white';
+            
+            // تحديث محتوى البطاقة
+            cardPreview.querySelector('.card-brand').textContent = cardTypes[currentCardType] || 'بريميوم';
+            cardPreview.querySelector('.card-number').textContent = cardNumber;
+            cardPreview.querySelector('.card-holder').textContent = investorName;
+            cardPreview.querySelector('.card-expiry').textContent = expiryDate;
+        }
+
+        // تنزيل الباركود كصورة
+        function downloadQrCode() {
+            const canvas = qrCodeContainer.querySelector('canvas');
+            const img = qrCodeContainer.querySelector('img');
+            
+            if (canvas) {
+                // إذا كان هناك canvas
+                const link = document.createElement('a');
+                link.download = `بطاقة_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } else if (img) {
+                // إذا كان هناك img
+                try {
+                    // محاولة تنزيل الصورة
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || 200;
+                    canvas.height = img.naturalHeight || 200;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    
+                    const link = document.createElement('a');
+                    link.download = `بطاقة_${Date.now()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (error) {
+                    console.error("خطأ في تنزيل الصورة:", error);
+                    
+                    // محاولة بديلة لفتح الصورة في نافذة جديدة
+                    const imgWindow = window.open('');
+                    imgWindow.document.write(`<img src="${img.src}" alt="QR Code">`);
+                }
+            } else {
+                showStatusMessage("لا يمكن تنزيل الباركود", "error");
+            }
+        }
+
+        // طباعة الباركود
+        function printQrCode() {
+            const printWindow = window.open('', '_blank');
+            
+            if (!printWindow) {
+                showStatusMessage("الرجاء السماح بالنوافذ المنبثقة للطباعة", "error");
+                return;
+            }
+            
+            const canvas = qrCodeContainer.querySelector('canvas');
+            const img = qrCodeContainer.querySelector('img');
+            
+            let qrSrc = '';
+            
+            if (canvas) {
+                qrSrc = canvas.toDataURL('image/png');
+            } else if (img) {
+                qrSrc = img.src;
+            } else {
+                showStatusMessage("لا يمكن طباعة الباركود", "error");
+                return;
+            }
+            
+            // إنشاء محتوى نافذة الطباعة
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl">
+                <head>
+                    <title>طباعة باركود البطاقة</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            text-align: center;
+                            padding: 20px;
+                        }
+                        .print-container {
+                            margin: 0 auto;
+                            max-width: 500px;
+                        }
+                        .qr-image {
+                            width: 300px;
+                            height: 300px;
+                            margin: 20px auto;
+                        }
+                        .card-info {
+                            text-align: right;
+                            margin-top: 20px;
+                            padding: 15px;
+                            border: 1px solid #ddd;
+                            border-radius: 5px;
+                        }
+                        .print-btn {
+                            margin-top: 20px;
+                            padding: 10px 20px;
+                            background-color: #3498db;
+                            color: white;
+                            border: none;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        }
+                        @media print {
+                            .no-print {
+                                display: none;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-container">
+                        <h2>باركود بطاقة المستثمر</h2>
+                        <img src="${qrSrc}" alt="QR Code" class="qr-image">
+                        <div class="card-info">
+                            <pre>${qrTextArea.value}</pre>
+                        </div>
+                        <button onclick="window.print(); return false;" class="print-btn no-print">طباعة</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+
+        // عرض رسالة الحالة
+        function showStatusMessage(message, type) {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message';
+            statusMessage.classList.add('status-' + type);
+            statusMessage.style.display = 'block';
+            
+            // إخفاء الرسالة بعد 5 ثوانٍ
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        // تنسيق رقم البطاقة (إضافة مسافة بعد كل 4 أرقام)
+        function formatCardNumber(value) {
+            if (!value) return '';
+            
+            // إزالة المسافات
+            value = value.replace(/\s+/g, '');
+            
+            // إضافة مسافة بعد كل 4 أرقام
+            return value.replace(/(\d{4})(?=\d)/g, '$1 ');
+        }
+
+        // تنسيق تاريخ الانتهاء (MM/YY)
+        function formatExpiryDate(value) {
+            if (!value) return '';
+            
+            // إزالة جميع الأحرف غير الرقمية
+            value = value.replace(/\D/g, '');
+            
+            // تنسيق كـ MM/YY
+            if (value.length > 2) {
+                return value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            
+            return value;
+        }
+    </script>
+</body>
+</html>
