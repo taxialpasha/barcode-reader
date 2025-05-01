@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#3498db">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>بطاقة المستثمر</title>
     
-    <!-- إضافة Manifest و الأيقونات للـ PWA -->
+    <!-- PWA Manifest and Icons -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icons/icon-192x192.png">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
@@ -19,16 +19,25 @@
     <!-- Google Fonts - Tajawal -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     
-    <!-- CSS الأساسي -->
+    <!-- CSS Styles -->
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- CSS لأنماط الرسوم المتحركة -->
-    <link rel="stylesheet" href="animations.css">
 </head>
 <body>
-   
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <h1 class="splash-title">بطاقة المستثمر</h1>
+            <p class="splash-subtitle">النظام المتكامل لإدارة بطاقات المستثمرين</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
 
-    <!-- شاشة تسجيل الدخول -->
+    <!-- Login Screen -->
     <div id="login-screen" class="screen">
         <div class="login-container">
             <div class="login-header">
@@ -45,40 +54,25 @@
                     <button class="tab-btn" data-tab="phone-login">الدخول برقم الهاتف</button>
                 </div>
                 
-                <!-- تسجيل الدخول برقم البطاقة -->
+                <!-- Card Login Tab -->
                 <div id="card-login-tab" class="tab-content active">
                     <form id="card-login-form" class="login-form">
                         <div class="form-group">
-                            <label for="card-number">رقم البطاقة</label>
+                            <label for="card-number" class="form-label">رقم البطاقة</label>
                             <input type="text" id="card-number" class="form-input" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" autocomplete="off">
                         </div>
                         
                         <div class="form-group">
-                            <label for="card-expiry">تاريخ الانتهاء</label>
+                            <label for="card-expiry" class="form-label">تاريخ الانتهاء</label>
                             <input type="text" id="card-expiry" class="form-input" placeholder="MM/YY" maxlength="5" autocomplete="off">
                         </div>
                         
-                        <div class="form-group" id="cvv-group">
-                            <label for="card-cvv">رمز الحماية (CVV)</label>
+                        <div class="form-group">
+                            <label for="card-cvv" class="form-label">رمز الحماية (CVV)</label>
                             <input type="password" id="card-cvv" class="form-input" placeholder="XXX" maxlength="3" autocomplete="off">
                         </div>
                         
-                        <div class="form-group" id="pin-group" style="display: none;">
-                            <label for="card-pin">رمز PIN</label>
-                            <div class="pin-input-container">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
-                                <input type="password" class="pin-input" maxlength="1" autocomplete="off">
-                            </div>
-                            <input type="hidden" id="card-pin">
-                        </div>
-                        
                         <div id="login-error" class="error-message"></div>
-                        <button type="button" id="reset-login-state" class="btn btn-secondary" style="display:none; margin-bottom:10px;">
-                            <i class="fas fa-sync-alt"></i>
-                            <span>إعادة المحاولة</span>
-                        </button>
                         
                         <button type="submit" id="card-login-btn" class="btn btn-primary btn-block">
                             <i class="fas fa-sign-in-alt"></i>
@@ -87,16 +81,16 @@
                     </form>
                 </div>
                 
-                <!-- تسجيل الدخول برقم الهاتف -->
+                <!-- Phone Login Tab -->
                 <div id="phone-login-tab" class="tab-content">
                     <form id="phone-login-form" class="login-form">
                         <div class="form-group">
-                            <label for="phone-number">رقم الهاتف</label>
+                            <label for="phone-number" class="form-label">رقم الهاتف</label>
                             <input type="tel" id="phone-number" class="form-input" placeholder="أدخل رقم هاتفك" autocomplete="off">
                         </div>
                         
                         <div class="form-group">
-                            <label for="investor-name">الاسم بالكامل</label>
+                            <label for="investor-name" class="form-label">الاسم بالكامل</label>
                             <input type="text" id="investor-name" class="form-input" placeholder="أدخل اسمك كما هو مسجل" autocomplete="off">
                         </div>
                         
@@ -117,9 +111,9 @@
         </div>
     </div>
 
-    <!-- شاشة البطاقة الرئيسية -->
+    <!-- Dashboard Screen -->
     <div id="card-dashboard" class="screen">
-        <!-- شريط التنقل العلوي -->
+        <!-- Top Navigation Bar -->
         <div class="top-navbar">
             <div class="user-welcome">
                 <div class="user-avatar">
@@ -138,55 +132,49 @@
             </div>
         </div>
 
-        <!-- محتوى الصفحة الرئيسية -->
+        <!-- Dashboard Content -->
         <div class="dashboard-content">
-            <!-- عرض البطاقة -->
-            <div id="card-container" class="card-container">
+            <!-- Investor Card -->
+            <div class="card-container">
                 <div class="investor-card">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="card-brand">بلاتينية</div>
-                            <div class="card-logo">
-                                <div class="card-logo-circle red"></div>
-                                <div class="card-logo-circle yellow"></div>
-                            </div>
-                            
-                            <div class="card-chip">
-                                <div class="chip-line"></div>
-                                <div class="chip-line"></div>
-                                <div class="chip-line"></div>
-                                <div class="chip-line"></div>
-                                <div class="chip-line"></div>
-                                <div class="chip-line"></div>
-                                <div class="chip-line"></div>
-                            </div>
-                            
-                            <div class="card-hologram"></div>
-                            
-                            <div class="card-qrcode">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=preview" alt="QR Code">
-                            </div>
-                            
-                            <div class="card-number" id="display-card-number">XXXX XXXX XXXX XXXX</div>
-                            <div class="card-details">
-                                <div class="card-validity">
-                                    <div class="card-valid-text">VALID THRU</div>
-                                    <div id="display-card-expiry">MM/YY</div>
-                                </div>
-                                <div class="card-name" id="display-card-name">اسم المستثمر</div>
-                            </div>
-                            
-                            <div class="card-status-badge" id="card-status-badge"></div>
+                    <div class="card-front">
+                        <div class="card-brand">بلاتينية</div>
+                        <div class="card-logo">
+                            <div class="card-logo-circle red"></div>
+                            <div class="card-logo-circle yellow"></div>
                         </div>
                         
-                        <div class="card-back">
-                            <div class="card-back-strip"></div>
-                            <div class="card-cvv">CVV: <span id="display-cvv">***</span></div>
-                            <div class="card-issuer-info">
-                                نظام الاستثمار المتكامل<br>
-                                بطاقة المستثمر<br>
-                                <span id="display-phone"></span>
+                        <div class="card-chip">
+                            <div class="chip-line"></div>
+                            <div class="chip-line"></div>
+                            <div class="chip-line"></div>
+                            <div class="chip-line"></div>
+                            <div class="chip-line"></div>
+                            <div class="chip-line"></div>
+                            <div class="chip-line"></div>
+                        </div>
+                        
+                        <div class="card-hologram"></div>
+                        
+                        <div class="card-number" id="display-card-number">XXXX XXXX XXXX XXXX</div>
+                        <div class="card-details">
+                            <div class="card-validity">
+                                <div class="card-valid-text">VALID THRU</div>
+                                <div id="display-card-expiry">MM/YY</div>
                             </div>
+                            <div class="card-name" id="display-card-name">اسم المستثمر</div>
+                        </div>
+                        
+                        <div class="card-status-badge" id="card-status-badge">نشطة</div>
+                    </div>
+                    
+                    <div class="card-back">
+                        <div class="card-back-strip"></div>
+                        <div class="card-cvv">CVV: <span id="display-cvv">***</span></div>
+                        <div class="card-issuer-info">
+                            نظام الاستثمار المتكامل<br>
+                            بطاقة المستثمر<br>
+                            <span id="display-phone"></span>
                         </div>
                     </div>
                 </div>
@@ -207,7 +195,7 @@
                 </div>
             </div>
             
-            <!-- ملخص مالي -->
+            <!-- Financial Summary -->
             <div class="financial-summary">
                 <div class="balance-card">
                     <div class="balance-header">
@@ -245,7 +233,7 @@
                 </div>
             </div>
             
-            <!-- تبويبات المعلومات -->
+            <!-- Information Tabs -->
             <div class="info-tabs">
                 <div class="tab-buttons">
                     <button class="tab-btn active" data-tab="investments">الاستثمارات</button>
@@ -254,17 +242,15 @@
                     <button class="tab-btn" data-tab="info">معلومات</button>
                 </div>
                 
-                <!-- تبويب الاستثمارات -->
+                <!-- Investments Tab -->
                 <div id="investments-tab" class="tab-content active">
-                    <div class="investment-history">
-                        <h3>استثماراتك الحالية</h3>
-                        <div id="investments-list" class="data-list">
-                            <!-- سيتم ملؤها ديناميكياً -->
-                        </div>
+                    <div id="investments-list" class="data-list">
+                        <!-- Will be filled dynamically -->
+                        <div class="empty-list">جاري تحميل البيانات...</div>
                     </div>
                 </div>
                 
-                <!-- تبويب العمليات -->
+                <!-- Transactions Tab -->
                 <div id="transactions-tab" class="tab-content">
                     <div class="transaction-filters">
                         <button class="filter-btn active" data-filter="all">الكل</button>
@@ -273,11 +259,12 @@
                         <button class="filter-btn" data-filter="profit">أرباح</button>
                     </div>
                     <div id="transactions-list" class="data-list">
-                        <!-- سيتم ملؤها ديناميكياً -->
+                        <!-- Will be filled dynamically -->
+                        <div class="empty-list">جاري تحميل البيانات...</div>
                     </div>
                 </div>
                 
-                <!-- تبويب الأرباح -->
+                <!-- Profits Tab -->
                 <div id="profits-tab" class="tab-content">
                     <div class="profit-summary">
                         <div class="profit-header">
@@ -299,11 +286,12 @@
                         </div>
                     </div>
                     <div id="profits-list" class="data-list">
-                        <!-- سيتم ملؤها ديناميكياً -->
+                        <!-- Will be filled dynamically -->
+                        <div class="empty-list">جاري تحميل البيانات...</div>
                     </div>
                 </div>
                 
-                <!-- تبويب المعلومات -->
+                <!-- Info Tab -->
                 <div id="info-tab" class="tab-content">
                     <div class="investor-info">
                         <h3>معلومات المستثمر</h3>
@@ -350,7 +338,10 @@
                     <div class="card-benefits">
                         <h3>مزايا البطاقة</h3>
                         <ul id="benefits-list">
-                            <!-- سيتم ملؤها ديناميكياً -->
+                            <!-- Will be filled dynamically -->
+                            <li>مكافآت سنوية</li>
+                            <li>خدمة عملاء على مدار الساعة</li>
+                            <li>تأمين سفر</li>
                         </ul>
                     </div>
                     
@@ -366,7 +357,7 @@
             </div>
         </div>
         
-        <!-- شريط التنقل السفلي -->
+        <!-- Bottom Navigation -->
         <div class="bottom-navbar">
             <a href="#home" class="nav-item active">
                 <i class="fas fa-home"></i>
@@ -387,8 +378,8 @@
         </div>
     </div>
 
-    <!-- عناصر النافذة المنبثقة -->
-    <!-- نافذة عرض QR Code -->
+    <!-- Modals -->
+    <!-- QR Code Modal -->
     <div id="qr-modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-container">
@@ -409,7 +400,7 @@
         </div>
     </div>
 
-    <!-- نافذة مشاركة البطاقة -->
+    <!-- Share Modal -->
     <div id="share-modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-container">
@@ -442,7 +433,7 @@
         </div>
     </div>
 
-    <!-- نافذة الإشعارات -->
+    <!-- Notifications Modal -->
     <div id="notifications-modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-container">
@@ -452,7 +443,7 @@
             </div>
             <div class="modal-body">
                 <div id="notifications-list">
-                    <!-- سيتم ملؤها ديناميكياً -->
+                    <!-- Will be filled dynamically -->
                 </div>
             </div>
             <div class="modal-footer">
@@ -462,7 +453,7 @@
         </div>
     </div>
 
-    <!-- نافذة الاتصال بالدعم -->
+    <!-- Support Modal -->
     <div id="support-modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-container">
@@ -488,11 +479,11 @@
                 <div class="support-form">
                     <h4>أرسل رسالة</h4>
                     <div class="form-group">
-                        <label for="support-subject">الموضوع</label>
+                        <label for="support-subject" class="form-label">الموضوع</label>
                         <input type="text" id="support-subject" class="form-input">
                     </div>
                     <div class="form-group">
-                        <label for="support-message">الرسالة</label>
+                        <label for="support-message" class="form-label">الرسالة</label>
                         <textarea id="support-message" class="form-input" rows="4"></textarea>
                     </div>
                 </div>
@@ -504,8 +495,6 @@
         </div>
     </div>
 
-   
-
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -514,9 +503,13 @@
     <!-- QR Code Library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
     
-    <!-- Service Worker -->
+    <!-- Application Scripts -->
+    <script src="card-firebase-connector-updated.js"></script>
+    <script src="app.js"></script>
+
+    <!-- Service Worker Registration -->
     <script>
-        // تسجيل Service Worker للـ PWA
+        // Service Worker registration for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('service-worker.js')
@@ -529,42 +522,5 @@
             });
         }
     </script>
-    
-    <!-- توصيل بـ Firebase -->    
-    <!-- JS الرئيسي -->
-   <!-- ملفات النظام الرئيسية -->
-<script src="card-firebase-connector-updated.js"></script>
-<!-- إضافة ملف إصلاح الواجهة -->
-<script src="card-ui-fixes.js"></script>
-<!-- إضافة ملف الرسوم المتحركة -->
-<!--<script src="investor-card-sync.js"></script>
-<!--<!-- إضافة ملف الرسوم المتحركة -->
-<!--<script src="investor-card-ui-fixes.js"></script>
-<script src="app.js"></script>
-
-
-
-
-
-<script>
-    // Iniciar sincronización cuando la página esté lista
-    document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar el sistema de tarjetas
-      if (window.InvestorCardSystem) {
-        window.InvestorCardSystem.initialize()
-          .then(() => {
-            console.log('Sistema de tarjetas inicializado correctamente');
-            
-            // Inicializar la sincronización
-            if (window.InvestorCardSync) {
-              window.InvestorCardSync.initialize()
-                .then(success => {
-                  console.log('Sincronización inicializada:', success);
-                });
-            }
-          });
-      }
-    });
-  </script>
 </body>
 </html>
