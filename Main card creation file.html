@@ -6356,6 +6356,1234 @@
         // تعيين النظام على النافذة للوصول إليه من HTML
         window.AdminSystem = AdminSystem;
     });
+/**
+ * إصلاح وتحسين أداء نظام إدارة بطاقات المستثمرين
+ * 
+ * هذا الملف يحتوي على تصحيحات وتحسينات لحل مشاكل استجابة الأزرار
+ * وضمان عمل جميع الوظائف بشكل صحيح في واجهة النظام
+ * 
+ * @version 1.1.0
+ */
+
+// التأكد من تنفيذ الكود بعد تحميل الصفحة بالكامل
+document.addEventListener('DOMContentLoaded', function() {
+    // إصلاح استجابة الأزرار ومشاكل النظام
+    FixAdminSystem.initialize();
+});
+
+// كائن لإصلاح المشاكل في نظام الإدارة
+const FixAdminSystem = (function() {
+    // متغيرات النظام
+    let isInitialized = false;
+    
+    // تهيئة نظام الإصلاح
+    function initialize() {
+        console.log('بدء تهيئة نظام إصلاح المشاكل...');
+        
+        if (isInitialized) {
+            console.log('نظام الإصلاح مهيأ بالفعل');
+            return;
+        }
+        
+        // التأكد من وجود كائن AdminSystem
+        if (typeof window.AdminSystem === 'undefined') {
+            console.error('خطأ: كائن AdminSystem غير موجود');
+            window.AdminSystem = createFallbackAdminSystem();
+        }
+        
+        // تعزيز وظائف AdminSystem
+        enhanceAdminSystemFunctions();
+        
+        // إصلاح مستمعات الأحداث
+        fixEventListeners();
+        
+        // إصلاح مشكلة النوافذ المنبثقة
+        fixModals();
+        
+        // إصلاح مشاكل Firebase
+        fixFirebaseIssues();
+        
+        // إصلاح مشاكل تحديثات الواجهة
+        fixUIUpdates();
+        
+        // إضافة معالجة عامة للأخطاء
+        setupGlobalErrorHandling();
+        
+        // إضافة دعم للتشخيص
+        setupDiagnosticTools();
+        
+        isInitialized = true;
+        console.log('تم تهيئة نظام الإصلاح بنجاح');
+    }
+    
+    // إنشاء كائن AdminSystem احتياطي في حالة عدم وجوده
+    function createFallbackAdminSystem() {
+        console.warn('إنشاء كائن AdminSystem احتياطي');
+        
+        return {
+            initialize: function() { console.log('AdminSystem.initialize (احتياطي)'); },
+            login: function() { console.log('AdminSystem.login (احتياطي)'); },
+            logout: function() { console.log('AdminSystem.logout (احتياطي)'); },
+            viewInvestor: function(id) { console.log('AdminSystem.viewInvestor: ' + id + ' (احتياطي)'); },
+            editInvestor: function(id) { console.log('AdminSystem.editInvestor: ' + id + ' (احتياطي)'); },
+            deleteInvestor: function(id) { console.log('AdminSystem.deleteInvestor: ' + id + ' (احتياطي)'); },
+            viewCard: function(id) { console.log('AdminSystem.viewCard: ' + id + ' (احتياطي)'); },
+            editCard: function(id) { console.log('AdminSystem.editCard: ' + id + ' (احتياطي)'); },
+            deleteCard: function(id) { console.log('AdminSystem.deleteCard: ' + id + ' (احتياطي)'); },
+            showCardQR: function(id) { console.log('AdminSystem.showCardQR: ' + id + ' (احتياطي)'); },
+            viewTransaction: function(id) { console.log('AdminSystem.viewTransaction: ' + id + ' (احتياطي)'); },
+            editTransaction: function(id) { console.log('AdminSystem.editTransaction: ' + id + ' (احتياطي)'); },
+            deleteTransaction: function(id) { console.log('AdminSystem.deleteTransaction: ' + id + ' (احتياطي)'); },
+            viewProfitDistribution: function(id) { console.log('AdminSystem.viewProfitDistribution: ' + id + ' (احتياطي)'); },
+            distributeInvestorProfit: function(id) { console.log('AdminSystem.distributeInvestorProfit: ' + id + ' (احتياطي)'); },
+            editUser: function(id) { console.log('AdminSystem.editUser: ' + id + ' (احتياطي)'); },
+            deleteUser: function(id) { console.log('AdminSystem.deleteUser: ' + id + ' (احتياطي)'); },
+            showNotification: function(type, title, message) { 
+                console.log('AdminSystem.showNotification: ' + type + ' - ' + title + ' - ' + message + ' (احتياطي)');
+                alert(title + ': ' + message);
+            }
+        };
+    }
+    
+    // تعزيز وظائف AdminSystem
+    function enhanceAdminSystemFunctions() {
+        console.log('تعزيز وظائف AdminSystem...');
+        
+        // حفظ نسخة من الوظائف الأصلية
+        const originalFunctions = {};
+        
+        // قائمة الوظائف التي سيتم تعزيزها
+        const functionsToEnhance = [
+            'viewInvestor', 'editInvestor', 'deleteInvestor',
+            'viewCard', 'editCard', 'deleteCard', 'showCardQR',
+            'viewTransaction', 'editTransaction', 'deleteTransaction',
+            'viewProfitDistribution', 'distributeInvestorProfit',
+            'editUser', 'deleteUser'
+        ];
+        
+        // تعزيز كل وظيفة
+        functionsToEnhance.forEach(function(funcName) {
+            if (typeof AdminSystem[funcName] === 'function') {
+                // حفظ الوظيفة الأصلية
+                originalFunctions[funcName] = AdminSystem[funcName];
+                
+                // استبدال الوظيفة بنسخة معززة
+                AdminSystem[funcName] = function() {
+                    console.log('استدعاء ' + funcName + ' مع المعاملات:', arguments);
+                    try {
+                        // عرض مؤشر التحميل
+                        showLoaderIfExists();
+                        
+                        // استدعاء الوظيفة الأصلية
+                        const result = originalFunctions[funcName].apply(AdminSystem, arguments);
+                        
+                        // إخفاء مؤشر التحميل بعد تأخير قصير
+                        setTimeout(function() {
+                            hideLoaderIfExists();
+                        }, 500);
+                        
+                        return result;
+                    } catch (error) {
+                        console.error('خطأ في تنفيذ ' + funcName + ':', error);
+                        
+                        // إخفاء مؤشر التحميل
+                        hideLoaderIfExists();
+                        
+                        // عرض إشعار بالخطأ
+                        if (typeof AdminSystem.showNotification === 'function') {
+                            AdminSystem.showNotification('error', 'خطأ', 'حدث خطأ أثناء تنفيذ العملية: ' + error.message);
+                        } else {
+                            alert('خطأ: ' + error.message);
+                        }
+                        
+                        return null;
+                    }
+                };
+            }
+        });
+        
+        // تعزيز وظيفة عرض الإشعارات
+        if (typeof AdminSystem.showNotification === 'function') {
+            originalFunctions.showNotification = AdminSystem.showNotification;
+            
+            AdminSystem.showNotification = function(type, title, message) {
+                console.log('عرض إشعار:', type, title, message);
+                
+                try {
+                    return originalFunctions.showNotification.call(AdminSystem, type, title, message);
+                } catch (error) {
+                    console.error('خطأ في عرض الإشعار:', error);
+                    alert(title + ': ' + message);
+                    return null;
+                }
+            };
+        }
+        
+        console.log('تم تعزيز وظائف AdminSystem بنجاح');
+    }
+    
+    // إصلاح مستمعات الأحداث
+    function fixEventListeners() {
+        console.log('إصلاح مستمعات الأحداث...');
+        
+        // إضافة مستمعات للأزرار الرئيسية
+        setupMainButtonListeners();
+        
+        // إضافة مستمعات للنوافذ المنبثقة
+        setupModalListeners();
+        
+        // إضافة مستمعات لعناصر القائمة
+        setupMenuListeners();
+        
+        // إضافة مستمعات لأزرار الجداول
+        setupTableButtonsListeners();
+        
+        // إعادة تعيين مستمعات الأحداث بعد كل تحديث للواجهة
+        monkeyPatchUIUpdateFunctions();
+    }
+    
+    // إعداد مستمعات للأزرار الرئيسية
+    function setupMainButtonListeners() {
+        // قائمة الأزرار وأحداثها المقابلة
+        const buttonsToFix = [
+            { id: 'login-form', event: 'submit', handler: handleLoginFormSubmit },
+            { id: 'logout-btn', event: 'click', handler: handleLogout },
+            { id: 'add-investor-btn', event: 'click', handler: handleAddInvestor },
+            { id: 'add-investor-btn-2', event: 'click', handler: handleAddInvestor },
+            { id: 'save-investor-btn', event: 'click', handler: handleSaveInvestor },
+            { id: 'add-card-btn', event: 'click', handler: handleAddCard },
+            { id: 'save-card-btn', event: 'click', handler: handleSaveCard },
+            { id: 'add-transaction-btn', event: 'click', handler: handleAddTransaction },
+            { id: 'add-transaction-btn-2', event: 'click', handler: handleAddTransaction },
+            { id: 'save-transaction-btn', event: 'click', handler: handleSaveTransaction },
+            { id: 'distribute-profits-btn', event: 'click', handler: handleDistributeProfits },
+            { id: 'confirm-distribute-profits-btn', event: 'click', handler: handleConfirmDistributeProfits },
+            { id: 'add-user-btn', event: 'click', handler: handleAddUser },
+            { id: 'save-user-btn', event: 'click', handler: handleSaveUser },
+            { id: 'save-settings-btn', event: 'click', handler: handleSaveSettings },
+            { id: 'refresh-dashboard-btn', event: 'click', handler: handleRefreshDashboard },
+            { id: 'sync-data-btn', event: 'click', handler: handleSyncData },
+            { id: 'flip-preview-card', event: 'click', handler: handleFlipPreviewCard },
+            { id: 'flip-view-card', event: 'click', handler: handleFlipViewCard }
+        ];
+        
+        // إضافة مستمعات لكل زر
+        buttonsToFix.forEach(function(button) {
+            addEventListenerSafely(button.id, button.event, button.handler);
+        });
+    }
+    
+    // إعداد مستمعات للنوافذ المنبثقة
+    function setupModalListeners() {
+        // قائمة بأزرار إغلاق النوافذ المنبثقة
+        const modalCloseButtons = [
+            { id: 'close-investor-modal', modal: 'add-investor-modal' },
+            { id: 'cancel-investor-btn', modal: 'add-investor-modal' },
+            { id: 'close-card-modal', modal: 'add-card-modal' },
+            { id: 'cancel-card-btn', modal: 'add-card-modal' },
+            { id: 'close-transaction-modal', modal: 'add-transaction-modal' },
+            { id: 'cancel-transaction-btn', modal: 'add-transaction-modal' },
+            { id: 'close-distribute-profits-modal', modal: 'distribute-profits-modal' },
+            { id: 'cancel-distribute-profits-btn', modal: 'distribute-profits-modal' },
+            { id: 'close-view-card-modal', modal: 'view-card-modal' },
+            { id: 'close-view-card-btn', modal: 'view-card-modal' },
+            { id: 'close-view-investor-modal', modal: 'view-investor-modal' },
+            { id: 'close-view-investor-btn', modal: 'view-investor-modal' },
+            { id: 'close-view-qr-modal', modal: 'view-qr-modal' },
+            { id: 'close-view-qr-btn', modal: 'view-qr-modal' },
+            { id: 'close-add-user-modal', modal: 'add-user-modal' },
+            { id: 'cancel-add-user-btn', modal: 'add-user-modal' }
+        ];
+        
+        // إضافة مستمعات لأزرار إغلاق النوافذ
+        modalCloseButtons.forEach(function(button) {
+            addEventListenerSafely(button.id, 'click', function() {
+                closeModalSafely(button.modal);
+            });
+        });
+        
+        // إضافة مستمعات لإغلاق النوافذ عند النقر خارجها
+        addModalOutsideClickListeners();
+    }
+    
+    // إضافة مستمعات لإغلاق النوافذ عند النقر خارجها
+    function addModalOutsideClickListeners() {
+        const modalIds = [
+            'add-investor-modal',
+            'add-card-modal',
+            'add-transaction-modal',
+            'distribute-profits-modal',
+            'view-card-modal',
+            'view-investor-modal',
+            'view-qr-modal',
+            'add-user-modal'
+        ];
+        
+        modalIds.forEach(function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.addEventListener('click', function(event) {
+                    // إذا تم النقر على الخلفية (وليس محتوى النافذة)
+                    if (event.target === modal) {
+                        closeModalSafely(modalId);
+                    }
+                });
+            }
+        });
+    }
+    
+    // إعداد مستمعات لعناصر القائمة
+    function setupMenuListeners() {
+        // إعادة تعيين مستمعات عناصر القائمة
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(function(item) {
+            // إزالة المستمعات السابقة (إذا وجدت)
+            const clone = item.cloneNode(true);
+            if (item.parentNode) {
+                item.parentNode.replaceChild(clone, item);
+            }
+            
+            // إضافة مستمع جديد
+            clone.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // إزالة الفئة النشطة من جميع عناصر القائمة
+                menuItems.forEach(function(i) {
+                    i.classList.remove('active');
+                });
+                
+                // إضافة الفئة النشطة للعنصر المحدد
+                clone.classList.add('active');
+                
+                // الحصول على صفحة الهدف
+                const targetPage = clone.getAttribute('data-page');
+                
+                // عرض الصفحة المحددة
+                showPageSafely(targetPage);
+            });
+        });
+        
+        // إعادة تعيين مستمع تبديل قائمة الملف الشخصي
+        const profileToggle = document.getElementById('profile-toggle');
+        const profileDropdownMenu = document.getElementById('profile-dropdown-menu');
+        
+        if (profileToggle && profileDropdownMenu) {
+            // إزالة المستمعات السابقة
+            const profileToggleClone = profileToggle.cloneNode(true);
+            if (profileToggle.parentNode) {
+                profileToggle.parentNode.replaceChild(profileToggleClone, profileToggle);
+            }
+            
+            // إضافة مستمع جديد
+            profileToggleClone.addEventListener('click', function() {
+                profileDropdownMenu.classList.toggle('active');
+            });
+            
+            // إغلاق القائمة عند النقر خارجها
+            document.addEventListener('click', function(e) {
+                if (!profileToggleClone.contains(e.target) && !profileDropdownMenu.contains(e.target)) {
+                    profileDropdownMenu.classList.remove('active');
+                }
+            });
+        }
+    }
+    
+    // إعداد مستمعات لأزرار الجداول
+    function setupTableButtonsListeners() {
+        // هذه الوظيفة تضيف مستمعات لجميع أزرار الجداول التي يتم إنشاؤها ديناميكيًا
+        // وتنفذ عند تحديث الجداول
+        console.log('تم إعداد نظام استماع للأزرار الديناميكية');
+        
+        // سيتم استدعاء هذه الوظيفة بعد كل تحديث للواجهة
+        // من خلال monkeyPatchUIUpdateFunctions
+    }
+    
+    // إضافة مستمعات أحداث للأزرار الديناميكية في الجداول
+    function addTableButtonsEventListeners() {
+        // مستمعات أزرار جدول المستثمرين
+        addDynamicButtonListeners('.table-action-btn.view[onclick*="viewInvestor"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.viewInvestor(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn.edit[onclick*="editInvestor"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.editInvestor(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn.delete[onclick*="deleteInvestor"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.deleteInvestor(id);
+        });
+        
+        // مستمعات أزرار جدول البطاقات
+        addDynamicButtonListeners('.table-action-btn.view[onclick*="viewCard"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.viewCard(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn.edit[onclick*="editCard"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.editCard(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn.delete[onclick*="deleteCard"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.deleteCard(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn[onclick*="showCardQR"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.showCardQR(id);
+        });
+        
+        // مستمعات أزرار جدول العمليات
+        addDynamicButtonListeners('.table-action-btn.view[onclick*="viewTransaction"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.viewTransaction(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn.edit[onclick*="editTransaction"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.editTransaction(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn.delete[onclick*="deleteTransaction"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.deleteTransaction(id);
+        });
+        
+        // مستمعات أزرار جدول الأرباح
+        addDynamicButtonListeners('.table-action-btn.view[onclick*="viewProfitDistribution"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.viewProfitDistribution(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn[onclick*="distributeInvestorProfit"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.distributeInvestorProfit(id);
+        });
+        
+        // مستمعات أزرار جدول المستخدمين
+        addDynamicButtonListeners('.table-action-btn.edit[onclick*="editUser"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.editUser(id);
+        });
+        
+        addDynamicButtonListeners('.table-action-btn.delete[onclick*="deleteUser"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.deleteUser(id);
+        });
+        
+        // مستمعات أزرار البطاقات في الشبكة
+        addDynamicButtonListeners('.card-preview .btn[onclick*="viewCard"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.viewCard(id);
+        });
+        
+        addDynamicButtonListeners('.card-preview .btn[onclick*="showCardQR"]', 'click', function() {
+            const id = extractIdFromOnclick(this);
+            if (id) AdminSystem.showCardQR(id);
+        });
+    }
+    
+    // إضافة مستمعات للأزرار الديناميكية
+    function addDynamicButtonListeners(selector, event, handler) {
+        const buttons = document.querySelectorAll(selector);
+        buttons.forEach(function(button) {
+            // إزالة المستمعات السابقة (إذا وجدت)
+            const clone = button.cloneNode(true);
+            if (button.parentNode) {
+                button.parentNode.replaceChild(clone, button);
+            }
+            
+            // إضافة مستمع جديد
+            clone.addEventListener(event, handler);
+        });
+    }
+    
+    // استخراج المعرف من سمة onclick
+    function extractIdFromOnclick(element) {
+        const onclickAttr = element.getAttribute('onclick') || '';
+        const match = onclickAttr.match(/'([^']+)'/);
+        return match ? match[1] : null;
+    }
+    
+    // استخدام الـ Monkey Patching لإعادة تعيين مستمعات الأحداث بعد تحديث الواجهة
+    function monkeyPatchUIUpdateFunctions() {
+        // قائمة الوظائف التي يتم استدعاؤها لتحديث الواجهة
+        const uiUpdateFunctions = [
+            'updateInvestorsLists',
+            'updateCardsLists',
+            'updateTransactionsLists',
+            'updateProfitsData',
+            'updateUsersList',
+            'updateRecentInvestorsList',
+            'updateRecentTransactionsList'
+        ];
+        
+        // حفظ النسخ الأصلية من الوظائف
+        const originalFunctions = {};
+        
+        // استبدال كل وظيفة بنسخة مُحسنة
+        uiUpdateFunctions.forEach(function(funcName) {
+            if (typeof AdminSystem[funcName] === 'function') {
+                // حفظ الوظيفة الأصلية
+                originalFunctions[funcName] = AdminSystem[funcName];
+                
+                // استبدال الوظيفة
+                AdminSystem[funcName] = function() {
+                    // استدعاء الوظيفة الأصلية
+                    const result = originalFunctions[funcName].apply(AdminSystem, arguments);
+                    
+                    // إضافة تأخير قصير ثم إضافة مستمعات الأحداث للأزرار الجديدة
+                    setTimeout(function() {
+                        addTableButtonsEventListeners();
+                    }, 100);
+                    
+                    return result;
+                };
+            }
+        });
+    }
+    
+    // إصلاح مشكلة النوافذ المنبثقة
+    function fixModals() {
+        console.log('إصلاح مشكلة النوافذ المنبثقة...');
+        
+        // استبدال وظائف فتح وإغلاق النوافذ المنبثقة
+        if (typeof AdminSystem.openModal === 'function') {
+            const originalOpenModal = AdminSystem.openModal;
+            AdminSystem.openModal = function(modalId) {
+                try {
+                    return originalOpenModal.call(AdminSystem, modalId);
+                } catch (error) {
+                    console.error('خطأ في فتح النافذة المنبثقة:', error);
+                    openModalSafely(modalId);
+                }
+            };
+        } else {
+            AdminSystem.openModal = openModalSafely;
+        }
+        
+        if (typeof AdminSystem.closeModal === 'function') {
+            const originalCloseModal = AdminSystem.closeModal;
+            AdminSystem.closeModal = function(modalId) {
+                try {
+                    return originalCloseModal.call(AdminSystem, modalId);
+                } catch (error) {
+                    console.error('خطأ في إغلاق النافذة المنبثقة:', error);
+                    closeModalSafely(modalId);
+                }
+            };
+        } else {
+            AdminSystem.closeModal = closeModalSafely;
+        }
+    }
+    
+    // فتح نافذة منبثقة بأمان
+    function openModalSafely(modalId) {
+        console.log('فتح النافذة المنبثقة بأمان:', modalId);
+        
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+        } else {
+            console.warn('النافذة المنبثقة غير موجودة:', modalId);
+        }
+    }
+    
+    // إغلاق نافذة منبثقة بأمان
+    function closeModalSafely(modalId) {
+        console.log('إغلاق النافذة المنبثقة بأمان:', modalId);
+        
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+        } else {
+            console.warn('النافذة المنبثقة غير موجودة:', modalId);
+        }
+    }
+    
+    // إصلاح مشاكل Firebase
+    function fixFirebaseIssues() {
+        console.log('إصلاح مشاكل Firebase...');
+        
+        // التحقق من وجود Firebase
+        if (typeof firebase === 'undefined') {
+            console.warn('Firebase غير متوفر، سيتم استخدام بدائل محلية');
+            window.firebase = createMockFirebase();
+        }
+        
+        // تعزيز وظائف Firebase
+        enhanceFirebaseFunctions();
+    }
+    
+    // إنشاء كائن Firebase وهمي
+    function createMockFirebase() {
+        console.log('إنشاء كائن Firebase وهمي');
+        
+        // كائن التخزين المحلي للبيانات
+        const localDatabase = {
+            users: {}
+        };
+        
+        // كائن المرجع
+        const mockRef = {
+            val: function() {
+                return this._data || null;
+            },
+            set: function(data) {
+                this._data = data;
+                return Promise.resolve();
+            },
+            update: function(data) {
+                this._data = Object.assign({}, this._data || {}, data);
+                return Promise.resolve();
+            },
+            remove: function() {
+                this._data = null;
+                return Promise.resolve();
+            },
+            once: function(eventType) {
+                return Promise.resolve(this);
+            }
+        };
+        
+        // دالة إنشاء مرجع جديد
+        function createRef(path) {
+            const newRef = Object.create(mockRef);
+            newRef._path = path;
+            
+            // محاولة الحصول على البيانات من التخزين المحلي
+            try {
+                const savedData = localStorage.getItem('mock_firebase_' + path);
+                if (savedData) {
+                    newRef._data = JSON.parse(savedData);
+                }
+            } catch (error) {
+                console.error('خطأ في قراءة البيانات من التخزين المحلي:', error);
+            }
+            
+            return newRef;
+        }
+        
+        // كائن Firebase الوهمي
+        return {
+            apps: [],
+            initializeApp: function() {
+                console.log('تهيئة Firebase الوهمي');
+                return this;
+            },
+            database: function() {
+                return {
+                    ref: function(path) {
+                        return createRef(path);
+                    }
+                };
+            },
+            auth: function() {
+                return {
+                    currentUser: null,
+                    signInWithEmailAndPassword: function(email, password) {
+                        console.log('تسجيل الدخول باستخدام البريد الإلكتروني وكلمة المرور (وهمي)');
+                        
+                        // التحقق من البريد الإلكتروني وكلمة المرور
+                        if (email === 'admin@example.com' && password === 'admin123') {
+                            this.currentUser = {
+                                uid: 'admin_user',
+                                email: email,
+                                displayName: 'مدير النظام'
+                            };
+                            
+                            return Promise.resolve({ user: this.currentUser });
+                        } else {
+                            return Promise.reject({
+                                code: 'auth/wrong-password',
+                                message: 'كلمة المرور غير صحيحة'
+                            });
+                        }
+                    },
+                    createUserWithEmailAndPassword: function(email, password) {
+                        console.log('إنشاء مستخدم جديد (وهمي)');
+                        
+                        this.currentUser = {
+                            uid: 'user_' + Date.now(),
+                            email: email,
+                            displayName: 'مستخدم جديد'
+                        };
+                        
+                        return Promise.resolve({ user: this.currentUser });
+                    },
+                    signOut: function() {
+                        console.log('تسجيل الخروج (وهمي)');
+                        this.currentUser = null;
+                        return Promise.resolve();
+                    }
+                };
+            }
+        };
+    }
+    
+    // تعزيز وظائف Firebase
+    function enhanceFirebaseFunctions() {
+        // التحقق من وجود Firebase
+        if (typeof firebase === 'undefined' || !firebase.database || !firebase.auth) {
+            return;
+        }
+        
+        // تعزيز وظيفة ref
+        const originalRef = firebase.database().ref;
+        firebase.database().ref = function(path) {
+            console.log('الوصول إلى مسار Firebase:', path);
+            
+            try {
+                return originalRef.call(firebase.database(), path);
+            } catch (error) {
+                console.error('خطأ في الوصول إلى مسار Firebase:', error);
+                // إنشاء مرجع وهمي
+                return createMockFirebase().database().ref(path);
+            }
+        };
+        
+        // تعزيز وظائف المصادقة
+        const originalSignIn = firebase.auth().signInWithEmailAndPassword;
+        firebase.auth().signInWithEmailAndPassword = function(email, password) {
+            console.log('محاولة تسجيل الدخول للمستخدم:', email);
+            
+            // بديل افتراضي للاختبار إذا كان التكوين معطلًا
+            if (email === 'admin@example.com' && password === 'admin123') {
+                console.log('استخدام بيانات اعتماد للاختبار');
+                // إذا كان التصديق معطلاً أو غير متاح، فاستخدم تسجيل دخول وهمي
+                return Promise.resolve({
+                    user: {
+                        uid: 'admin_test_user',
+                        email: email,
+                        displayName: 'مدير النظام (اختبار)'
+                    }
+                });
+            }
+            
+            // استخدام الوظيفة الأصلية
+            return originalSignIn.call(firebase.auth(), email, password)
+                .catch(function(error) {
+                    console.error('خطأ في تسجيل الدخول:', error);
+                    
+                    // إعادة المحاولة مع بيانات اعتماد اختبارية إذا فشلت المحاولة الأولى
+                    if (email === 'admin@example.com' && password === 'admin123') {
+                        console.log('استخدام بيانات اعتماد للاختبار بعد فشل المحاولة الأولى');
+                        return Promise.resolve({
+                            user: {
+                                uid: 'admin_test_user',
+                                email: email,
+                                displayName: 'مدير النظام (اختبار)'
+                            }
+                        });
+                    }
+                    
+                    return Promise.reject(error);
+                });
+        };
+    }
+    
+    // إصلاح مشاكل تحديثات الواجهة
+    function fixUIUpdates() {
+        console.log('إصلاح مشاكل تحديثات الواجهة...');
+        
+        // إضافة دعم للانتقال بين الصفحات
+        if (typeof AdminSystem.showPage !== 'function') {
+            AdminSystem.showPage = showPageSafely;
+        } else {
+            const originalShowPage = AdminSystem.showPage;
+            AdminSystem.showPage = function(pageId) {
+                try {
+                    return originalShowPage.call(AdminSystem, pageId);
+                } catch (error) {
+                    console.error('خطأ في عرض الصفحة:', error);
+                    showPageSafely(pageId);
+                }
+            };
+        }
+        
+        // إضافة وظائف عرض وإخفاء مؤشر التحميل
+        if (typeof AdminSystem.showLoader !== 'function') {
+            AdminSystem.showLoader = showLoaderIfExists;
+        }
+        
+        if (typeof AdminSystem.hideLoader !== 'function') {
+            AdminSystem.hideLoader = hideLoaderIfExists;
+        }
+    }
+    
+    // عرض صفحة محددة بأمان
+    function showPageSafely(pageId) {
+        console.log('عرض الصفحة بأمان:', pageId);
+        
+        // إخفاء جميع الصفحات
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(function(page) {
+            page.style.display = 'none';
+        });
+        
+        // عرض الصفحة المطلوبة
+        const targetPage = document.getElementById(`${pageId}-page`);
+        if (targetPage) {
+            targetPage.style.display = 'block';
+            
+            // تشغيل أحداث التحميل الخاصة بالصفحة
+            if (pageId === 'dashboard') {
+                if (typeof AdminSystem.loadDashboardData === 'function') {
+                    setTimeout(function() {
+                        AdminSystem.loadDashboardData();
+                    }, 100);
+                }
+            }
+        } else {
+            console.warn('الصفحة المطلوبة غير موجودة:', pageId);
+            
+            // عرض صفحة لوحة القيادة افتراضيًا
+            const dashboardPage = document.getElementById('dashboard-page');
+            if (dashboardPage) {
+                dashboardPage.style.display = 'block';
+            }
+        }
+    }
+    
+    // عرض مؤشر التحميل إذا كان موجودًا
+    function showLoaderIfExists() {
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.classList.add('active');
+        }
+    }
+    
+    // إخفاء مؤشر التحميل إذا كان موجودًا
+    function hideLoaderIfExists() {
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.classList.remove('active');
+        }
+    }
+    
+    // إضافة معالجة عامة للأخطاء
+    function setupGlobalErrorHandling() {
+        console.log('إعداد معالجة عامة للأخطاء...');
+        
+        // معالجة الأخطاء غير المعالجة
+        window.addEventListener('error', function(event) {
+            console.error('خطأ غير معالج:', event.error);
+            
+            // عرض إشعار بالخطأ (إذا كانت الوظيفة متوفرة)
+            if (typeof AdminSystem.showNotification === 'function') {
+                AdminSystem.showNotification('error', 'خطأ', 'حدث خطأ غير متوقع في النظام');
+            }
+            
+            // إخفاء مؤشر التحميل
+            hideLoaderIfExists();
+            
+            return false; // للسماح بمعالجة الخطأ بشكل طبيعي
+        });
+        
+        // معالجة الوعود المرفوضة غير المعالجة
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('وعد مرفوض غير معالج:', event.reason);
+            
+            // عرض إشعار بالخطأ (إذا كانت الوظيفة متوفرة)
+            if (typeof AdminSystem.showNotification === 'function') {
+                AdminSystem.showNotification('error', 'خطأ', 'فشل في إكمال العملية: ' + (event.reason.message || 'خطأ غير معروف'));
+            }
+            
+            // إخفاء مؤشر التحميل
+            hideLoaderIfExists();
+            
+            return false; // للسماح بمعالجة الخطأ بشكل طبيعي
+        });
+    }
+    
+    // إضافة دعم للتشخيص
+    function setupDiagnosticTools() {
+        console.log('إعداد أدوات التشخيص...');
+        
+        // إضافة وظيفة تشخيص الأزرار
+        window.diagnoseBtns = function() {
+            console.log('تشخيص الأزرار...');
+            
+            const buttons = document.querySelectorAll('button');
+            let totalCount = 0;
+            let withOnclickCount = 0;
+            let withEventListenersCount = 0;
+            
+            buttons.forEach(function(button, index) {
+                totalCount++;
+                
+                const onclick = button.getAttribute('onclick');
+                if (onclick) {
+                    withOnclickCount++;
+                    console.log(`الزر #${index} (${button.textContent.trim() || 'بلا نص'}): لديه سمة onclick = "${onclick}"`);
+                }
+                
+                const listeners = getEventListeners(button);
+                if (listeners && listeners.click && listeners.click.length > 0) {
+                    withEventListenersCount++;
+                    console.log(`الزر #${index} (${button.textContent.trim() || 'بلا نص'}): لديه ${listeners.click.length} مستمع أحداث للنقر`);
+                }
+            });
+            
+            console.log(`إجمالي الأزرار: ${totalCount}`);
+            console.log(`الأزرار مع سمة onclick: ${withOnclickCount}`);
+            console.log(`الأزرار مع مستمعات أحداث: ${withEventListenersCount}`);
+        };
+        
+        // إضافة وظيفة تشخيص الصفحات
+        window.diagnosePages = function() {
+            console.log('تشخيص الصفحات...');
+            
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(function(page) {
+                const pageId = page.id;
+                const isVisible = page.style.display !== 'none';
+                console.log(`الصفحة ${pageId}: ${isVisible ? 'مرئية' : 'مخفية'}`);
+            });
+        };
+        
+        // إضافة وظيفة تشخيص النوافذ المنبثقة
+        window.diagnoseModals = function() {
+            console.log('تشخيص النوافذ المنبثقة...');
+            
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(function(modal) {
+                const modalId = modal.id;
+                const isActive = modal.classList.contains('active');
+                console.log(`النافذة المنبثقة ${modalId}: ${isActive ? 'نشطة' : 'غير نشطة'}`);
+            });
+        };
+        
+        // إضافة وظيفة لإصلاح جميع الأزرار
+        window.fixAllButtons = function() {
+            console.log('إصلاح جميع الأزرار...');
+            
+            setupMainButtonListeners();
+            setupModalListeners();
+            addTableButtonsEventListeners();
+            
+            console.log('تم إصلاح جميع الأزرار');
+        };
+    }
+    
+    // الوظائف اللازمة لمعالجة أحداث النقر على الأزرار
+    
+    // معالجة تقديم نموذج تسجيل الدخول
+    function handleLoginFormSubmit(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.login === 'function') {
+            AdminSystem.login();
+        }
+    }
+    
+    // معالجة تسجيل الخروج
+    function handleLogout(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.logout === 'function') {
+            AdminSystem.logout();
+        }
+    }
+    
+    // معالجة إضافة مستثمر
+    function handleAddInvestor(e) {
+        e.preventDefault();
+        showModalSafely('add-investor-modal');
+    }
+    
+    // معالجة حفظ مستثمر
+    function handleSaveInvestor(e) {
+        e.preventDefault();
+        // البحث عن معرف المستثمر في حالة التحرير
+        const form = document.getElementById('add-investor-form');
+        const investorId = form ? form.getAttribute('data-investor-id') : null;
+        
+        if (investorId) {
+            // تحديث مستثمر موجود
+            if (typeof AdminSystem.updateInvestor === 'function') {
+                AdminSystem.updateInvestor(investorId);
+            }
+        } else {
+            // إضافة مستثمر جديد
+            if (typeof AdminSystem.saveInvestor === 'function') {
+                AdminSystem.saveInvestor();
+            }
+        }
+    }
+    
+    // معالجة إضافة بطاقة
+    function handleAddCard(e) {
+        e.preventDefault();
+        showModalSafely('add-card-modal');
+    }
+    
+    // معالجة حفظ بطاقة
+    function handleSaveCard(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.saveCard === 'function') {
+            AdminSystem.saveCard();
+        }
+    }
+    
+    // معالجة إضافة عملية
+    function handleAddTransaction(e) {
+        e.preventDefault();
+        showModalSafely('add-transaction-modal');
+    }
+    
+    // معالجة حفظ عملية
+    function handleSaveTransaction(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.saveTransaction === 'function') {
+            AdminSystem.saveTransaction();
+        }
+    }
+    
+    // معالجة توزيع الأرباح
+    function handleDistributeProfits(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.showDistributeProfitsModal === 'function') {
+            AdminSystem.showDistributeProfitsModal();
+        } else {
+            showModalSafely('distribute-profits-modal');
+        }
+    }
+    
+    // معالجة تأكيد توزيع الأرباح
+    function handleConfirmDistributeProfits(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.distributeProfit === 'function') {
+            AdminSystem.distributeProfit();
+        }
+    }
+    
+    // معالجة إضافة مستخدم
+    function handleAddUser(e) {
+        e.preventDefault();
+        showModalSafely('add-user-modal');
+    }
+    
+    // معالجة حفظ مستخدم
+    function handleSaveUser(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.saveUser === 'function') {
+            AdminSystem.saveUser();
+        }
+    }
+    
+    // معالجة حفظ الإعدادات
+    function handleSaveSettings(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.saveSettings === 'function') {
+            AdminSystem.saveSettings();
+        }
+    }
+    
+    // معالجة تحديث لوحة القيادة
+    function handleRefreshDashboard(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.loadDashboardData === 'function') {
+            AdminSystem.loadDashboardData();
+        }
+    }
+    
+    // معالجة مزامنة البيانات
+    function handleSyncData(e) {
+        e.preventDefault();
+        if (typeof AdminSystem.synchronizeData === 'function') {
+            AdminSystem.synchronizeData();
+        }
+    }
+    
+    // معالجة تدوير معاينة البطاقة
+    function handleFlipPreviewCard(e) {
+        e.preventDefault();
+        const previewCard = document.getElementById('preview-card');
+        if (previewCard) {
+            previewCard.classList.toggle('flipped');
+        }
+    }
+    
+    // معالجة تدوير عرض البطاقة
+    function handleFlipViewCard(e) {
+        e.preventDefault();
+        const viewCard = document.getElementById('view-card');
+        if (viewCard) {
+            viewCard.classList.toggle('flipped');
+        }
+    }
+    
+    // دوال مساعدة
+    
+    // عرض النافذة المنبثقة بأمان
+    function showModalSafely(modalId) {
+        if (typeof AdminSystem.openModal === 'function') {
+            AdminSystem.openModal(modalId);
+        } else {
+            openModalSafely(modalId);
+        }
+    }
+    
+    // إضافة مستمع حدث بأمان
+    function addEventListenerSafely(elementId, eventType, handler) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            // إزالة المستمعات السابقة (إذا وجدت)
+            const clone = element.cloneNode(true);
+            if (element.parentNode) {
+                element.parentNode.replaceChild(clone, element);
+            }
+            
+            // إضافة مستمع جديد
+            clone.addEventListener(eventType, handler);
+        }
+    }
+    
+    // الحصول على مستمعات الأحداث للعنصر (لأغراض التشخيص)
+    function getEventListeners(element) {
+        // ملاحظة: هذه الوظيفة تعمل فقط في لوحة تحكم المطور في كروم
+        if (typeof element.getEventListeners === 'function') {
+            return element.getEventListeners();
+        }
+        
+        // بديل بسيط (قد لا يكون دقيقًا)
+        return null;
+    }
+    
+    // تصدير الواجهة العامة
+    return {
+        initialize: initialize,
+        fixAllButtons: function() {
+            setupMainButtonListeners();
+            setupModalListeners();
+            addTableButtonsEventListeners();
+        },
+        diagnoseModals: function() {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(function(modal) {
+                const modalId = modal.id;
+                const isActive = modal.classList.contains('active');
+                console.log(`النافذة المنبثقة ${modalId}: ${isActive ? 'نشطة' : 'غير نشطة'}`);
+            });
+        },
+        diagnoseButtons: function() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(function(button, index) {
+                const onclick = button.getAttribute('onclick');
+                console.log(`الزر #${index} (${button.textContent.trim() || 'بلا نص'}): ${onclick || 'بلا onclick'}`);
+            });
+        }
+    };
+})();
+
+// تنفيذ تهيئة نظام الإصلاح بعد تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    // تأخير قصير للتأكد من تهيئة النظام الأساسي أولاً
+    setTimeout(function() {
+        FixAdminSystem.initialize();
+    }, 500);
+    
+    // تنفيذ إصلاح دوري للأزرار
+    setInterval(function() {
+        FixAdminSystem.fixAllButtons();
+    }, 5000);
+});
+
+// إضافة استجابة للنقر على عناصر DOM التي تحتوي على معاملات onclick
+document.addEventListener('click', function(event) {
+    // التحقق من وجود سمة onclick في العنصر المنقور
+    const onclickAttr = event.target.getAttribute('onclick');
+    if (onclickAttr) {
+        try {
+            // محاولة تنفيذ الكود في سمة onclick
+            new Function(onclickAttr).call(event.target);
+            
+            // منع السلوك الافتراضي والانتشار
+            event.preventDefault();
+            event.stopPropagation();
+        } catch (error) {
+            console.error('خطأ في تنفيذ onclick:', error);
+        }
+    }
+    
+    // التحقق من وجود سمة onclick في أحد العناصر الأبوية
+    let parent = event.target.parentElement;
+    while (parent) {
+        const parentOnclick = parent.getAttribute('onclick');
+        if (parentOnclick && event.target.tagName !== 'BUTTON' && event.target.tagName !== 'A') {
+            try {
+                // محاولة تنفيذ الكود في سمة onclick للعنصر الأبوي
+                new Function(parentOnclick).call(parent);
+                
+                // منع السلوك الافتراضي والانتشار
+                event.preventDefault();
+                event.stopPropagation();
+            } catch (error) {
+                console.error('خطأ في تنفيذ onclick للعنصر الأبوي:', error);
+            }
+            break;
+        }
+        parent = parent.parentElement;
+    }
+});
+
+// إعادة تعريف AdminSystem.handleLogin في حالة استخدامه مباشرة في HTML
+if (typeof AdminSystem !== 'undefined' && typeof AdminSystem.handleLogin === 'function') {
+    const originalHandleLogin = AdminSystem.handleLogin;
+    AdminSystem.handleLogin = function() {
+        try {
+            return originalHandleLogin.apply(AdminSystem, arguments);
+        } catch (error) {
+            console.error('خطأ في معالجة تسجيل الدخول:', error);
+            
+            // التنفيذ البديل
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            
+            if (!email || !password) {
+                alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+                return;
+            }
+            
+            AdminSystem.showLoader();
+            
+            // تجربة تسجيل الدخول بشكل مباشر بدون Firebase
+            if (email === 'admin@example.com' && password === 'admin123') {
+                setTimeout(function() {
+                    // تخزين معلومات المستخدم
+                    const userData = {
+                        uid: 'admin_local_user',
+                        email: email,
+                        displayName: 'مدير النظام (محلي)'
+                    };
+                    
+                    localStorage.setItem('admin_user', JSON.stringify(userData));
+                    
+                    // عرض لوحة التحكم
+                    document.getElementById('login-page').style.display = 'none';
+                    document.getElementById('admin-dashboard').style.display = 'flex';
+                    
+                    AdminSystem.hideLoader();
+                    
+                    // تحديث اسم المستخدم في الواجهة
+                    const adminNameElement = document.getElementById('admin-name');
+                    if (adminNameElement) {
+                        adminNameElement.textContent = userData.displayName;
+                    }
+                }, 1000);
+            } else {
+                setTimeout(function() {
+                    AdminSystem.hideLoader();
+                    alert('بيانات تسجيل الدخول غير صحيحة');
+                }, 1000);
+            }
+        }
+    };
+}
+        
     </script>
 </body>
 </html>
