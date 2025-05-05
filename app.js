@@ -2424,3 +2424,41 @@ function formatDateObject(date) {
         document.addEventListener('DOMContentLoaded', function () {
             InvestorApp.initialize();
         });
+
+
+// كود للتحقق من قابلية التثبيت
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('✅ beforeinstallprompt تم تنشيط حدث');
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // إظهار زر التثبيت للمستخدم
+  const installButton = document.getElementById('install-app-btn');
+  if (installButton) {
+    installButton.style.display = 'block';
+    console.log('✅ تم تفعيل زر التثبيت');
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('✅ تم تثبيت التطبيق بنجاح');
+  // إخفاء زر التثبيت
+  const installButton = document.getElementById('install-app-btn');
+  if (installButton) {
+    installButton.style.display = 'none';
+  }
+  deferredPrompt = null;
+});
+
+// للتأكد من عمل تسجيل Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(reg => {
+      console.log('✅ تم تسجيل Service Worker بنجاح:', reg.scope);
+    })
+    .catch(err => {
+      console.error('❌ فشل تسجيل Service Worker:', err);
+    });
+}
