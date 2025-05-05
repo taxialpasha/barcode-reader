@@ -2424,41 +2424,162 @@ function formatDateObject(date) {
         document.addEventListener('DOMContentLoaded', function () {
             InvestorApp.initialize();
         });
-
-
-// كود للتحقق من قابلية التثبيت
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  console.log('✅ beforeinstallprompt تم تنشيط حدث');
-  e.preventDefault();
-  deferredPrompt = e;
+// Registro mejorado de Service Worker y manejo de instalación
+document.addEventListener('DOMContentLoaded', function() {
+  // Variables para la instalación
+  let deferredPrompt;
+  const installButton = document.getElementById('install-app-btn');
   
-  // إظهار زر التثبيت للمستخدم
-  const installButton = document.getElementById('install-app-btn');
-  if (installButton) {
-    installButton.style.display = 'block';
-    console.log('✅ تم تفعيل زر التثبيت');
-  }
-});
-
-window.addEventListener('appinstalled', () => {
-  console.log('✅ تم تثبيت التطبيق بنجاح');
-  // إخفاء زر التثبيت
-  const installButton = document.getElementById('install-app-btn');
+  // Ocultar botón de instalación hasta que sea necesario
   if (installButton) {
     installButton.style.display = 'none';
   }
-  deferredPrompt = null;
-});
-
-// للتأكد من عمل تسجيل Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js')
-    .then(reg => {
-      console.log('✅ تم تسجيل Service Worker بنجاح:', reg.scope);
-    })
-    .catch(err => {
-      console.error('❌ فشل تسجيل Service Worker:', err);
+  
+  // Registrar Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/barcode-reader/service-worker.js', { scope: '/barcode-reader/' })
+      .then(registration => {
+        console.log('🟢 Service Worker registrado correctamente:', registration.scope);
+        
+        // Verificar actualizaciones
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                console.log('🔄 Hay contenido nuevo disponible. Por favor, actualiza la página.');
+                showUpdateNotification();
+              } else {
+                console.log('✅ Contenido almacenado para uso offline.');
+              }
+            }
+          };
+        };
+      })
+      .catch(error => {
+        console.error('🔴 Error al registrar Service Worker:', error);
+      });
+      
+    // Verificar si ya está instalado
+    const isRunningStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                               window.navigator.standalone === true;
+    
+    if (isRunningStandalone) {
+      console.log('✅ Aplicación ya instalada y ejecutándose en modo standalone');
+    } else {
+      console.log('ℹ️ Aplicación ejecutándose en navegador normal');
+    }
+  } else {
+    console.warn('⚠️ Service Worker no soportado en este navegador');
+  }
+  
+  // Eventos de instalación
+  window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('🎯 Evento beforeinstallprompt activado');
+    
+    // Prevenir el prompt automático
+    e.preventDefault();
+    
+    // Guardar el evento para usarlo después
+    deferredPrompt = e;
+    
+    // Mostrar botón de instalación
+    if (installButton) {
+      installButton.style.display = 'block';
+      console.log('✅ Botón de instalación habilitado');
+    }
+    
+    // Indicar que el evento fue capturado correctamente
+    return false;
+  });
+  
+  // Cuando se instala la app
+  window.addEventListener('appinstalled', (e) => {
+    console.log('🎉 Aplicación instalada exitosamente');
+    
+    // Ocultar botón de instalación
+    if (installButton) {
+      installButton.style.display = 'none';
+    }
+    
+    // Limpiar el prompt
+    deferredPrompt = null;
+    
+    // Mostrar notificación de éxito
+    showNotification('success', 'تم التثبيت', 'تم تثبيت التطبيق بنجاح على جهازك');
+  });
+  
+  // Función para instalar la app
+  window.installApp = function() {
+    if (!deferredPrompt) {
+      console.log('❌ No se puede instalar la aplicación en este momento');
+      
+      // Si estamos en iOS, mostrar instrucciones
+      if (
+        navigator.userAgent.match(/iPhone|iPad|iPod/) && 
+        !window.navigator.standalone
+      ) {
+        showIOSInstallInstructions();
+      }
+      return;
+    }
+    
+    console.log('🔄 Mostrando prompt de instalación...');
+    
+    // Mostrar el prompt
+    deferredPrompt.prompt();
+    
+    // Esperar la decisión del usuario
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('✅ Usuario aceptó la instalación');
+        
+        // Ocultar botón de instalación
+        if (installButton) {
+          installButton.style.display = 'none';
+        }
+      } else {
+        console.log('❌ Usuario rechazó la instalación');
+      }
+      
+      // Limpiar el prompt
+      deferredPrompt = null;
     });
-}
+  };
+  
+  // Función para mostrar notificación de actualización
+  function showUpdateNotification() {
+    showNotification('info', 'تحديث متاح', 'يوجد إصدار جديد من التطبيق. اضغط هنا للتحديث.', () => {
+      window.location.reload();
+    });
+  }
+  
+  // Instrucciones para iOS
+  function showIOSInstallInstructions() {
+    const message = 'لتثبيت التطبيق على iOS، اضغط على زر المشاركة ثم "إضافة إلى الشاشة الرئيسية"';
+    showNotification('info', 'تعليمات التثبيت', message);
+  }
+  
+  // Agregar botón de instalación si no existe
+  if (!installButton && !window.matchMedia('(display-mode: standalone)').matches) {
+    const newInstallButton = document.createElement('button');
+    newInstallButton.id = 'install-app-btn';
+    newInstallButton.innerHTML = 'تثبيت التطبيق <i class="fas fa-download"></i>';
+    newInstallButton.style.display = 'none';
+    newInstallButton.style.position = 'fixed';
+    newInstallButton.style.bottom = '20px';
+    newInstallButton.style.left = '50%';
+    newInstallButton.style.transform = 'translateX(-50%)';
+    newInstallButton.style.backgroundColor = '#3498db';
+    newInstallButton.style.color = 'white';
+    newInstallButton.style.padding = '10px 20px';
+    newInstallButton.style.borderRadius = '5px';
+    newInstallButton.style.border = 'none';
+    newInstallButton.style.zIndex = '9999';
+    newInstallButton.style.cursor = 'pointer';
+    newInstallButton.style.fontWeight = 'bold';
+    newInstallButton.onclick = window.installApp;
+    
+    document.body.appendChild(newInstallButton);
+  }
+});
