@@ -1,0 +1,1146 @@
+ /* === متغيرات النظام === */
+ :root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --info-color: #3498db;
+    --light-color: #f5f6fa;
+    --dark-color: #2c3e50;
+    --border-color: #e6e6e6;
+    --gold-gradient: linear-gradient(45deg, #BF953F, #FCF6BA, #B38728);
+    --platinum-gradient: linear-gradient(45deg, #232526, #414345);
+    --premium-gradient: linear-gradient(45deg, #1F4068, #2E5895);
+    --diamond-gradient: linear-gradient(45deg, #0F2027, #203A43, #2C5364);
+    --islamic-gradient: linear-gradient(45deg, #004d40, #00796b);
+}
+
+/* === أساسيات === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Tajawal', sans-serif;
+}
+
+body {
+    background-color: #f8f9fa;
+    color: #333;
+    direction: rtl;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === شاشة الدخول === */
+#login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--secondary-color);
+    background-image: linear-gradient(135deg, rgba(44, 62, 80, 0.9) 0%, rgba(52, 152, 219, 0.8) 100%);
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    transition: all 0.5s ease;
+}
+
+.login-hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.login-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 450px;
+    overflow: hidden;
+    position: relative;
+}
+
+.login-header {
+    background: var(--primary-color);
+    padding: 30px 20px;
+    text-align: center;
+    color: white;
+}
+
+.login-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.login-subtitle {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.login-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.login-tab {
+    flex: 1;
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.login-tab.active {
+    background: white;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.login-body {
+    padding: 30px;
+}
+
+.login-tab-content {
+    display: none;
+}
+
+.login-tab-content.active {
+    display: block;
+}
+
+.login-form-group {
+    margin-bottom: 20px;
+}
+
+.login-form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.login-form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.login-form-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    outline: none;
+}
+
+.login-card-inputs {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+}
+
+.login-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-btn:hover {
+    background: #2980b9;
+}
+
+.login-btn i {
+    margin-left: 10px;
+}
+
+.login-separator {
+    text-align: center;
+    position: relative;
+    margin: 20px 0;
+}
+
+.login-separator:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.login-separator span {
+    background: white;
+    padding: 0 15px;
+    position: relative;
+    color: #777;
+}
+
+.error-message {
+    color: var(--danger-color);
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: none;
+}
+
+.qr-scanner-container {
+    width: 100%;
+    max-width: 300px;
+    height: 300px;
+    margin: 0 auto 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px dashed var(--border-color);
+    position: relative;
+}
+
+#qr-reader {
+    width: 100%;
+    height: 100%;
+}
+
+#qr-reader__scan_region {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#qr-reader__dashboard {
+    padding: 10px !important;
+}
+
+#qr-reader__status_span {
+    font-size: 14px !important;
+    color: #333 !important;
+}
+
+#qr-reader__camera_permission_button {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 5px !important;
+    padding: 8px 15px !important;
+    cursor: pointer !important;
+}
+
+/* === تخطيط الرئيسي === */
+#investor-app {
+    min-height: 100vh;
+    display: none;
+}
+
+.app-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.header-action-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.header-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.app-content {
+    padding: 80px 20px 80px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* === البطاقة === */
+.investor-card-container {
+    perspective: 1000px;
+    margin-bottom: 30px;
+}
+
+.investor-card {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.8s ease;
+}
+
+.investor-card.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-side {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-front {
+    background: var(--gold-gradient);
+    color: #000;
+}
+
+.card-front.platinum {
+    background: var(--platinum-gradient);
+    color: white;
+}
+
+.card-front.gold {
+    background: var(--gold-gradient);
+    color: #000;
+}
+
+.card-front.premium {
+    background: var(--premium-gradient);
+    color: white;
+}
+
+.card-front.diamond {
+    background: var(--diamond-gradient);
+    color: white;
+}
+
+.card-front.islamic {
+    background: var(--islamic-gradient);
+    color: white;
+}
+
+.card-back {
+    background: var(--secondary-color);
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.card-brand {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.card-logo {
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    display: flex;
+}
+
+.card-logo-circle {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    margin-right: -10px;
+    opacity: 0.8;
+}
+
+.card-logo-circle.red {
+    background-color: #e74c3c;
+}
+
+.card-logo-circle.yellow {
+    background-color: #f1c40f;
+}
+
+.card-chip {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    width: 40px;
+    height: 30px;
+    background-color: rgba(255, 215, 0, 0.8);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+}
+
+.chip-line {
+    height: 2px;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.card-number {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-top: 70px;
+    text-align: center;
+}
+
+.card-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.card-holder {
+    font-weight: 700;
+}
+
+.card-validity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.validity-label {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.card-back-strip {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    left: 0;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.card-cvv {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 10px;
+    border-radius: 3px;
+    color: #000;
+    font-size: 12px;
+}
+
+.card-issuer-info {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 12px;
+    opacity: 0.7;
+    text-align: right;
+}
+
+.flip-card-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.flip-card-btn:hover {
+    background: #2980b9;
+}
+
+.flip-card-btn i {
+    margin-left: 10px;
+}
+
+/* === إحصائيات === */
+.stats-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--secondary-color);
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 20px;
+    color: white;
+}
+
+.stat-icon.blue {
+    background: var(--primary-color);
+}
+
+.stat-icon.green {
+    background: var(--success-color);
+}
+
+.stat-icon.orange {
+    background: var(--warning-color);
+}
+
+.stat-icon.red {
+    background: var(--danger-color);
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #777;
+}
+
+/* === قائمة العمليات === */
+.transactions-section {
+    margin-bottom: 30px;
+}
+
+.transactions-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    margin-left: 15px;
+}
+
+.transaction-icon.deposit {
+    background: var(--success-color);
+}
+
+.transaction-icon.withdraw {
+    background: var(--danger-color);
+}
+
+.transaction-icon.profit {
+    background: var(--warning-color);
+}
+
+.transaction-icon.transfer {
+    background: var(--info-color);
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.transaction-date {
+    font-size: 12px;
+    color: #777;
+}
+
+.transaction-amount {
+    font-weight: 700;
+}
+
+.transaction-amount.positive {
+    color: var(--success-color);
+}
+
+.transaction-amount.negative {
+    color: var(--danger-color);
+}
+
+.see-all-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    padding: 10px;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* === شريط التنقل === */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    color: #777;
+    width: 25%;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.nav-item.active {
+    color: var(--primary-color);
+}
+
+.nav-icon {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.nav-label {
+    font-size: 12px;
+}
+
+/* === الصفحات === */
+.app-page {
+    display: none;
+}
+
+.app-page.active {
+    display: block;
+}
+
+/* === قسم الملف الشخصي === */
+.profile-section {
+    margin-bottom: 30px;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-left: 15px;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.profile-subtitle {
+    font-size: 12px;
+    color: #777;
+}
+
+.profile-detail {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-detail:last-child {
+    border-bottom: none;
+}
+
+.profile-detail-label {
+    width: 120px;
+    font-weight: 600;
+    color: #777;
+}
+
+.profile-detail-value {
+    flex: 1;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.settings-option:last-child {
+    border-bottom: none;
+}
+
+.settings-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f5f6fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #777;
+    margin-left: 15px;
+}
+
+.settings-option-info {
+    flex: 1;
+}
+
+.settings-option-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.settings-option-subtitle {
+    font-size: 12px;
+    color: #777;
+}
+
+.settings-option-toggle {
+    width: 40px;
+    height: 24px;
+    border-radius: 12px;
+    background: #ddd;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.settings-option-toggle.active {
+    background: var(--success-color);
+}
+
+.settings-option-toggle:before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.settings-option-toggle.active:before {
+    right: 18px;
+}
+
+.logout-btn {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.logout-btn:hover {
+    background: #c0392b;
+}
+
+.logout-btn i {
+    margin-left: 10px;
+}
+
+/* === صفحة العمليات === */
+.transactions-filter {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.filter-options {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.filter-option {
+    background: #f5f6fa;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 12px;
+    margin-left: 10px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-option.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.all-transactions-list {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* === صفحة الإشعارات === */
+.notifications-list {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+.notification-icon.info {
+    background: var(--info-color);
+}
+
+.notification-icon.success {
+    background: var(--success-color);
+}
+
+.notification-icon.warning {
+    background: var(--warning-color);
+}
+
+.notification-icon.danger {
+    background: var(--danger-color);
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.notification-message {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.notification-time {
+    font-size: 12px;
+    color: #777;
+}
+
+.notification-item.unread {
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.notification-item.unread:before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+/* === لودر === */
+.loader-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.loader-container.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* === الإشعارات === */
+.notification-toast {
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: flex-start;
+    transform: translateY(-20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 200;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.notification-toast.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.toast-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+
+.toast-icon.success {
+    background: var(--success-color);
+}
+
+.toast-icon.error {
+    background: var(--danger-color);
+}
+
+.toast-icon.info {
+    background: var(--info-color);
+}
+
+.toast-icon.warning {
+    background: var(--warning-color);
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.toast-message {
+    font-size: 14px;
+}
+
+.toast-close {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    color: #777;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* === الرسوم البيانية === */
+.chart-container {
+    width: 100%;
+    height: 200px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* === ميديا كويري للتوافق === */
+@media (min-width: 768px) {
+    .stats-cards {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .app-content {
+        max-width: 768px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 380px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .login-card-inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .card-number {
+        font-size: 16px;
+    }
+}
