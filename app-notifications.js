@@ -399,7 +399,7 @@ function initializeFirebaseMessaging() {
         const notificationOptions = {
             body: payload.notification.body,
             icon: 'https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fbadge-icon.png?alt=media&token=0e94bd66-c3bb-4ac5-be2c-f406861800e4',
-            badge: 'https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%Bص%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fbadge-icon.png?alt=media&token=0e94bd66-c3bb-4ac5-be2c-f406861800e4',
+            badge: 'https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fbadge-icon.png?alt=media&token=0e94bd66-c3bb-4ac5-be2c-f406861800e4',
             vibrate: [100, 50, 100, 50, 100],
             sound: 'https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fnotification.mp3?alt=media&token=6f21cd2e-c051-413c-8521-33c36e684a71',
             data: payload.data
