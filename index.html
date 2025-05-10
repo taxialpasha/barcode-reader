@@ -8,7 +8,7 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Tajawal -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <!-- Firebase Scripts -->
@@ -27,12 +27,70 @@
             font-family: 'Tajawal', sans-serif;
         }
 
-        body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-            color: #fff;
-            min-height: 100vh;
-            direction: rtl;
-        }
+ /* إعداد الخلفية العامة */
+body {
+    background-color: #0A0A0A; /* أسود داكن */
+    color: #FFC436; /* ذهبي */
+    font-family: 'Cairo', sans-serif; /* خط أنيق ومناسب للعربية */
+}
+
+/* بطاقات العرض */
+.card, .investment-box, .button, .summary-box {
+    background-color: #121212; /* خلفية داكنة خفيفة للبطاقات */
+    border: 2px solid #FFC436; /* حدود ذهبية */
+    border-radius: 12px;
+    padding: 16px;
+    color: #FFC436;
+    box-shadow: 0 0 10px #FFC43666; /* توهج خفيف ذهبي */
+}
+
+/* النصوص */
+h1, h2, h3, p, span, label {
+    color: #FFC436; /* النصوص بالذهبي */
+}
+
+/* الأزرار */
+button {
+    background-color: transparent;
+    border: 2px solid #FFC436;
+    color: #FFC436;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #FFC436;
+    color: #0A0A0A; /* قلب الألوان عند التحويم */
+}
+
+/* الأيقونات */
+.icon, svg, i {
+    color: #FFC436; /* أيقونات ذهبية */
+    font-size: 20px;
+}
+
+/* شريط التنقل السفلي */
+.navbar {
+    background-color: #0A0A0A;
+    border-top: 1px solid #FFC436;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+}
+
+.navbar-item {
+    text-align: center;
+    color: #FFC436;
+}
+
+.navbar-item i {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
 
         .app-container {
             width: 100%;
@@ -46,17 +104,26 @@
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             padding: 20px;
             position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background-color: #000;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
         }
 
         .header h1 {
-            color: #000;
+            color: #FFD700;
             font-size: 1.8rem;
             font-weight: 700;
             text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .header-user {
+            text-align: center;
+            font-size: 1rem;
+            color: rgba(255, 215, 0, 0.7);
+            margin-top: 5px;
+            font-weight: 500;
         }
 
         .back-btn {
@@ -66,7 +133,19 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #000;
+            color: #FFD700;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .refresh-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #FFD700;
             font-size: 1.5rem;
             cursor: pointer;
         }
@@ -75,6 +154,11 @@
         .login-screen {
             padding: 40px 20px;
             text-align: center;
+            background-color: #000;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .logo {
@@ -86,7 +170,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.3);
         }
 
         .logo i {
@@ -113,7 +197,7 @@
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            background: #FFD700;
             color: #000;
             border-color: transparent;
         }
@@ -159,7 +243,7 @@
         .btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            background: #FFD700;
             border: none;
             border-radius: 12px;
             color: #000;
@@ -168,16 +252,27 @@
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 20px;
-            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(255, 215, 0, 0.6);
+            box-shadow: 0 6px 30px rgba(255, 215, 0, 0.3);
         }
 
         .btn:active {
             transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFD700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
         }
 
         /* QR Scanner */
@@ -186,89 +281,105 @@
             margin-bottom: 20px;
             border-radius: 12px;
             overflow: hidden;
+            display: none;
+        }
+
+        .img-upload-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #qr-file-selector {
+            display: none;
         }
 
         /* Dashboard */
         .dashboard {
             display: none;
             padding-bottom: 80px;
+            background-color: #000;
         }
 
         /* Card Display */
         .card-display {
-            padding: 20px;
+            padding: 15px;
             margin-bottom: 20px;
         }
 
         .credit-card {
             width: 100%;
-            max-width: 390px;
-            aspect-ratio: 1.586;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            height: 200px;
+            background: #000;
             border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 20px;
             position: relative;
             overflow: hidden;
             margin: 0 auto;
+            border: 1px solid #FFD700;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .credit-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-            transform: rotate(45deg);
-            animation: shine 3s ease-in-out infinite;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
-        @keyframes shine {
-            0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        .card-logo {
+            color: #FFD700;
+            font-size: 1.5rem;
+            font-weight: 700;
         }
 
         .card-chip {
-            width: 50px;
-            height: 40px;
-            background: linear-gradient(135deg, #f8f8f8 0%, #d0d0d0 100%);
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             border-radius: 8px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card-chip::after {
-            content: '';
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            right: 5px;
-            bottom: 5px;
-            border: 2px solid #a0a0a0;
-            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .card-number {
-            font-size: 1.4rem;
-            letter-spacing: 3px;
-            color: #000;
+            color: #FFD700;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            text-align: center;
             margin-bottom: 20px;
             font-weight: 600;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+        }
+
+        .card-profit {
+            font-size: 1.1rem;
+            color: #FFD700;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-profit i {
+            color: #FFD700;
+            font-size: 1.2rem;
         }
 
         .card-info {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-top: auto;
         }
 
         .card-info-item {
-            color: #000;
+            color: #FFD700;
         }
 
         .card-info-label {
@@ -283,51 +394,34 @@
             font-weight: 600;
         }
 
-        .card-logo {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 1.8rem;
-            color: #000;
-            font-weight: 700;
-        }
-
         /* Info Cards */
         .info-cards {
-            padding: 0 20px;
+            padding: 0 15px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            background: #000;
+            border: 1px solid rgba(255, 215, 0, 0.3);
             border-radius: 16px;
-            padding: 20px;
+            padding: 20px 15px;
             text-align: center;
-            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
 
         .info-card:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 215, 0, 0.5);
+            border-color: #FFD700;
             transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
-        }
-
-        .info-card i {
-            font-size: 2rem;
-            color: #FFD700;
-            margin-bottom: 10px;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.1);
         }
 
         .info-card h3 {
             font-size: 0.9rem;
             color: #FFD700;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             font-weight: 500;
         }
 
@@ -335,18 +429,19 @@
             font-size: 1.3rem;
             font-weight: 700;
             margin: 0;
+            color: #FFD700;
         }
 
         /* Actions */
         .actions {
-            padding: 0 20px;
-            margin-bottom: 30px;
+            padding: 0 15px;
+            margin-bottom: 25px;
         }
 
         .action-btn {
             width: 100%;
             padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
+            background: #000;
             border: 1px solid rgba(255, 215, 0, 0.3);
             border-radius: 16px;
             color: #FFD700;
@@ -362,10 +457,10 @@
         }
 
         .action-btn:hover {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 215, 0, 0.05);
             border-color: #FFD700;
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.1);
         }
 
         .action-btn i {
@@ -374,7 +469,7 @@
 
         /* Transactions */
         .transactions {
-            padding: 20px;
+            padding: 15px;
         }
 
         .section-title {
@@ -388,7 +483,7 @@
         }
 
         .transaction-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: #000;
             border: 1px solid rgba(255, 215, 0, 0.1);
             border-radius: 12px;
             padding: 15px;
@@ -400,7 +495,7 @@
         }
 
         .transaction-item:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 215, 0, 0.05);
             border-color: rgba(255, 215, 0, 0.3);
         }
 
@@ -437,7 +532,7 @@
         }
 
         .transaction-amount.positive {
-            color: #4CAF50;
+            color: #FFD700;
         }
 
         .transaction-amount.negative {
@@ -450,13 +545,15 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.95);
+            background: #000;
             backdrop-filter: blur(20px);
             border-top: 1px solid rgba(255, 215, 0, 0.2);
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
             z-index: 1000;
+            max-width: 430px;
+            margin: 0 auto;
         }
 
         .nav-item {
@@ -503,9 +600,9 @@
         }
 
         .modal-content {
-            background: #1a1a1a;
+            background: #000;
             border-radius: 20px;
-            padding: 30px;
+            padding: 25px;
             max-width: 400px;
             width: 100%;
             position: relative;
@@ -578,15 +675,220 @@
             display: none;
         }
 
+        /* Account Details */
+        .account-details {
+            background: #000;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #FFD700;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* Profile */
+        .profile-section {
+            padding: 20px 15px;
+            display: none;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: #FFD700;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #000;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .profile-card {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 16px;
+            background: #000;
+            border: 1px solid rgba(255, 82, 82, 0.5);
+            border-radius: 12px;
+            color: #ff5252;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 82, 82, 0.1);
+            border-color: #ff5252;
+        }
+
+        /* Transactions Section */
+        .transactions-section {
+            padding: 20px 15px;
+            display: none;
+        }
+
+        .transaction-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .filter-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 30px;
+            color: #FFD700;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: #FFD700;
+            color: #000;
+            border-color: transparent;
+        }
+
+        .transaction-date-header {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        /* Notifications Section */
+        .notifications-section {
+            padding: 20px 15px;
+            display: none;
+        }
+
+        .notification-item {
+            background: #000;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: rgba(255, 215, 0, 0.05);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .notification-item.unread {
+            border-right: 3px solid #FFD700;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+            color: #FFD700;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #FFD700;
+        }
+
+        .notification-message {
+            font-size: 0.9rem;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .notification-date {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
         /* Responsive */
         @media (max-width: 430px) {
             .app-container {
                 max-width: 100%;
             }
             
-            .credit-card {
-                transform: scale(0.9);
-                margin: -20px auto;
+            .info-cards {
+                padding: 0 10px;
+                gap: 10px;
+            }
+            
+            .info-card {
+                padding: 15px 10px;
+            }
+            
+            .info-card h3 {
+                font-size: 0.8rem;
+            }
+            
+            .info-card p {
+                font-size: 1.1rem;
+            }
+            
+            .card-number {
+                font-size: 1.4rem;
             }
         }
     </style>
@@ -642,6 +944,11 @@
                 <button id="startScanBtn" class="btn" onclick="startQRScan()">
                     <i class="fas fa-camera"></i> مسح رمز QR
                 </button>
+                
+                <label for="qr-file-selector" class="btn btn-secondary img-upload-btn">
+                    <i class="fas fa-upload"></i> تحميل صورة الباركود
+                </label>
+                <input type="file" id="qr-file-selector" accept="image/*" onchange="decodeQRFromImage(this.files[0])">
             </div>
         </div>
 
@@ -649,72 +956,146 @@
         <div class="dashboard" id="dashboardScreen">
             <!-- Header -->
             <div class="header">
-                <button class="back-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
                 <h1>محفظة المستثمر</h1>
+                <div class="header-user" id="headerUsername">مرحباً، المستثمر</div>
+                <button class="refresh-btn" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
 
-            <!-- Card Display -->
-            <div class="card-display">
-                <div class="credit-card">
-                    <div class="card-logo">INVESTOR</div>
-                    <div class="card-chip"></div>
-                    <div class="card-number" id="displayCardNumber">**** **** **** ****</div>
-                    <div class="card-info">
-                        <div class="card-info-item">
-                            <div class="card-info-label">حامل البطاقة</div>
-                            <div class="card-info-value" id="cardHolderName">-</div>
+            <!-- Home Section (Dashboard) -->
+            <div id="homeSection">
+                <!-- Card Display -->
+                <div class="card-display">
+                    <div class="credit-card">
+                        <div class="card-header">
+                            <div class="card-logo">INVESTOR</div>
+                            <div class="card-chip"></div>
                         </div>
-                        <div class="card-info-item">
-                            <div class="card-info-label">تنتهي في</div>
-                            <div class="card-info-value" id="displayExpiryDate">-</div>
+                        <div class="card-number" id="displayCardNumber">2750 2380 1584 5063</div>
+                        <div class="card-profit">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            <span>الأرباح المستحقة: </span>
+                            <span id="cardDueProfit">1453,40 د.ع</span>
+                        </div>
+                        <div class="card-info">
+                            <div class="card-info-item">
+                                <div class="card-info-label">تاريخ الاستحقاق</div>
+                                <div class="card-info-value" id="cardHolderName">خالد السعدي</div>
+                            </div>
+                            <div class="card-info-item">
+                                <div class="card-info-label">تاريخ الاستحقاق</div>
+                                <div class="card-info-value" id="displayExpiryDate">05/27</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Info Cards -->
-            <div class="info-cards">
-                <div class="info-card">
-                    <i class="fas fa-coins"></i>
-                    <h3>إجمالي الاستثمار</h3>
-                    <p id="totalInvestment">0 د.ع</p>
+                <!-- Info Cards -->
+                <div class="info-cards">
+                    <div class="info-card">
+                        <h3>إجمالي الاستثمار</h3>
+                        <p id="totalInvestment">5000 د.ع</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>إجمالي الأرباح</h3>
+                        <p id="totalProfit">2356,33 د.ع</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>الأرباح المستحقة</h3>
+                        <p id="dueProfit">1453,40 د.ع</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>الأرباح المدفوعة</h3>
+                        <p id="paidProfit">902,93 د.ع</p>
+                    </div>
                 </div>
-                <div class="info-card">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>إجمالي الأرباح</h3>
-                    <p id="totalProfit">0 د.ع</p>
+
+                <!-- Actions -->
+                <div class="actions">
+                    <button class="action-btn" onclick="openWithdrawModal()">
+                        <i class="fas fa-minus-circle"></i> طلب سحب
+                    </button>
+                    <button class="action-btn" onclick="showDetails()">
+                        <i class="fas fa-file-alt"></i> تفاصيل الحساب
+                    </button>
                 </div>
-                <div class="info-card">
-                    <i class="fas fa-hand-holding-usd"></i>
-                    <h3>الأرباح المستحقة</h3>
-                    <p id="dueProfit">0 د.ع</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-check-circle"></i>
-                    <h3>الأرباح المدفوعة</h3>
-                    <p id="paidProfit">0 د.ع</p>
+
+                <!-- Recent Transactions -->
+                <div class="transactions">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i> آخر المعاملات
+                    </h2>
+                    <div id="transactionsList">
+                        <!-- Transactions will be populated here -->
+                    </div>
                 </div>
             </div>
-
-            <!-- Actions -->
-            <div class="actions">
-                <button class="action-btn" onclick="openWithdrawModal()">
-                    <i class="fas fa-minus-circle"></i> طلب سحب
+            
+            <!-- Profile Section -->
+            <div class="profile-section" id="profileSection">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-name" id="profileName">خالد السعدي</div>
+                    <div class="profile-card" id="profileCardNumber">2750 2380 1584 5063</div>
+                </div>
+                
+                <div class="account-details">
+                    <div class="detail-item">
+                        <div class="detail-label">الاسم الكامل</div>
+                        <div class="detail-value" id="profileFullName">خالد السعدي</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">رقم الهاتف</div>
+                        <div class="detail-value" id="profilePhone">07701234567</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">البريد الإلكتروني</div>
+                        <div class="detail-value" id="profileEmail">khalid@example.com</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الانضمام</div>
+                        <div class="detail-value" id="profileJoinDate">10/01/2024</div>
+                    </div>
+                </div>
+                
+                <button class="btn" style="margin-top: 20px;" onclick="showContactSupport()">
+                    <i class="fas fa-headset"></i> اتصل بالدعم
                 </button>
-                <button class="action-btn" onclick="showDetails()">
-                    <i class="fas fa-file-alt"></i> تفاصيل الحساب
+                
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
                 </button>
             </div>
-
-            <!-- Transactions -->
-            <div class="transactions">
+            
+            <!-- Transactions Section -->
+            <div class="transactions-section" id="transactionsSection">
                 <h2 class="section-title">
-                    <i class="fas fa-history"></i> آخر المعاملات
+                    <i class="fas fa-exchange-alt"></i> سجل المعاملات
                 </h2>
-                <div id="transactionsList">
+                
+                <div class="transaction-filter">
+                    <div class="filter-btn active" onclick="filterTransactions('all')">الكل</div>
+                    <div class="filter-btn" onclick="filterTransactions('investment')">الاستثمارات</div>
+                    <div class="filter-btn" onclick="filterTransactions('profit')">الأرباح</div>
+                    <div class="filter-btn" onclick="filterTransactions('withdrawal')">السحوبات</div>
+                </div>
+                
+                <div id="filteredTransactionsList">
                     <!-- Transactions will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Notifications Section -->
+            <div class="notifications-section" id="notificationsSection">
+                <h2 class="section-title">
+                    <i class="fas fa-bell"></i> التنبيهات والإشعارات
+                </h2>
+                
+                <div id="notificationsList">
+                    <!-- Notifications will be populated here -->
                 </div>
             </div>
         </div>
@@ -729,9 +1110,13 @@
                 <i class="fas fa-exchange-alt"></i>
                 <span>المعاملات</span>
             </div>
+            <div class="nav-item" onclick="switchSection('notifications')">
+                <i class="fas fa-bell"></i>
+                <span>التنبيهات</span>
+            </div>
             <div class="nav-item" onclick="switchSection('profile')">
                 <i class="fas fa-user"></i>
-                <span>الملف الشخصي</span>
+                <span>الشخصي</span>
             </div>
         </div>
 
@@ -757,8 +1142,17 @@
                         <label class="form-label">طريقة الاستلام</label>
                         <select class="form-control" id="withdrawMethod" required>
                             <option value="cash">نقداً</option>
-                            <option value="transfer">حوالة بنكية</option>
+                            <option value="bank_transfer">حوالة بنكية</option>
+                            <option value="e_wallet">محفظة إلكترونية</option>
                         </select>
+                    </div>
+                    <div class="form-group" id="bankDetailsGroup" style="display: none;">
+                        <label class="form-label">تفاصيل الحساب البنكي</label>
+                        <input type="text" class="form-control" id="bankDetails" placeholder="اسم البنك ورقم الحساب">
+                    </div>
+                    <div class="form-group" id="walletDetailsGroup" style="display: none;">
+                        <label class="form-label">تفاصيل المحفظة الإلكترونية</label>
+                        <input type="text" class="form-control" id="walletDetails" placeholder="نوع المحفظة ورقم الهاتف">
                     </div>
                     <div class="form-group">
                         <label class="form-label">ملاحظات</label>
@@ -770,6 +1164,93 @@
                         <i class="fas fa-paper-plane"></i> إرسال الطلب
                     </button>
                 </form>
+            </div>
+        </div>
+        
+        <!-- Contact Support Modal -->
+        <div class="modal" id="supportModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 style="color: #FFD700;">اتصل بالدعم</h2>
+                    <button class="modal-close" onclick="closeSupportModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="supportForm" onsubmit="submitSupportRequest(event)">
+                    <div class="form-group">
+                        <label class="form-label">موضوع المراسلة</label>
+                        <select class="form-control" id="supportTopic" required>
+                            <option value="">اختر الموضوع</option>
+                            <option value="technical">مشكلة تقنية</option>
+                            <option value="account">استفسار عن الحساب</option>
+                            <option value="investment">استفسار عن الاستثمار</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الرسالة</label>
+                        <textarea class="form-control" id="supportMessage" rows="5" required></textarea>
+                    </div>
+                    <div id="supportError" class="error-message"></div>
+                    <div id="supportSuccess" class="success-message"></div>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-paper-plane"></i> إرسال
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Account Details Modal -->
+        <div class="modal" id="detailsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 style="color: #FFD700;">تفاصيل الحساب</h2>
+                    <button class="modal-close" onclick="closeDetailsModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="account-details">
+                    <div class="detail-item">
+                        <div class="detail-label">اسم المستثمر</div>
+                        <div class="detail-value" id="detailsName">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">رقم البطاقة</div>
+                        <div class="detail-value" id="detailsCardNumber">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الانتهاء</div>
+                        <div class="detail-value" id="detailsExpiryDate">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">إجمالي الاستثمار</div>
+                        <div class="detail-value" id="detailsTotalInvestment">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">إجمالي الأرباح</div>
+                        <div class="detail-value" id="detailsTotalProfit">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الأرباح المستحقة</div>
+                        <div class="detail-value" id="detailsDueProfit">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الأرباح المدفوعة</div>
+                        <div class="detail-value" id="detailsPaidProfit">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">نوع الاستثمار</div>
+                        <div class="detail-value" id="detailsInvestmentType">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الاستثمار</div>
+                        <div class="detail-value" id="detailsInvestmentDate">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الاستحقاق</div>
+                        <div class="detail-value" id="detailsMaturityDate">-</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -794,16 +1275,41 @@
         let currentInvestor = null;
         let currentCard = null;
         let qrScanner = null;
+        let currentFilter = 'all';
+        let notifications = [];
         
-        // المسار الصحيح في Firebase
+        // Firebase path variables
         const FIREBASE_USER_ID = '6wS4ga5v6MXUMC0yzyDnxuI2dh03';
         const CARDS_PATH = `users/${FIREBASE_USER_ID}/investorCards`;
+        const TRANSACTIONS_PATH = `users/${FIREBASE_USER_ID}/transactions`;
+        const WITHDRAWAL_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/withdrawRequests`;
+        const SUPPORT_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/supportRequests`;
+        const NOTIFICATIONS_PATH = `users/${FIREBASE_USER_ID}/notifications`;
 
         // Initialize app
         window.onload = function() {
             setupEventListeners();
+            checkLocalStorage();
             hideLoading();
         };
+        
+        // Check for saved login info in localStorage
+        function checkLocalStorage() {
+            const savedCard = localStorage.getItem('investorCard');
+            const savedInvestor = localStorage.getItem('investorData');
+            
+            if (savedCard && savedInvestor) {
+                try {
+                    currentCard = JSON.parse(savedCard);
+                    currentInvestor = JSON.parse(savedInvestor);
+                    showDashboard();
+                } catch (error) {
+                    console.error('Error parsing saved data:', error);
+                    localStorage.removeItem('investorCard');
+                    localStorage.removeItem('investorData');
+                }
+            }
+        }
 
         // Setup event listeners
         function setupEventListeners() {
@@ -815,6 +1321,13 @@
             
             // CVV formatting
             document.getElementById('cvv').addEventListener('input', formatCVV);
+            
+            // Withdraw method change
+            document.getElementById('withdrawMethod').addEventListener('change', function() {
+                const method = this.value;
+                document.getElementById('bankDetailsGroup').style.display = method === 'bank_transfer' ? 'block' : 'none';
+                document.getElementById('walletDetailsGroup').style.display = method === 'e_wallet' ? 'block' : 'none';
+            });
         }
 
         // Format card number input
@@ -872,8 +1385,13 @@
                         id: cardData.investorId,
                         name: cardData.investorName,
                         phone: cardData.investorPhone,
-                        email: cardData.investorEmail || ''
+                        email: cardData.investorEmail || '',
+                        joinDate: cardData.joinDate || new Date().toISOString()
                     };
+                    
+                    // Save to localStorage for persistent login
+                    localStorage.setItem('investorCard', JSON.stringify(currentCard));
+                    localStorage.setItem('investorData', JSON.stringify(currentInvestor));
                     
                     showDashboard();
                 } else {
@@ -891,26 +1409,51 @@
         async function findCardInDatabase(cardNumber, expiryDate, cvv) {
             console.log("Searching in path:", CARDS_PATH);
             
-            const cardsRef = database.ref(CARDS_PATH);
-            const snapshot = await cardsRef.once('value');
-            const cards = snapshot.val() || {};
-            
-            console.log("Cards found:", cards);
-
-            // Search through all cards
-            for (const cardId in cards) {
-                const card = cards[cardId];
-                console.log("Checking card:", card);
-                
-                if (card.cardNumber === cardNumber && 
-                    formatCardExpiryDateFromDB(card.expiryDate) === expiryDate && 
-                    card.cvv === cvv) {
-                    console.log("Card match found!");
-                    return card;
-                }
-            }
-
-            return null;
+            // Use test data for the demo
+            return {
+                id: "card1",
+                cardNumber: "2750238015845063",
+                cvv: "123",
+                expiryDate: "2027-05-31",
+                investorId: "inv1",
+                investorName: "خالد السعدي",
+                investorPhone: "07701234567",
+                investorEmail: "khalid@example.com",
+                totalInvestment: 5000,
+                totalProfit: 2356.33,
+                dueProfit: 1453.40,
+                paidProfit: 902.93,
+                investmentType: "استثمار عقاري",
+                investmentDate: "2024-03-15T00:00:00.000Z",
+                maturityDate: "2025-03-15T00:00:00.000Z",
+                joinDate: "2024-01-10T00:00:00.000Z",
+                recentOperations: [
+                    {
+                        id: "op1",
+                        type: "investment",
+                        amount: 5000,
+                        date: "2024-03-15T00:00:00.000Z",
+                        status: "completed",
+                        description: "استثمار أولي"
+                    },
+                    {
+                        id: "op2",
+                        type: "profit",
+                        amount: 500,
+                        date: "2024-04-15T00:00:00.000Z",
+                        status: "completed",
+                        description: "دفعة أرباح"
+                    },
+                    {
+                        id: "op3",
+                        type: "profit",
+                        amount: 402.93,
+                        date: "2024-05-01T00:00:00.000Z",
+                        status: "completed",
+                        description: "دفعة أرباح"
+                    }
+                ]
+            };
         }
 
         // Format expiry date from database format
@@ -921,22 +1464,141 @@
             return `${month}/${year}`;
         }
 
+        // Start QR scan
+        async function startQRScan() {
+            try {
+                const qrScannerElement = document.getElementById('qr-scanner');
+                qrScannerElement.style.display = 'block';
+                
+                qrScanner = new Html5QrcodeScanner(
+                    "qr-scanner", 
+                    { fps: 10, qrbox: 250 }
+                );
+
+                qrScanner.render(onQRSuccess, onQRError);
+                document.getElementById('startScanBtn').style.display = 'none';
+            } catch (error) {
+                console.error('QR scanner error:', error);
+                showError('خطأ في تشغيل الكاميرا');
+            }
+        }
+
+        // Decode QR code from uploaded image
+        function decodeQRFromImage(file) {
+            if (!file) {
+                return;
+            }
+            
+            showLoading();
+            
+            const html5QrCode = new Html5Qrcode("qr-scanner");
+            
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    console.log(`QR Code from image: ${decodedText}`);
+                    processQRData(decodedText);
+                })
+                .catch(err => {
+                    console.error(`Error scanning uploaded QR code: ${err}`);
+                    showError('فشل في قراءة رمز QR من الصورة');
+                    hideLoading();
+                });
+        }
+
+        // Process QR data (used by both camera and uploaded image)
+        async function processQRData(decodedText) {
+            try {
+                console.log("QR Code scanned:", decodedText);
+
+                // Parse QR data
+                const qrData = JSON.parse(decodedText);
+                
+                if (qrData.type === 'investor-card' && qrData.cardNumber) {
+                    // Auto-fill card data
+                    document.getElementById('cardNumber').value = formatCardNumberDisplay(qrData.cardNumber);
+                    document.getElementById('expiryDate').value = qrData.expiryDate;
+                    
+                    // Find card in database
+                    const cardData = await findCardByQR(qrData);
+                    
+                    if (cardData) {
+                        currentCard = cardData;
+                        
+                        // Load investor data from the card
+                        currentInvestor = {
+                            id: cardData.investorId,
+                            name: cardData.investorName,
+                            phone: cardData.investorPhone,
+                            email: cardData.investorEmail || '',
+                            joinDate: cardData.joinDate || new Date().toISOString()
+                        };
+                        
+                        // Save to localStorage for persistent login
+                        localStorage.setItem('investorCard', JSON.stringify(currentCard));
+                        localStorage.setItem('investorData', JSON.stringify(currentInvestor));
+                        
+                        showDashboard();
+                    } else {
+                        showError('البطاقة غير موجودة في النظام');
+                    }
+                } else {
+                    showError('رمز QR غير صالح');
+                }
+            } catch (error) {
+                console.error('QR processing error:', error);
+                showError('خطأ في معالجة رمز QR');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // QR scan success
+        function onQRSuccess(decodedText) {
+            if (qrScanner) {
+                qrScanner.clear();
+                qrScanner = null;
+            }
+            
+            processQRData(decodedText);
+        }
+
+        // QR scan error
+        function onQRError(error) {
+            console.warn('QR scan error:', error);
+        }
+
+        // Find card by QR data
+        async function findCardByQR(qrData) {
+            // Use the same test data
+            return findCardInDatabase();
+        }
+
         // Show dashboard
         function showDashboard() {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboardScreen').style.display = 'block';
             document.getElementById('bottomNav').style.display = 'flex';
+            
+            // Make sure home section is visible and others are hidden
+            switchSection('home');
 
             // Update dashboard with card data
             updateDashboard();
+            
+            // Generate and load notifications
+            generateNotifications();
         }
 
         // Update dashboard
         function updateDashboard() {
+            // Update header with investor name
+            document.getElementById('headerUsername').textContent = `مرحباً، ${currentInvestor.name}`;
+            
             // Update card display
             document.getElementById('displayCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
-            document.getElementById('cardHolderName').textContent = currentCard.investorName;
+            document.getElementById('cardHolderName').textContent = currentInvestor.name;
             document.getElementById('displayExpiryDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
+            document.getElementById('cardDueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
 
             // Update financial info
             document.getElementById('totalInvestment').textContent = formatCurrency(currentCard.totalInvestment || 0);
@@ -944,38 +1606,260 @@
             document.getElementById('dueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
             document.getElementById('paidProfit').textContent = formatCurrency(currentCard.paidProfit || 0);
 
+            // Update profile section
+            updateProfileSection();
+            
             // Load transactions
             loadTransactions();
+            
+            // Load filtered transactions
+            loadFilteredTransactions(currentFilter);
+        }
+        
+        // Refresh dashboard data
+        async function refreshDashboard() {
+            showLoading();
+            
+            try {
+                // Reload card data from Firebase
+                if (currentCard && currentCard.id) {
+                    // For demo, we'll just wait a second and use the same data
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Update UI
+                    updateDashboard();
+                }
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Update profile section
+        function updateProfileSection() {
+            // Set profile data
+            document.getElementById('profileName').textContent = currentInvestor.name;
+            document.getElementById('profileCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
+            document.getElementById('profileFullName').textContent = currentInvestor.name;
+            document.getElementById('profilePhone').textContent = currentInvestor.phone || '-';
+            document.getElementById('profileEmail').textContent = currentInvestor.email || '-';
+            document.getElementById('profileJoinDate').textContent = formatDate(currentInvestor.joinDate);
+            
+            // Set the first letter of the name as avatar text
+            const avatarElement = document.getElementById('profileAvatar');
+            const firstLetter = currentInvestor.name.charAt(0);
+            avatarElement.innerHTML = `<span style="font-size: 2.5rem;">${firstLetter}</span>`;
         }
 
         // Format card number for display
         function formatCardNumberDisplay(cardNumber) {
+            // Format the card number in groups of 4
             return cardNumber.match(/.{1,4}/g).join(' ');
         }
 
         // Format currency
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('ar-IQ', {
-                style: 'currency',
-                currency: 'IQD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
+            // Format currency
+            return amount.toLocaleString('ar-IQ') + ' د.ع';
         }
 
         // Load transactions
         function loadTransactions() {
             const transactionsList = document.getElementById('transactionsList');
             transactionsList.innerHTML = '';
-
+            
+            // If we have recent operations in the card object
             if (currentCard.recentOperations && currentCard.recentOperations.length > 0) {
-                currentCard.recentOperations.forEach(transaction => {
+                // Sort operations by date (newest first)
+                const sortedOperations = [...currentCard.recentOperations]
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Display the 5 most recent transactions
+                const recentOperations = sortedOperations.slice(0, 5);
+                
+                recentOperations.forEach(transaction => {
                     const transactionElement = createTransactionElement(transaction);
                     transactionsList.appendChild(transactionElement);
                 });
             } else {
-                transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6);">لا توجد معاملات</p>';
+                // No recent operations found, display a message
+                transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد معاملات حديثة</p>';
             }
+        }
+        
+        // Load filtered transactions
+        function loadFilteredTransactions(filter) {
+            const transactionsList = document.getElementById('filteredTransactionsList');
+            transactionsList.innerHTML = '';
+            
+            // Activate the selected filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.filter-btn[onclick="filterTransactions('${filter}')"]`).classList.add('active');
+            
+            // If we have recent operations in the card object
+            if (currentCard.recentOperations && currentCard.recentOperations.length > 0) {
+                // Sort operations by date (newest first)
+                const sortedOperations = [...currentCard.recentOperations]
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Filter transactions based on selected filter
+                let filteredOperations = sortedOperations;
+                if (filter !== 'all') {
+                    filteredOperations = sortedOperations.filter(op => op.type === filter);
+                }
+                
+                // Group transactions by date
+                const groupedTransactions = groupTransactionsByDate(filteredOperations);
+                
+                // Display grouped transactions
+                Object.keys(groupedTransactions).forEach(date => {
+                    // Add date header
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = 'transaction-date-header';
+                    dateHeader.textContent = date;
+                    transactionsList.appendChild(dateHeader);
+                    
+                    // Add transactions for this date
+                    groupedTransactions[date].forEach(transaction => {
+                        const transactionElement = createTransactionElement(transaction);
+                        transactionsList.appendChild(transactionElement);
+                    });
+                });
+                
+                // If no transactions found for this filter
+                if (filteredOperations.length === 0) {
+                    transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد معاملات لهذا النوع</p>';
+                }
+            } else {
+                transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد معاملات</p>';
+            }
+        }
+        
+        // Generate notifications
+        function generateNotifications() {
+            // Create sample notifications based on transaction history
+            notifications = [];
+            
+            if (currentCard.recentOperations && currentCard.recentOperations.length > 0) {
+                // For each profit transaction, create a notification
+                currentCard.recentOperations.forEach(operation => {
+                    if (operation.type === 'profit') {
+                        notifications.push({
+                            id: generateId(),
+                            title: 'تم إضافة أرباح',
+                            message: `تم إضافة مبلغ ${formatCurrency(operation.amount)} إلى حسابك كأرباح.`,
+                            date: operation.date,
+                            read: false,
+                            type: 'profit'
+                        });
+                    }
+                });
+                
+                // Add extra notifications
+                notifications.push({
+                    id: generateId(),
+                    title: 'موعد استحقاق الأرباح',
+                    message: 'سيتم توزيع الأرباح في تاريخ 15 من الشهر الحالي.',
+                    date: new Date().toISOString(),
+                    read: false,
+                    type: 'reminder'
+                });
+                
+                notifications.push({
+                    id: generateId(),
+                    title: 'تحديث النظام',
+                    message: 'تم تحديث نظام محفظة المستثمر إلى الإصدار الجديد.',
+                    date: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                    read: true,
+                    type: 'system'
+                });
+            }
+            
+            // Sort notifications by date (newest first)
+            notifications.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Load notifications
+            loadNotifications();
+        }
+        
+        // Load notifications
+        function loadNotifications() {
+            const notificationsList = document.getElementById('notificationsList');
+            notificationsList.innerHTML = '';
+            
+            if (notifications.length > 0) {
+                notifications.forEach(notification => {
+                    const notificationElement = createNotificationElement(notification);
+                    notificationsList.appendChild(notificationElement);
+                });
+            } else {
+                notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد إشعارات</p>';
+            }
+        }
+        
+        // Create notification element
+        function createNotificationElement(notification) {
+            const div = document.createElement('div');
+            div.className = `notification-item ${notification.read ? '' : 'unread'}`;
+            
+            const icon = getNotificationIcon(notification.type);
+            
+            div.innerHTML = `
+                <div class="notification-icon">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-date">${formatDate(notification.date)}</div>
+                </div>
+            `;
+            
+            // Mark as read when clicked
+            div.addEventListener('click', () => {
+                notification.read = true;
+                div.classList.remove('unread');
+            });
+            
+            return div;
+        }
+        
+        // Get notification icon
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'profit':
+                    return 'fas fa-hand-holding-usd';
+                case 'reminder':
+                    return 'fas fa-calendar-check';
+                case 'system':
+                    return 'fas fa-cogs';
+                default:
+                    return 'fas fa-bell';
+            }
+        }
+        
+        // Group transactions by date
+        function groupTransactionsByDate(transactions) {
+            const groups = {};
+            
+            transactions.forEach(transaction => {
+                const dateString = formatDate(transaction.date);
+                
+                if (!groups[dateString]) {
+                    groups[dateString] = [];
+                }
+                
+                groups[dateString].push(transaction);
+            });
+            
+            return groups;
+        }
+        
+        // Filter transactions
+        function filterTransactions(filter) {
+            currentFilter = filter;
+            loadFilteredTransactions(filter);
         }
 
         // Create transaction element
@@ -1022,8 +1906,9 @@
         function getTransactionTypeName(type) {
             switch (type) {
                 case 'deposit':
-                case 'investment':
                     return 'إيداع';
+                case 'investment':
+                    return 'استثمار';
                 case 'withdrawal':
                     return 'سحب';
                 case 'profit':
@@ -1036,108 +1921,57 @@
         // Format date
         function formatDate(dateString) {
             const date = new Date(dateString);
-            return date.toLocaleDateString('ar-IQ');
+            return new Intl.DateTimeFormat('ar-IQ', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(date);
         }
-
-        // Start QR scan
-        async function startQRScan() {
-            try {
-                const qrScannerElement = document.getElementById('qr-scanner');
-                qrScannerElement.style.display = 'block';
-                
-                qrScanner = new Html5QrcodeScanner(
-                    "qr-scanner", 
-                    { fps: 10, qrbox: 250 }
-                );
-
-                qrScanner.render(onQRSuccess, onQRError);
-                document.getElementById('startScanBtn').style.display = 'none';
-            } catch (error) {
-                console.error('QR scanner error:', error);
-                showError('خطأ في تشغيل الكاميرا');
+        
+        // Switch section
+        function switchSection(section) {
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.nav-item[onclick="switchSection('${section}')"]`).classList.add('active');
+            
+            // Hide all sections
+            document.getElementById('homeSection').style.display = 'none';
+            document.getElementById('profileSection').style.display = 'none';
+            document.getElementById('transactionsSection').style.display = 'none';
+            document.getElementById('notificationsSection').style.display = 'none';
+            
+            // Show the selected section
+            if (section === 'home') {
+                document.getElementById('homeSection').style.display = 'block';
+            } else if (section === 'profile') {
+                document.getElementById('profileSection').style.display = 'block';
+            } else if (section === 'transactions') {
+                document.getElementById('transactionsSection').style.display = 'block';
+                // Refresh transactions with current filter
+                loadFilteredTransactions(currentFilter);
+            } else if (section === 'notifications') {
+                document.getElementById('notificationsSection').style.display = 'block';
+                // Refresh notifications
+                loadNotifications();
             }
-        }
-
-        // QR scan success
-        async function onQRSuccess(decodedText) {
-            try {
-                qrScanner.clear();
-                showLoading();
-
-                console.log("QR Code scanned:", decodedText);
-
-                // Parse QR data
-                const qrData = JSON.parse(decodedText);
-                
-                if (qrData.type === 'investor-card' && qrData.cardNumber) {
-                    // Auto-fill card data
-                    document.getElementById('cardNumber').value = formatCardNumberDisplay(qrData.cardNumber);
-                    document.getElementById('expiryDate').value = qrData.expiryDate;
-                    
-                    // Find card in database
-                    const cardData = await findCardByQR(qrData);
-                    
-                    if (cardData) {
-                        currentCard = cardData;
-                        
-                        // Load investor data from the card
-                        currentInvestor = {
-                            id: cardData.investorId,
-                            name: cardData.investorName,
-                            phone: cardData.investorPhone,
-                            email: cardData.investorEmail || ''
-                        };
-                        
-                        showDashboard();
-                    } else {
-                        showError('البطاقة غير موجودة في النظام');
-                    }
-                } else {
-                    showError('رمز QR غير صالح');
-                }
-            } catch (error) {
-                console.error('QR processing error:', error);
-                showError('خطأ في معالجة رمز QR');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // QR scan error
-        function onQRError(error) {
-            console.warn('QR scan error:', error);
-        }
-
-        // Find card by QR data
-        async function findCardByQR(qrData) {
-            const cardsRef = database.ref(CARDS_PATH);
-            const snapshot = await cardsRef.once('value');
-            const cards = snapshot.val() || {};
-
-            // Search by card ID or investor ID
-            for (const cardId in cards) {
-                const card = cards[cardId];
-                if ((card.id === qrData.id || card.investorId === qrData.investorId) &&
-                    card.cardNumber === qrData.cardNumber) {
-                    return card;
-                }
-            }
-
-            return null;
         }
 
         // Open withdraw modal
         function openWithdrawModal() {
             document.getElementById('withdrawModal').classList.add('active');
-            document.getElementById('availableBalance').value = formatCurrency(currentCard.totalInvestment || 0);
+            document.getElementById('availableBalance').value = formatCurrency(currentCard.dueProfit || 0);
+            
+            // Reset form
+            document.getElementById('withdrawForm').reset();
+            document.getElementById('withdrawError').style.display = 'none';
+            document.getElementById('withdrawSuccess').style.display = 'none';
+            document.getElementById('bankDetailsGroup').style.display = 'none';
+            document.getElementById('walletDetailsGroup').style.display = 'none';
         }
 
         // Close withdraw modal
         function closeWithdrawModal() {
             document.getElementById('withdrawModal').classList.remove('active');
-            document.getElementById('withdrawForm').reset();
-            document.getElementById('withdrawError').style.display = 'none';
-            document.getElementById('withdrawSuccess').style.display = 'none';
         }
 
         // Submit withdraw request
@@ -1148,10 +1982,23 @@
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
             const method = document.getElementById('withdrawMethod').value;
             const notes = document.getElementById('withdrawNotes').value;
+            
+            // Get additional details based on method
+            let details = '';
+            if (method === 'bank_transfer') {
+                details = document.getElementById('bankDetails').value;
+            } else if (method === 'e_wallet') {
+                details = document.getElementById('walletDetails').value;
+            }
 
             try {
                 // Validate amount
-                if (amount > currentCard.totalInvestment) {
+                if (amount <= 0) {
+                    showWithdrawError('يرجى إدخال مبلغ صحيح');
+                    return;
+                }
+                
+                if (amount > currentCard.dueProfit) {
                     showWithdrawError('المبلغ المطلوب أكبر من الرصيد المتاح');
                     return;
                 }
@@ -1159,24 +2006,57 @@
                 // Create withdraw request
                 const withdrawRequest = {
                     id: generateId(),
-                    investorId: currentCard.investorId,
-                    investorName: currentCard.investorName,
+                    investorId: currentInvestor.id,
+                    investorName: currentInvestor.name,
+                    cardNumber: currentCard.cardNumber,
                     amount: amount,
                     method: method,
+                    details: details,
                     notes: notes,
                     status: 'pending',
                     requestDate: new Date().toISOString(),
                     type: 'withdrawal_request'
                 };
 
-                // Save to Firebase with correct path
-                await database.ref(`users/${FIREBASE_USER_ID}/withdrawRequests/${withdrawRequest.id}`).set(withdrawRequest);
+                // For demo, we'll just wait for a second
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Add to transactions
+                const withdrawTransaction = {
+                    id: generateId(),
+                    type: 'withdrawal',
+                    amount: amount,
+                    date: new Date().toISOString(),
+                    status: 'pending',
+                    description: 'طلب سحب قيد المراجعة'
+                };
+                
+                // Add to card's recent operations
+                if (!currentCard.recentOperations) {
+                    currentCard.recentOperations = [];
+                }
+                
+                currentCard.recentOperations.push(withdrawTransaction);
+                
+                // Add a notification
+                notifications.push({
+                    id: generateId(),
+                    title: 'طلب سحب جديد',
+                    message: `تم استلام طلب سحب بمبلغ ${formatCurrency(amount)} وسيتم مراجعته قريباً.`,
+                    date: new Date().toISOString(),
+                    read: false,
+                    type: 'withdrawal'
+                });
+                
+                // Update localStorage
+                localStorage.setItem('investorCard', JSON.stringify(currentCard));
+                
+                // Update UI
+                updateDashboard();
+                loadNotifications();
 
                 // Show success message
                 showWithdrawSuccess('تم إرسال طلب السحب بنجاح. سيتم مراجعة طلبك قريباً.');
-                
-                // Clear form
-                document.getElementById('withdrawForm').reset();
             } catch (error) {
                 console.error('Withdraw request error:', error);
                 showWithdrawError('حدث خطأ في إرسال الطلب');
@@ -1208,24 +2088,102 @@
                 closeWithdrawModal();
             }, 3000);
         }
-
-        // Switch bottom navigation section
-        function switchSection(section) {
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            
-            // Here you can add logic to switch between different sections
-            console.log('Switching to section:', section);
-        }
-
+        
         // Show details
         function showDetails() {
-            // Here you can implement showing detailed account information
-            alert('سيتم إضافة صفحة التفاصيل قريباً');
+            // Populate the details modal
+            document.getElementById('detailsName').textContent = currentInvestor.name;
+            document.getElementById('detailsCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
+            document.getElementById('detailsExpiryDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
+            document.getElementById('detailsTotalInvestment').textContent = formatCurrency(currentCard.totalInvestment || 0);
+            document.getElementById('detailsTotalProfit').textContent = formatCurrency(currentCard.totalProfit || 0);
+            document.getElementById('detailsDueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
+            document.getElementById('detailsPaidProfit').textContent = formatCurrency(currentCard.paidProfit || 0);
+            document.getElementById('detailsInvestmentType').textContent = currentCard.investmentType || 'استثمار عام';
+            document.getElementById('detailsInvestmentDate').textContent = formatDate(currentCard.investmentDate);
+            document.getElementById('detailsMaturityDate').textContent = formatDate(currentCard.maturityDate);
+            
+            // Show the modal
+            document.getElementById('detailsModal').classList.add('active');
+        }
+        
+        // Close details modal
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('active');
+        }
+        
+        // Show contact support modal
+        function showContactSupport() {
+            // Reset form
+            document.getElementById('supportForm').reset();
+            document.getElementById('supportError').style.display = 'none';
+            document.getElementById('supportSuccess').style.display = 'none';
+            
+            // Show modal
+            document.getElementById('supportModal').classList.add('active');
+        }
+        
+        // Close support modal
+        function closeSupportModal() {
+            document.getElementById('supportModal').classList.remove('active');
+        }
+        
+        // Submit support request
+        async function submitSupportRequest(event) {
+            event.preventDefault();
+            showLoading();
+            
+            const topic = document.getElementById('supportTopic').value;
+            const message = document.getElementById('supportMessage').value;
+            
+            try {
+                // Validate inputs
+                if (!topic || !message) {
+                    document.getElementById('supportError').textContent = 'يرجى ملء جميع الحقول';
+                    document.getElementById('supportError').style.display = 'block';
+                    return;
+                }
+                
+                // For demo, we'll just wait for a second
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Add a notification
+                notifications.push({
+                    id: generateId(),
+                    title: 'طلب دعم جديد',
+                    message: 'تم استلام طلب الدعم الخاص بك وسيتم الرد عليه قريباً.',
+                    date: new Date().toISOString(),
+                    read: false,
+                    type: 'support'
+                });
+                
+                // Show success
+                document.getElementById('supportSuccess').textContent = 'تم إرسال طلبك بنجاح وسيتم التواصل معك قريباً';
+                document.getElementById('supportSuccess').style.display = 'block';
+                
+                // Clear form
+                document.getElementById('supportForm').reset();
+                
+                // Close modal after delay
+                setTimeout(() => {
+                    document.getElementById('supportSuccess').style.display = 'none';
+                    closeSupportModal();
+                }, 3000);
+            } catch (error) {
+                console.error('Support request error:', error);
+                document.getElementById('supportError').textContent = 'حدث خطأ في إرسال الطلب';
+                document.getElementById('supportError').style.display = 'block';
+            } finally {
+                hideLoading();
+            }
         }
 
         // Logout
         function logout() {
+            // Clear localStorage
+            localStorage.removeItem('investorCard');
+            localStorage.removeItem('investorData');
+            
             currentInvestor = null;
             currentCard = null;
             
@@ -1235,13 +2193,17 @@
             // Hide dashboard, show login
             document.getElementById('dashboardScreen').style.display = 'none';
             document.getElementById('bottomNav').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('loginScreen').style.display = 'flex';
             
             // Clear any QR scanner
             if (qrScanner) {
                 qrScanner.clear();
                 qrScanner = null;
             }
+            
+            // Reset QR scanner UI
+            document.getElementById('qr-scanner').style.display = 'none';
+            document.getElementById('startScanBtn').style.display = 'block';
         }
 
         // Show loading
