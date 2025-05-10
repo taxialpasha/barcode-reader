@@ -18,16 +18,6 @@
     
     <!-- QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
- 
-    <!-- Manifest link - corregido para GitHub Pages -->
-    <link rel="manifest" href="/barcode-reader/manifest.json">
-    
-    <!-- Favicon y iconos Apple -->
-    <link rel="icon" href="https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fbadge-icon.png?alt=media&token=0e94bd66-c3bb-4ac5-be2c-f406861800e4" type="image/x-icon">
-    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fbadge-icon.png?alt=media&token=0e94bd66-c3bb-4ac5-be2c-f406861800e4">
-    
-
     
     <style>
         /* ===== RESET & BASE STYLES ===== */
@@ -74,12 +64,14 @@ body {
     width: 100%;
     max-width: 430px;
     margin: 0 auto;
-    min-height: 100vh;
     position: relative;
     overflow-x: hidden;
     background-color: rgba(13, 17, 23, 0.85); /* خلفية شبه شفافة */
     backdrop-filter: blur(5px); /* تأثير ضبابي للخلفية */
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* ظل للحاوية */
+    height: 100vh; /* Full screen height */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
 }
 
 
@@ -417,18 +409,34 @@ body {
 
        /* تعديل رأس التطبيق */
 .header {
-    border-bottom: 1px solid rgba(255, 196, 54, 0.2);
-    background-color: rgba(13, 17, 23, 0.9);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: rgba(13, 17, 23, 0.95);
     backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 196, 54, 0.2);
+    padding: 15px 0;
+    max-width: 430px;
+    margin: 0 auto;
 }
 
 
 
 /* تعديل قائمة التنقل السفلية */
 .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
     background: rgba(17, 24, 39, 0.95);
     backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 196, 54, 0.2);
+    padding: 12px 0 8px;
+    max-width: 430px;
+    margin: 0 auto;
 }
 
 /* تحسين التباين لتحسين مقروئية النصوص */
@@ -491,13 +499,13 @@ h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
             bottom: 0;
             left: 0;
             right: 0;
+            z-index: 100;
             background: rgba(17, 24, 39, 0.95);
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 196, 54, 0.2);
             display: flex;
             justify-content: space-around;
             padding: 12px 0 8px;
-            z-index: 1000;
             max-width: 430px;
             margin: 0 auto;
         }
@@ -1015,6 +1023,123 @@ h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
                 font-size: 0.95rem;
             }
         }
+
+        /* Adjust app container for fixed header and footer */
+.app-container {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+    background-color: rgba(13, 17, 23, 0.85); /* خلفية شبه شفافة */
+    backdrop-filter: blur(5px); /* تأثير ضبابي للخلفية */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* ظل للحاوية */
+    height: 100vh; /* Full screen height */
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+}
+
+/* Fix the header at the top */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 196, 54, 0.2);
+    padding: 15px 0;
+    max-width: 430px;
+    margin: 0 auto;
+}
+
+/* Fix the bottom navigation at the bottom */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 196, 54, 0.2);
+    padding: 12px 0 8px;
+    max-width: 430px;
+    margin: 0 auto;
+}
+
+/* Allow scrolling for the main content */
+#homeSection,
+#profileSection,
+#transactionsSection,
+#notificationsSection {
+    padding-top: 65px; /* Space for the fixed header */
+    padding-bottom: 70px; /* Space for the fixed footer */
+    overflow-y: auto; /* Enable vertical scrolling */
+    height: 100vh; /* Full screen height */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling for touch devices */
+}
+
+/* Prevent body scrolling */
+body {
+    overflow: hidden;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Smooth transitions for header and footer */
+.header, .bottom-nav {
+    transition: transform 0.3s ease;
+}
+
+/* Optional: Hide header when scrolling down */
+.header.hidden {
+    transform: translateY(-100%);
+}
+
+/* Optional: Hide footer when scrolling up */
+.bottom-nav.hidden {
+    transform: translateY(100%);
+}
+
+/* Adjust refresh button position */
+.refresh-btn {
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 101;
+}
+
+/* Adjust modal z-index */
+.modal {
+    z-index: 2000;
+}
+
+/* Adjust loading screen z-index */
+.loading {
+    z-index: 3000;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-height: 600px) {
+    .header {
+        padding: 10px 0;
+    }
+    .bottom-nav {
+        padding: 8px 0 5px;
+    }
+    #homeSection,
+    #profileSection,
+    #transactionsSection,
+    #notificationsSection {
+        padding-top: 55px;
+        padding-bottom: 60px;
+    }
+}
+
+/* ...existing code... */
     </style>
 </head>
 <body>
@@ -2337,6 +2462,16 @@ document.head.appendChild(notificationStyle);
                 date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
             });
             
+            // New investment opportunity
+            const opportunityId = Date.now().toString(36) + '5';
+            notificationsObj[opportunityId] = {
+                title: 'فرصة استثمارية جديدة',
+                message: 'لديك فرصة استثمارية جديدة متاحة. تفضل بزيارة مكتبنا للمزيد من التفاصيل.',
+                type: 'investment',
+                read: false,
+                date: new Date().toISOString() // today
+            };
+            
             return mockNotifications;
         }
         
@@ -2863,16 +2998,6 @@ function generateMockNotificationsDatabase() {
         date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
     };
     
-    // New investment opportunity
-    const opportunityId = Date.now().toString(36) + '5';
-    notificationsObj[opportunityId] = {
-        title: 'فرصة استثمارية جديدة',
-        message: 'لديك فرصة استثمارية جديدة متاحة. تفضل بزيارة مكتبنا للمزيد من التفاصيل.',
-        type: 'investment',
-        read: false,
-        date: new Date().toISOString() // today
-    };
-    
     return notificationsObj;
 }
 
@@ -3174,6 +3299,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+
+
+
 
 </script>
 </body>
