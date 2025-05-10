@@ -74,7 +74,180 @@ body {
     flex-direction: column; /* Stack elements vertically */
 }
 
+/* تحديث شامل لتثبيت شريط الأدوات والعناوين */
 
+/* إعادة ضبط حاوية التطبيق للتعامل مع التمرير بشكل أفضل */
+.app-container {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    position: fixed; /* تثبيت الحاوية الرئيسية */
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden; /* منع التمرير على مستوى الحاوية */
+    background-color: rgba(13, 17, 23, 0.85);
+    backdrop-filter: blur(5px);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+/* إعادة تصميم الشريط العلوي للتثبيت الكامل */
+.header {
+    position: absolute; /* تغيير من fixed إلى absolute لمنع مشاكل التموضع */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 196, 54, 0.2);
+    padding: 15px 0;
+    height: 60px; /* تحديد ارتفاع ثابت */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* إعادة تصميم شريط الأدوات السفلي للتثبيت الكامل */
+.bottom-nav {
+    position: absolute; /* تغيير من fixed إلى absolute لمنع مشاكل التموضع */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 196, 54, 0.2);
+    padding: 12px 0 8px;
+    height: 60px; /* تحديد ارتفاع ثابت */
+}
+
+/* إعادة تصميم منطقة المحتوى الرئيسية للتمرير بشكل صحيح */
+.dashboard {
+    flex: 1; /* يأخذ المساحة المتبقية */
+    position: relative;
+    overflow: hidden;
+    margin-top: 60px; /* مساحة للشريط العلوي */
+    margin-bottom: 60px; /* مساحة للشريط السفلي */
+    height: calc(100% - 120px); /* الارتفاع الكلي ناقص ارتفاع الشريطين */
+}
+
+/* تعديل هيكل الأقسام المختلفة للتمرير المناسب */
+#homeSection, 
+#profileSection, 
+#transactionsSection, 
+#notificationsSection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto; /* تفعيل التمرير العمودي */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* تمرير سلس على الأجهزة التي تعمل باللمس */
+    padding: 15px 0 30px; /* تباعد أعلى وأسفل المحتوى */
+    display: none; /* سيتم تفعيله عبر JavaScript */
+    height: 100%; /* ارتفاع كامل */
+}
+
+/* إظهار القسم النشط */
+#homeSection.active, 
+#profileSection.active, 
+#transactionsSection.active, 
+#notificationsSection.active {
+    display: block;
+}
+
+/* معالجة المودالات لضمان تموضعها بشكل صحيح */
+.modal {
+    z-index: 2000;
+}
+
+/* معالجة شاشة التحميل */
+.loading {
+    z-index: 3000;
+}
+
+/* معالجة تمرير جسم الصفحة */
+body {
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+}
+
+/* تأكيد تموضع زر التحديث بشكل صحيح */
+.refresh-btn {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1001;
+}
+
+/* تعديلات للشاشات الصغيرة */
+@media (max-height: 600px) {
+    .header {
+        padding: 10px 0;
+        height: 50px;
+    }
+    
+    .bottom-nav {
+        padding: 8px 0 5px;
+        height: 50px;
+    }
+    
+    .dashboard {
+        margin-top: 50px;
+        margin-bottom: 50px;
+        height: calc(100% - 100px);
+    }
+}
+
+/* تعديل أنماط العناصر المتنقلة في الشريط السفلي */
+.nav-item {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* إصلاح مشكلة شاشة تسجيل الدخول */
+.login-screen {
+    height: 100vh;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1500;
+}
+
+/* تعديلات خاصة بمنطقة البطاقة والمعلومات */
+.credit-card, .info-cards, .actions, .transactions {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* منع وجود فراغات زائدة في أسفل المحتوى */
+.transactions {
+    margin-bottom: 0;
+    padding-bottom: 20px;
+}
+
+/* تبسيط تباعد العناصر */
+.section-title {
+    margin-top: 15px;
+}
+
+/* تعديل لحل مشكلة التمرير في نهاية الصفحة */
+#transactionsList, #filteredTransactionsList, #notificationsList {
+    padding-bottom: 30px; /* ضمان وجود مساحة كافية في نهاية القوائم */
+}
 
 /* تعديل خلفيات العناصر الفرعية لتكون شبه شفافة */
 .header, 
