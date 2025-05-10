@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محفظة المستثمر</title>
+    <title>محفظة المستثمر | سما بابل للاستثمار</title>
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Tajawal for Arabic UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -18,143 +18,520 @@
     
     <!-- QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+ 
+    <!-- Manifest link - corregido para GitHub Pages -->
+    <link rel="manifest" href="/barcode-reader/manifest.json">
+    
+    <!-- Favicon y iconos Apple -->
+    <link rel="icon" href="https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fbadge-icon.png?alt=media&token=0e94bd66-c3bb-4ac5-be2c-f406861800e4" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2Fbadge-icon.png?alt=media&token=0e94bd66-c3bb-4ac5-be2c-f406861800e4">
+    
+
     
     <style>
-         * {
+        /* ===== RESET & BASE STYLES ===== */
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Tajawal', sans-serif;
         }
 
- /* إعداد الخلفية العامة */
+        /* ===== COLORS & THEME ===== */
+        :root {
+            --bg-dark: #0d1117;
+            --bg-card: #111827;
+            --gold: #FFC436;
+            --gold-light: rgba(255, 196, 54, 0.1);
+            --gold-medium: rgba(255, 196, 54, 0.3);
+            --gold-bright: rgba(255, 196, 54, 0.8);
+            --text-white: #ffffff;
+            --text-light: rgba(255, 255, 255, 0.7);
+            --text-dark: #000000;
+            --red: #ff5252;
+            --green: #4CAF50;
+            --blue: #2196F3;
+            --border-radius-sm: 10px;
+            --border-radius-md: 16px;
+            --border-radius-lg: 20px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+     /* تعديل خلفية الجسم بالكامل */
 body {
-    background-color: #0A0A0A; /* أسود داكن */
-    color: #FFC436; /* ذهبي */
-    font-family: 'Cairo', sans-serif; /* خط أنيق ومناسب للعربية */
+    background-color: var(--bg-dark); /* لون احتياطي في حال لم تظهر الصورة */
+    background-image: url('https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2F17e54e3c-0100-43ce-af71-45bfd80202fe.png?alt=media&token=8040b8c4-7847-43c6-987f-c05e9e32b445');
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed; /* جعل الخلفية ثابتة عند التمرير */
+    background-repeat: no-repeat;
+    color: var(--gold);
+    line-height: 1.5;
+}
+      /* إضافة طبقة شفافة فوق الخلفية للتباين وتحسين مقروئية العناصر */
+.app-container {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    background-color: rgba(13, 17, 23, 0.85); /* خلفية شبه شفافة */
+    backdrop-filter: blur(5px); /* تأثير ضبابي للخلفية */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* ظل للحاوية */
 }
 
-/* بطاقات العرض */
-.card, .investment-box, .button, .summary-box {
-    background-color: #121212; /* خلفية داكنة خفيفة للبطاقات */
-    border: 2px solid #FFC436; /* حدود ذهبية */
-    border-radius: 12px;
-    padding: 16px;
-    color: #FFC436;
-    box-shadow: 0 0 10px #FFC43666; /* توهج خفيف ذهبي */
+
+
+/* تعديل خلفيات العناصر الفرعية لتكون شبه شفافة */
+.header, 
+.bottom-nav, 
+.login-screen,
+.dashboard,
+.profile-section,
+.transactions-section,
+.notifications-section {
+    background-color: transparent; /* إزالة الخلفية ليظهر التأثير */
 }
 
-/* النصوص */
-h1, h2, h3, p, span, label {
-    color: #FFC436; /* النصوص بالذهبي */
+
+
+
+/* جعل بعض العناصر مثل البطاقات والنوافذ المنبثقة أكثر وضوحًا */
+.credit-card,
+.info-card,
+.transaction-item,
+.notification-item,
+.modal-content,
+.account-details,
+.form-control {
+    background-color: rgba(17, 24, 39, 0.8); /* خلفية داكنة شبه شفافة */
+    backdrop-filter: blur(8px); /* تأثير ضبابي أقوى */
+    border: 1px solid rgba(255, 196, 54, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* الأزرار */
-button {
-    background-color: transparent;
-    border: 2px solid #FFC436;
-    color: #FFC436;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
+
+/* تعديل زر التحديث والأزرار الإضافية لتكون أكثر وضوحًا */
+.refresh-btn,
+.nav-item {
+    background-color: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(5px);
 }
 
-button:hover {
-    background-color: #FFC436;
-    color: #0A0A0A; /* قلب الألوان عند التحويم */
-}
 
-/* الأيقونات */
-.icon, svg, i {
-    color: #FFC436; /* أيقونات ذهبية */
-    font-size: 20px;
-}
 
-/* شريط التنقل السفلي */
-.navbar {
-    background-color: #0A0A0A;
-    border-top: 1px solid #FFC436;
+    /* تحديث نمط البطاقة لإضافة صورة الخلفية */
+.credit-card {
+    width: 100%;
+    aspect-ratio: 1.6/1;
+    background: url('https://firebasestorage.googleapis.com/v0/b/messageemeapp.appspot.com/o/%D9%85%D9%84%D9%81%20%D8%B5%D9%88%D8%B1%20%D8%AA%D8%B7%D8%A8%D9%82%20%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B1%20%D8%B3%D9%85%D8%A7%20%D8%A8%D8%A7%D8%A8%D9%84%2F17e54e3c-0100-43ce-af71-45bfd80202fe.png?alt=media&token=8040b8c4-7847-43c6-987f-c05e9e32b445') no-repeat center center;
+    background-size: cover;
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto 25px;
+    border: 1px solid rgba(255, 196, 54, 0.3);
+    box-shadow: var(--shadow);
     display: flex;
-    justify-content: space-around;
-    padding: 12px 0;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.navbar-item {
-    text-align: center;
-    color: #FFC436;
+/* تعديل طبقة التراكب لتناسب لون الخلفية الجديدة */
+.credit-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%);
+    z-index: 1;
+    pointer-events: none;
 }
 
-.navbar-item i {
-    font-size: 24px;
-    margin-bottom: 4px;
+/* تحسين لون النصوص لتكون مقروءة على الخلفية الجديدة */
+.card-number,
+.card-company,
+.card-info-label,
+.card-info-value,
+.card-logo,
+.card-provider {
+    color: var(--gold);
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.7);
+    position: relative;
+    z-index: 2;
 }
 
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
 
-        .app-container {
+        .card-chip {
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(135deg, var(--gold) 0%, #FFA500 100%);
+            border-radius: 8px;
+            margin-right: auto;
+        }
+
+        .card-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-provider {
+            width: 60px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--gold);
+            font-size: 0.9rem;
+        }
+
+        .card-number {
+            font-size: 1.8rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-align: center;
+            margin: 10px 0 20px;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-holder-name {
+            font-size: 1.1rem;
+            color: var(--gold);
+            letter-spacing: 1px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-company {
+            font-size: 1.3rem;
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-info-item {
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-info-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .card-info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        /* ===== INFO CARDS ===== */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 0 15px;
+            margin-bottom: 25px;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--gold-medium);
+            border-radius: var(--border-radius-md);
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 196, 54, 0.15);
+        }
+
+        .info-card h3 {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .info-card p {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--gold);
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .actions {
+            padding: 0 15px;
+            margin-bottom: 25px;
+        }
+
+        .action-btn {
             width: 100%;
-            max-width: 430px;
-            margin: 0 auto;
-            background: #000;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--gold-medium);
+            border-radius: var(--border-radius-md);
+            color: var(--gold);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
-        /* Header */
-        .header {
-            padding: 20px;
-            position: relative;
-            background-color: #000;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        .action-btn:hover {
+            background: var(--gold-light);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 196, 54, 0.15);
         }
+
+        .action-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* ===== TRANSACTIONS ===== */
+        .transactions {
+            padding: 5px 15px 20px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .transaction-item {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 196, 54, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            background: rgba(255, 196, 54, 0.05);
+            border-color: rgba(255, 196, 54, 0.3);
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 196, 54, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+            color: var(--gold);
+            flex-shrink: 0;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--text-white);
+            font-size: 0.95rem;
+        }
+
+        .transaction-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .transaction-time {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-right: 5px;
+        }
+
+        .transaction-amount {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-white);
+            text-align: left;
+            direction: ltr;
+        }
+
+        .transaction-amount.positive {
+            color: var(--gold);
+        }
+
+        .transaction-amount.negative {
+            color: var(--red);
+        }
+
+       /* تعديل رأس التطبيق */
+.header {
+    border-bottom: 1px solid rgba(255, 196, 54, 0.2);
+    background-color: rgba(13, 17, 23, 0.9);
+    backdrop-filter: blur(10px);
+}
+
+
+
+/* تعديل قائمة التنقل السفلية */
+.bottom-nav {
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 196, 54, 0.2);
+}
+
+/* تحسين التباين لتحسين مقروئية النصوص */
+h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* تعديل شاشة تسجيل الدخول لتكون متوافقة مع الخلفية الجديدة */
+.login-screen {
+    background-color: rgba(13, 17, 23, 0.85);
+    backdrop-filter: blur(5px);
+}
+
+/* تعديل طبقة التحميل */
+.loading {
+    background-color: rgba(13, 17, 23, 0.9);
+    backdrop-filter: blur(10px);
+}
 
         .header h1 {
-            color: #FFD700;
-            font-size: 1.8rem;
+            font-size: 1.3rem;
             font-weight: 700;
             text-align: center;
-            margin-bottom: 5px;
+            color: var(--gold);
         }
 
         .header-user {
             text-align: center;
-            font-size: 1rem;
-            color: rgba(255, 215, 0, 0.7);
-            margin-top: 5px;
-            font-weight: 500;
-        }
-
-        .back-btn {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #FFD700;
-            font-size: 1.5rem;
-            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 3px;
         }
 
         .refresh-btn {
             position: absolute;
-            right: 20px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #FFD700;
-            font-size: 1.5rem;
+            color: var(--gold);
+            font-size: 1.2rem;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
 
-        /* Login Screen */
+        .refresh-btn:hover {
+            background: var(--gold-light);
+        }
+
+        /* ===== BOTTOM NAVIGATION ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 196, 54, 0.2);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 8px;
+            z-index: 1000;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-light);
+            width: 70px;
+        }
+
+        .nav-item.active {
+            color: var(--gold);
+        }
+
+        .nav-item i {
+            font-size: 1.3rem;
+        }
+
+        .nav-item span {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* ===== LOGIN SCREEN ===== */
         .login-screen {
             padding: 40px 20px;
             text-align: center;
-            background-color: #000;
+            background-color: var(--bg-dark);
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -162,20 +539,20 @@ button:hover {
         }
 
         .logo {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--gold) 0%, #FFA500 100%);
             border-radius: 50%;
             margin: 0 auto 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 196, 54, 0.3);
         }
 
         .logo i {
-            font-size: 3rem;
-            color: #000;
+            font-size: 2.5rem;
+            color: var(--bg-dark);
         }
 
         .login-tabs {
@@ -187,18 +564,18 @@ button:hover {
         .tab-btn {
             flex: 1;
             padding: 12px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid #FFD700;
-            color: #FFD700;
-            border-radius: 12px;
+            background: rgba(255, 196, 54, 0.05);
+            border: 1px solid rgba(255, 196, 54, 0.3);
+            color: var(--gold);
+            border-radius: var(--border-radius-sm);
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
         }
 
         .tab-btn.active {
-            background: #FFD700;
-            color: #000;
+            background: var(--gold);
+            color: var(--bg-dark);
             border-color: transparent;
         }
 
@@ -218,45 +595,46 @@ button:hover {
         .form-label {
             display: block;
             margin-bottom: 8px;
-            color: #FFD700;
+            color: var(--gold);
             font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .form-control {
             width: 100%;
             padding: 15px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-            color: #fff;
+            border: 1px solid rgba(255, 196, 54, 0.3);
+            border-radius: var(--border-radius-sm);
+            color: var(--text-white);
             font-size: 1rem;
             transition: all 0.3s ease;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: #FFD700;
+            border-color: var(--gold);
             background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 15px rgba(255, 196, 54, 0.3);
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
-            background: #FFD700;
+            padding: 15px;
+            background: var(--gold);
             border: none;
-            border-radius: 12px;
-            color: #000;
-            font-size: 1.1rem;
+            border-radius: var(--border-radius-sm);
+            color: var(--bg-dark);
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(255, 196, 54, 0.3);
         }
 
         .btn:active {
@@ -265,21 +643,20 @@ button:hover {
 
         .btn-secondary {
             background: rgba(255, 255, 255, 0.05);
-            color: #FFD700;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            box-shadow: none;
+            color: var(--gold);
+            border: 1px solid rgba(255, 196, 54, 0.3);
         }
 
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(255, 196, 54, 0.2);
         }
 
-        /* QR Scanner */
+        /* ===== QR Scanner ===== */
         #qr-scanner {
             width: 100%;
             margin-bottom: 20px;
-            border-radius: 12px;
+            border-radius: var(--border-radius-sm);
             overflow: hidden;
             display: none;
         }
@@ -296,298 +673,216 @@ button:hover {
             display: none;
         }
 
-        /* Dashboard */
+        /* ===== DASHBOARD ===== */
         .dashboard {
             display: none;
             padding-bottom: 80px;
-            background-color: #000;
+            background-color: var(--bg-dark);
         }
 
-        /* Card Display */
-        .card-display {
-            padding: 15px;
-            margin-bottom: 20px;
+        /* ===== PROFILE SECTION ===== */
+        .profile-section {
+            padding: 20px 15px;
+            display: none;
         }
 
-        .credit-card {
-            width: 100%;
-            height: 200px;
-            background: #000;
-            border-radius: 20px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-            margin: 0 auto;
-            border: 1px solid #FFD700;
-            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        .profile-header {
+            text-align: center;
+            margin-bottom: 25px;
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .card-logo {
-            color: #FFD700;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .card-chip {
-            width: 45px;
-            height: 35px;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            border-radius: 8px;
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            background: var(--gold);
+            border-radius: 50%;
+            margin: 0 auto 15px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 2.5rem;
+            color: var(--bg-dark);
+            box-shadow: 0 5px 15px rgba(255, 196, 54, 0.2);
         }
 
-        .card-number {
-            color: #FFD700;
-            font-size: 1.6rem;
-            letter-spacing: 2px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: 600;
+        .profile-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 5px;
         }
 
-        .card-profit {
-            font-size: 1.1rem;
-            color: #FFD700;
-            margin-bottom: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .profile-card {
+            font-size: 0.9rem;
+            color: var(--text-light);
         }
 
-        .card-profit i {
-            color: #FFD700;
-            font-size: 1.2rem;
+        .account-details {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-md);
+            padding: 20px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 196, 54, 0.2);
         }
 
-        .card-info {
+        .detail-item {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 196, 54, 0.1);
         }
 
-        .card-info-item {
-            color: #FFD700;
+        .detail-item:last-child {
+            border-bottom: none;
         }
 
-        .card-info-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            opacity: 0.8;
-        }
-
-        .card-info-value {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        /* Info Cards */
-        .info-cards {
-            padding: 0 15px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .info-card {
-            background: #000;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 16px;
-            padding: 20px 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .info-card:hover {
-            border-color: #FFD700;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.1);
-        }
-
-        .info-card h3 {
-            font-size: 0.9rem;
-            color: #FFD700;
-            margin-bottom: 10px;
+        .detail-label {
+            color: var(--text-light);
             font-weight: 500;
         }
 
-        .info-card p {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin: 0;
-            color: #FFD700;
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-white);
         }
 
-        /* Actions */
-        .actions {
-            padding: 0 15px;
-            margin-bottom: 25px;
-        }
-
-        .action-btn {
+        .logout-btn {
             width: 100%;
-            padding: 18px;
-            background: #000;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 16px;
-            color: #FFD700;
-            font-size: 1.1rem;
+            padding: 14px;
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid rgba(255, 82, 82, 0.3);
+            border-radius: var(--border-radius-sm);
+            color: var(--red);
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .action-btn:hover {
-            background: rgba(255, 215, 0, 0.05);
-            border-color: #FFD700;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.1);
-        }
-
-        .action-btn i {
-            font-size: 1.3rem;
-        }
-
-        /* Transactions */
-        .transactions {
-            padding: 15px;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #FFD700;
-            display: flex;
-            align-items: center;
             gap: 10px;
+            margin-top: 20px;
         }
 
-        .transaction-item {
-            background: #000;
-            border: 1px solid rgba(255, 215, 0, 0.1);
-            border-radius: 12px;
+        .logout-btn:hover {
+            background: rgba(255, 82, 82, 0.2);
+            border-color: var(--red);
+        }
+
+        /* ===== TRANSACTIONS SECTION ===== */
+        .transactions-section {
+            padding: 20px 15px;
+            display: none;
+        }
+
+        .transaction-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .transaction-filter::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 196, 54, 0.2);
+            border-radius: 30px;
+            color: var(--text-light);
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: var(--gold);
+            color: var(--bg-dark);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        .transaction-date-header {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 196, 54, 0.1);
+        }
+
+        /* ===== NOTIFICATIONS SECTION ===== */
+        .notifications-section {
+            padding: 20px 15px;
+            display: none;
+        }
+
+        .notification-item {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 196, 54, 0.1);
+            border-radius: var(--border-radius-sm);
             padding: 15px;
             margin-bottom: 12px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             transition: all 0.3s ease;
         }
 
-        .transaction-item:hover {
-            background: rgba(255, 215, 0, 0.05);
-            border-color: rgba(255, 215, 0, 0.3);
+        .notification-item:hover {
+            background: rgba(255, 196, 54, 0.05);
+            border-color: rgba(255, 196, 54, 0.3);
         }
 
-        .transaction-icon {
+        .notification-item.unread {
+            border-right: 3px solid var(--gold);
+        }
+
+        .notification-icon {
             width: 40px;
             height: 40px;
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 196, 54, 0.1);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-left: 15px;
-            color: #FFD700;
+            color: var(--gold);
+            flex-shrink: 0;
         }
 
-        .transaction-info {
+        .notification-content {
             flex: 1;
         }
 
-        .transaction-type {
+        .notification-title {
             font-weight: 600;
             margin-bottom: 5px;
-            color: #fff;
+            color: var(--gold);
         }
 
-        .transaction-date {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
+        .notification-message {
+            font-size: 0.9rem;
+            color: var(--text-white);
+            margin-bottom: 5px;
         }
 
-        .transaction-amount {
-            font-size: 1.1rem;
-            font-weight: 700;
+        .notification-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
         }
 
-        .transaction-amount.positive {
-            color: #FFD700;
-        }
-
-        .transaction-amount.negative {
-            color: #ff5252;
-        }
-
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #000;
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 215, 0, 0.2);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            z-index: 1000;
-            max-width: 430px;
-            margin: 0 auto;
-        }
-
-        .nav-item {
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .nav-item.active {
-            color: #FFD700;
-        }
-
-        .nav-item i {
-            font-size: 1.4rem;
-        }
-
-        .nav-item span {
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        /* Modal */
+        /* ===== MODALS ===== */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.8);
             display: none;
             align-items: center;
             justify-content: center;
@@ -600,13 +895,13 @@ button:hover {
         }
 
         .modal-content {
-            background: #000;
-            border-radius: 20px;
+            background: var(--bg-card);
+            border-radius: var(--border-radius-lg);
             padding: 25px;
             max-width: 400px;
             width: 100%;
             position: relative;
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 196, 54, 0.3);
         }
 
         .modal-header {
@@ -619,264 +914,79 @@ button:hover {
         .modal-close {
             background: none;
             border: none;
-            color: #FFD700;
+            color: var(--gold);
             font-size: 1.5rem;
             cursor: pointer;
         }
 
-        /* Loading */
+        /* ===== LOADING ===== */
         .loading {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: #000;
+            background: var(--bg-dark);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 3000;
         }
 
         .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 3px solid rgba(255, 215, 0, 0.3);
-            border-top-color: #FFD700;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 196, 54, 0.2);
+            border-top-color: var(--gold);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        .loading-text {
+            color: var(--gold);
+            font-size: 1rem;
+            font-weight: 500;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        /* Error Message */
+        /* ===== MESSAGES ===== */
         .error-message {
             background: rgba(255, 82, 82, 0.1);
             border: 1px solid rgba(255, 82, 82, 0.3);
-            color: #ff5252;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            color: var(--red);
+            padding: 12px;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 15px;
             text-align: center;
             display: none;
+            font-size: 0.9rem;
         }
 
-        /* Success Message */
         .success-message {
             background: rgba(76, 175, 80, 0.1);
             border: 1px solid rgba(76, 175, 80, 0.3);
-            color: #4CAF50;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            color: var(--green);
+            padding: 12px;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 15px;
             text-align: center;
             display: none;
-        }
-
-        /* Account Details */
-        .account-details {
-            background: #000;
-            border-radius: 20px;
-            padding: 20px;
-            margin-top: 10px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-        }
-
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-        }
-
-        .detail-item:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            color: #FFD700;
-            font-weight: 500;
-        }
-
-        .detail-value {
-            font-weight: 600;
-            color: #fff;
-        }
-
-        /* Profile */
-        .profile-section {
-            padding: 20px 15px;
-            display: none;
-        }
-
-        .profile-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background: #FFD700;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: #000;
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
-        }
-
-        .profile-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #FFD700;
-            margin-bottom: 5px;
-        }
-
-        .profile-card {
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
         }
 
-        .logout-btn {
-            width: 100%;
-            padding: 16px;
-            background: #000;
-            border: 1px solid rgba(255, 82, 82, 0.5);
-            border-radius: 12px;
-            color: #ff5252;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 82, 82, 0.1);
-            border-color: #ff5252;
-        }
-
-        /* Transactions Section */
-        .transactions-section {
-            padding: 20px 15px;
-            display: none;
-        }
-
-        .transaction-filter {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
-
-        .filter-btn {
-            padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 30px;
-            color: #FFD700;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .filter-btn.active {
-            background: #FFD700;
-            color: #000;
-            border-color: transparent;
-        }
-
-        .transaction-date-header {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin: 20px 0 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-        }
-
-        /* Notifications Section */
-        .notifications-section {
-            padding: 20px 15px;
-            display: none;
-        }
-
-        .notification-item {
-            background: #000;
-            border: 1px solid rgba(255, 215, 0, 0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: flex-start;
-            transition: all 0.3s ease;
-        }
-
-        .notification-item:hover {
-            background: rgba(255, 215, 0, 0.05);
-            border-color: rgba(255, 215, 0, 0.3);
-        }
-
-        .notification-item.unread {
-            border-right: 3px solid #FFD700;
-        }
-
-        .notification-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 215, 0, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 15px;
-            color: #FFD700;
-            flex-shrink: 0;
-        }
-
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #FFD700;
-        }
-
-        .notification-message {
-            font-size: 0.9rem;
-            color: #fff;
-            margin-bottom: 5px;
-        }
-
-        .notification-date {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* Responsive */
-        @media (max-width: 430px) {
-            .app-container {
-                max-width: 100%;
-            }
-            
-            .info-cards {
-                padding: 0 10px;
-                gap: 10px;
+        /* ===== RESPONSIVE STYLES ===== */
+        @media (max-width: 360px) {
+            .card-number {
+                font-size: 1.5rem;
             }
             
             .info-card {
-                padding: 15px 10px;
+                padding: 12px 10px;
             }
             
             .info-card h3 {
@@ -887,8 +997,22 @@ button:hover {
                 font-size: 1.1rem;
             }
             
-            .card-number {
-                font-size: 1.4rem;
+            .transaction-item {
+                padding: 10px 12px;
+            }
+            
+            .transaction-icon {
+                width: 36px;
+                height: 36px;
+                margin-left: 10px;
+            }
+            
+            .transaction-type {
+                font-size: 0.85rem;
+            }
+            
+            .transaction-amount {
+                font-size: 0.95rem;
             }
         }
     </style>
@@ -898,15 +1022,16 @@ button:hover {
         <!-- Loading Screen -->
         <div class="loading" id="loadingScreen">
             <div class="loading-spinner"></div>
+            <div class="loading-text">جاري التحميل...</div>
         </div>
 
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
             <div class="logo">
-                <i class="fas fa-wallet"></i>
+                <i class="fas fa-gem"></i>
             </div>
             
-            <h2 style="margin-bottom: 30px; color: #FFD700;">محفظة المستثمر</h2>
+            <h2 style="margin-bottom: 30px; color: var(--gold); font-weight: 800;">سما بابل للاستثمار</h2>
             
             <div class="login-tabs">
                 <button class="tab-btn active" onclick="switchTab('cardTab')">
@@ -945,7 +1070,7 @@ button:hover {
                     <i class="fas fa-camera"></i> مسح رمز QR
                 </button>
                 
-                <label for="qr-file-selector" class="btn btn-secondary img-upload-btn">
+                <label for="qr-file-selector" class="btn btn-secondary img-upload-btn" style="margin-top: 15px;">
                     <i class="fas fa-upload"></i> تحميل صورة الباركود
                 </label>
                 <input type="file" id="qr-file-selector" accept="image/*" onchange="decodeQRFromImage(this.files[0])">
@@ -956,8 +1081,9 @@ button:hover {
         <div class="dashboard" id="dashboardScreen">
             <!-- Header -->
             <div class="header">
-                <h1>محفظة المستثمر</h1>
-                <div class="header-user" id="headerUsername">مرحباً، المستثمر</div>
+                <div>
+                    <div class="header-user" id="headerUsername">مرحباً، المستثمر</div>
+                </div>
                 <button class="refresh-btn" onclick="refreshDashboard()">
                     <i class="fas fa-sync-alt"></i>
                 </button>
@@ -966,26 +1092,22 @@ button:hover {
             <!-- Home Section (Dashboard) -->
             <div id="homeSection">
                 <!-- Card Display -->
-                <div class="card-display">
+                <div style="padding: 20px;">
                     <div class="credit-card">
                         <div class="card-header">
-                            <div class="card-logo">INVESTOR</div>
                             <div class="card-chip"></div>
+                            <div class="card-provider">INVESTOR</div>
                         </div>
-                        <div class="card-number" id="displayCardNumber">2750 2380 1584 5063</div>
-                        <div class="card-profit">
-                            <i class="fas fa-hand-holding-usd"></i>
-                            <span>الأرباح المستحقة: </span>
-                            <span id="cardDueProfit">1453,40 د.ع</span>
-                        </div>
+                        <div class="card-number" id="displayCardNumber" style="font-size: 1.5rem;">2750 2380 1584 5063</div>
+                        <div class="card-company" id="cardCompanyName" style="font-size: 1rem;">سما بابل للاستثمار</div>
                         <div class="card-info">
                             <div class="card-info-item">
-                                <div class="card-info-label">تاريخ الاستحقاق</div>
-                                <div class="card-info-value" id="cardHolderName">خالد السعدي</div>
+                                <div class="card-info-label" style="font-size: 0.8rem;">الأرباح المستحقة</div>
+                                <div class="card-info-value" id="cardDueProfit" style="font-size: 1rem;">1,458.333 د.ع</div>
                             </div>
                             <div class="card-info-item">
-                                <div class="card-info-label">تاريخ الاستحقاق</div>
-                                <div class="card-info-value" id="displayExpiryDate">05/27</div>
+                                <div class="card-info-label" style="font-size: 0.8rem;">تاريخ الاستحقاق</div>
+                                <div class="card-info-value" id="displayExpiryDate" style="font-size: 1rem;">05/27</div>
                             </div>
                         </div>
                     </div>
@@ -994,27 +1116,27 @@ button:hover {
                 <!-- Info Cards -->
                 <div class="info-cards">
                     <div class="info-card">
-                        <h3>إجمالي الاستثمار</h3>
-                        <p id="totalInvestment">5000 د.ع</p>
-                    </div>
-                    <div class="info-card">
-                        <h3>إجمالي الأرباح</h3>
-                        <p id="totalProfit">2356,33 د.ع</p>
+                        <h3>إجمالي المدفوع</h3>
+                        <p id="totalInvestment">4,000.00 د.ع</p>
                     </div>
                     <div class="info-card">
                         <h3>الأرباح المستحقة</h3>
-                        <p id="dueProfit">1453,40 د.ع</p>
+                        <p id="dueProfit">51,036.03 د.ع</p>
                     </div>
                     <div class="info-card">
-                        <h3>الأرباح المدفوعة</h3>
-                        <p id="paidProfit">902,93 د.ع</p>
+                        <h3>تاريخ الاستحقاق</h3>
+                        <p id="maturityDate">05/27</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>حالة الاستثمار</h3>
+                        <p id="investmentStatus">نشط</p>
                     </div>
                 </div>
 
                 <!-- Actions -->
                 <div class="actions">
                     <button class="action-btn" onclick="openWithdrawModal()">
-                        <i class="fas fa-minus-circle"></i> طلب سحب
+                        <i class="fas fa-money-check-alt"></i> طلب سحب
                     </button>
                     <button class="action-btn" onclick="showDetails()">
                         <i class="fas fa-file-alt"></i> تفاصيل الحساب
@@ -1034,6 +1156,10 @@ button:hover {
             
             <!-- Profile Section -->
             <div class="profile-section" id="profileSection">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i> الملف الشخصي
+                </h2>
+                
                 <div class="profile-header">
                     <div class="profile-avatar" id="profileAvatar">
                         <i class="fas fa-user"></i>
@@ -1124,7 +1250,7 @@ button:hover {
         <div class="modal" id="withdrawModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 style="color: #FFD700;">طلب سحب</h2>
+                    <h2 style="color: var(--gold);">طلب سحب</h2>
                     <button class="modal-close" onclick="closeWithdrawModal()">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1171,7 +1297,7 @@ button:hover {
         <div class="modal" id="supportModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 style="color: #FFD700;">اتصل بالدعم</h2>
+                    <h2 style="color: var(--gold);">اتصل بالدعم</h2>
                     <button class="modal-close" onclick="closeSupportModal()">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1204,7 +1330,7 @@ button:hover {
         <div class="modal" id="detailsModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 style="color: #FFD700;">تفاصيل الحساب</h2>
+                    <h2 style="color: var(--gold);">تفاصيل الحساب</h2>
                     <button class="modal-close" onclick="closeDetailsModal()">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1277,13 +1403,16 @@ button:hover {
         let currentCard = null;
         let qrScanner = null;
         let currentFilter = 'all';
-        
+        let notifications = [];
         // المسار الصحيح في Firebase
         const FIREBASE_USER_ID = '6wS4ga5v6MXUMC0yzyDnxuI2dh03';
+        const INVESTOR_CARD_ID = 'mai4v8cousf7soxqvt'; // معرف البطاقة المحدد
         const CARDS_PATH = `users/${FIREBASE_USER_ID}/investorCards`;
         const TRANSACTIONS_PATH = `users/${FIREBASE_USER_ID}/transactions`;
         const WITHDRAWAL_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/withdrawRequests`;
         const SUPPORT_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/supportRequests`;
+        const NOTIFICATIONS_PATH = `users/${FIREBASE_USER_ID}/notifications`;
+        const OPERATIONS_PATH = `users/${FIREBASE_USER_ID}/investorCards/${INVESTOR_CARD_ID}/recentOperations`;
 
         // Initialize app
         window.onload = function() {
@@ -1570,6 +1699,9 @@ button:hover {
 
             // Update dashboard with card data
             updateDashboard();
+            
+            // Load notifications
+            loadNotifications();
         }
 
         // Update dashboard
@@ -1579,15 +1711,15 @@ button:hover {
             
             // Update card display
             document.getElementById('displayCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
-            document.getElementById('cardHolderName').textContent = currentInvestor.name;
             document.getElementById('displayExpiryDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
             document.getElementById('cardDueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
+            document.getElementById('cardCompanyName').textContent = "سما بابل للاستثمار";
 
             // Update financial info
             document.getElementById('totalInvestment').textContent = formatCurrency(currentCard.totalInvestment || 0);
-            document.getElementById('totalProfit').textContent = formatCurrency(currentCard.totalProfit || 0);
             document.getElementById('dueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
-            document.getElementById('paidProfit').textContent = formatCurrency(currentCard.paidProfit || 0);
+            document.getElementById('maturityDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
+            document.getElementById('investmentStatus').textContent = currentCard.status || "نشط";
 
             // Update profile section
             updateProfileSection();
@@ -1620,6 +1752,9 @@ button:hover {
                         updateDashboard();
                     }
                 }
+                
+                // Reload notifications
+                loadNotifications();
             } catch (error) {
                 console.error('Error refreshing data:', error);
             } finally {
@@ -1651,11 +1786,10 @@ button:hover {
         // Format currency
         function formatCurrency(amount) {
             return new Intl.NumberFormat('ar-IQ', {
-                style: 'currency',
-                currency: 'IQD',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(amount);
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount) + " د.ع";
         }
 
         // Load transactions
@@ -1700,45 +1834,33 @@ button:hover {
             transactions.push({
                 id: generateId(),
                 type: 'investment',
-                amount: currentCard.totalInvestment || 1000000,
-                date: new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
+                amount: currentCard.totalInvestment || 4000,
+                date: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString(), // 180 days ago
                 status: 'completed',
                 description: 'استثمار أولي'
             });
             
-            // Profit transactions
-            const paidProfit = currentCard.paidProfit || 50000;
-            if (paidProfit > 0) {
+            // Generate multiple profit transactions for the past few months
+            for (let i = 6; i > 0; i--) {
                 transactions.push({
                     id: generateId(),
                     type: 'profit',
-                    amount: paidProfit / 2,
-                    date: new Date(today.getTime() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
+                    amount: 500 + Math.random() * 300,
+                    date: new Date(today.getTime() - i * 30 * 24 * 60 * 60 * 1000).toISOString(), // i months ago
                     status: 'completed',
-                    description: 'دفعة أرباح'
-                });
-                
-                transactions.push({
-                    id: generateId(),
-                    type: 'profit',
-                    amount: paidProfit / 2,
-                    date: new Date(today.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
-                    status: 'completed',
-                    description: 'دفعة أرباح'
+                    description: 'أرباح شهرية'
                 });
             }
             
-            // Withdrawal transaction (if any)
-            if (currentCard.totalWithdrawals > 0) {
-                transactions.push({
-                    id: generateId(),
-                    type: 'withdrawal',
-                    amount: currentCard.totalWithdrawals || 20000,
-                    date: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
-                    status: 'completed',
-                    description: 'سحب أرباح'
-                });
-            }
+            // Add a withdrawal transaction
+            transactions.push({
+                id: generateId(),
+                type: 'withdrawal',
+                amount: 800,
+                date: new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
+                status: 'completed',
+                description: 'سحب أرباح'
+            });
             
             // Sort by date (newest first)
             return transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1823,6 +1945,12 @@ button:hover {
             const icon = getTransactionIcon(transaction.type);
             const amount = transaction.amount;
             const isPositive = transaction.type === 'profit' || transaction.type === 'investment';
+            
+            // Extract time from date for display
+            const transactionDate = new Date(transaction.date);
+            const hours = transactionDate.getHours().toString().padStart(2, '0');
+            const minutes = transactionDate.getMinutes().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;
 
             div.innerHTML = `
                 <div class="transaction-icon">
@@ -1832,8 +1960,11 @@ button:hover {
                     <div class="transaction-type">${getTransactionTypeName(transaction.type)}</div>
                     <div class="transaction-date">${formatDate(transaction.date)}</div>
                 </div>
-                <div class="transaction-amount ${isPositive ? 'positive' : 'negative'}">
-                    ${isPositive ? '+' : '-'} ${formatCurrency(amount)}
+                <div style="text-align: left; direction: ltr;">
+                    <div class="transaction-amount ${isPositive ? 'positive' : 'negative'}">
+                        ${isPositive ? '+' : '-'} ${formatCurrency(amount)}
+                    </div>
+                    <div class="transaction-time">${timeString}</div>
                 </div>
             `;
 
@@ -1870,6 +2001,434 @@ button:hover {
                     return type;
             }
         }
+// تحديث دالة تحميل الإشعارات
+async function loadNotifications() {
+    const notificationsList = document.getElementById('notificationsList');
+    notificationsList.innerHTML = '';
+    
+    try {
+        // تحميل العمليات من المسار الجديد
+        const operationsRef = database.ref(OPERATIONS_PATH);
+        const snapshot = await operationsRef.once('value');
+        const operationsData = snapshot.val() || [];
+        
+        // تحويل البيانات إلى مصفوفة
+        let operationsArray = [];
+        if (Array.isArray(operationsData)) {
+            operationsArray = operationsData;
+        } else {
+            // إذا كانت البيانات في شكل كائن وليس مصفوفة
+            for (const key in operationsData) {
+                operationsArray.push(operationsData[key]);
+            }
+        }
+        
+        // تحويل العمليات إلى إشعارات
+        const notificationsArray = operationsArray.map(operation => {
+            // إنشاء كائن إشعار من بيانات العملية
+            return createNotificationFromOperation(operation);
+        });
+        
+        // ترتيب الإشعارات حسب التاريخ (الأحدث أولاً)
+        notificationsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // حفظ في المتغير العام
+        notifications = notificationsArray;
+        
+        // عرض الإشعارات
+        if (notifications.length > 0) {
+            notifications.forEach(notification => {
+                const notificationElement = createNotificationElement(notification);
+                notificationsList.appendChild(notificationElement);
+            });
+        } else {
+            notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد إشعارات</p>';
+        }
+    } catch (error) {
+        console.error('خطأ في تحميل الإشعارات:', error);
+        notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">حدث خطأ في تحميل الإشعارات</p>';
+    }
+}
+
+
+// دالة لتحويل العملية إلى إشعار
+function createNotificationFromOperation(operation) {
+    // تخصيص عنوان الإشعار ونص الرسالة حسب نوع العملية
+    let title = '';
+    let message = '';
+    let type = operation.type;
+    
+    switch (operation.type) {
+        case 'investment':
+            title = 'استثمار جديد';
+            message = `تم إضافة استثمار جديد بقيمة ${formatCurrency(operation.amount)}`;
+            if (operation.notes) {
+                message += `. ${operation.notes}`;
+            }
+            break;
+        case 'withdrawal':
+            title = 'طلب سحب جديد';
+            message = `تم تسجيل طلب سحب بقيمة ${formatCurrency(operation.amount)}`;
+            if (operation.status === 'pending') {
+                message += `. الطلب قيد المراجعة`;
+            } else if (operation.status === 'completed') {
+                message += `. تمت الموافقة على الطلب`;
+            } else if (operation.status === 'rejected') {
+                message += `. تم رفض الطلب`;
+            }
+            break;
+        case 'profit':
+            title = 'أرباح جديدة';
+            message = `تم إضافة أرباح بقيمة ${formatCurrency(operation.amount)} إلى حسابك`;
+            if (operation.notes) {
+                message += `. ${operation.notes}`;
+            }
+            break;
+        default:
+            title = 'عملية جديدة';
+            message = `تم تسجيل عملية جديدة بقيمة ${formatCurrency(operation.amount)}`;
+            if (operation.notes) {
+                message += `. ${operation.notes}`;
+            }
+            break;
+    }
+    
+    // إنشاء كائن الإشعار
+    return {
+        id: operation.id || generateId(),
+        title: title,
+        message: message,
+        type: type,
+        read: false, // افتراضياً الإشعارات غير مقروءة
+        date: operation.date,
+        amount: operation.amount,
+        status: operation.status,
+        operation: operation // تخزين العملية الأصلية للرجوع إليها عند الحاجة
+    };
+}
+
+// تحديث دالة الحصول على أيقونة الإشعار
+function getNotificationIcon(type) {
+    switch (type) {
+        case 'investment':
+            return 'fas fa-chart-line';
+        case 'withdrawal':
+            return 'fas fa-money-bill-wave';
+        case 'profit':
+            return 'fas fa-coins';
+        case 'welcome':
+            return 'fas fa-handshake';
+        case 'system':
+            return 'fas fa-cogs';
+        default:
+            return 'fas fa-bell';
+    }
+}
+
+// إضافة الاستماع للتغييرات في الوقت الفعلي
+function listenForOperationsChanges() {
+    const operationsRef = database.ref(OPERATIONS_PATH);
+    
+    // إزالة الاستماعات السابقة إن وجدت
+    operationsRef.off();
+    
+    // إضافة استماع جديد
+    operationsRef.on('child_added', (snapshot) => {
+        const newOperation = snapshot.val();
+        if (newOperation) {
+            // إنشاء إشعار جديد من العملية
+            const newNotification = createNotificationFromOperation(newOperation);
+            
+            // إضافة الإشعار إلى المصفوفة العامة
+            notifications.unshift(newNotification);
+            
+            // إعادة تحميل واجهة الإشعارات إذا كانت مفتوحة
+            if (document.getElementById('notificationsSection').style.display === 'block') {
+                loadNotifications();
+            } else {
+                // عرض مؤشر على وجود إشعارات جديدة
+                showNotificationIndicator();
+            }
+        }
+    });
+}
+
+// دالة لعرض مؤشر على وجود إشعارات جديدة
+function showNotificationIndicator() {
+    const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
+    if (notificationNav) {
+        // إضافة نقطة حمراء صغيرة لتنبيه المستخدم بوجود إشعارات جديدة
+        if (!notificationNav.querySelector('.notification-indicator')) {
+            const indicator = document.createElement('div');
+            indicator.className = 'notification-indicator';
+            indicator.style.cssText = `
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                width: 8px;
+                height: 8px;
+                background-color: var(--red);
+                border-radius: 50%;
+            `;
+            notificationNav.appendChild(indicator);
+            notificationNav.style.position = 'relative';
+        }
+    }
+}
+
+// إضافة دالة لتحديث عدد الإشعارات غير المقروءة
+function updateUnreadCount() {
+    const unreadCount = notifications.filter(notification => !notification.read).length;
+    
+    const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
+    const countBadge = notificationNav.querySelector('.notification-count');
+    
+    if (unreadCount > 0) {
+        if (countBadge) {
+            countBadge.textContent = unreadCount;
+        } else {
+            const badge = document.createElement('div');
+            badge.className = 'notification-count';
+            badge.textContent = unreadCount;
+            badge.style.cssText = `
+                position: absolute;
+                top: 0;
+                right: 0;
+                min-width: 16px;
+                height: 16px;
+                background-color: var(--red);
+                border-radius: 8px;
+                color: white;
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+            `;
+            notificationNav.appendChild(badge);
+            notificationNav.style.position = 'relative';
+        }
+    } else if (countBadge) {
+        countBadge.remove();
+    }
+}
+
+// تحديث دالة تبديل القسم لإزالة المؤشر عند الانتقال لقسم الإشعارات
+const originalSwitchSection = switchSection;
+switchSection = function(section) {
+    originalSwitchSection(section);
+    
+    if (section === 'notifications') {
+        const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
+        const indicator = notificationNav.querySelector('.notification-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+        
+        // تحديث حالة القراءة للإشعارات
+        notifications.forEach(notification => {
+            notification.read = true;
+        });
+        
+        // تحديث عدد الإشعارات غير المقروءة
+        updateUnreadCount();
+    }
+};
+
+// تحديث دالة إظهار لوحة المعلومات لإضافة الاستماع للتغييرات
+const originalShowDashboard = showDashboard;
+showDashboard = function() {
+    originalShowDashboard();
+    
+    // إضافة الاستماع للتغييرات في العمليات
+    listenForOperationsChanges();
+    
+    // تحديث عدد الإشعارات غير المقروءة
+    updateUnreadCount();
+};
+
+// إضافة CSS للإشعارات الجديدة
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+.notification-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-item.new-notification::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--gold) 0%, transparent 50%);
+}
+
+.notification-amount {
+    font-weight: 700;
+    color: var(--gold);
+    margin-top: 5px;
+}
+
+.notification-status {
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+.notification-status.pending {
+    color: var(--gold);
+}
+
+.notification-status.completed {
+    color: var(--green);
+}
+
+.notification-status.rejected {
+    color: var(--red);
+}
+`;
+document.head.appendChild(notificationStyle);
+
+
+        
+        // Generate mock notifications
+        function generateMockNotifications() {
+            const mockNotifications = [];
+            const today = new Date();
+            
+            // Welcome notification
+            mockNotifications.push({
+                id: generateId(),
+                title: 'مرحباً بك في سما بابل للاستثمار',
+                message: 'شكراً لانضمامك إلينا. نتمنى لك تجربة استثمارية ناجحة.',
+                type: 'welcome',
+                read: true,
+                date: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString() // 180 days ago
+            });
+            
+            // Profit notification
+            mockNotifications.push({
+                id: generateId(),
+                title: 'تم إضافة أرباح جديدة',
+                message: 'تم إضافة أرباح بقيمة 500 د.ع إلى حسابك.',
+                type: 'profit',
+                read: true,
+                date: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
+            });
+            
+            // System notification
+            mockNotifications.push({
+                id: generateId(),
+                title: 'تحديث النظام',
+                message: 'تم تحديث نظام المحفظة الاستثمارية بمميزات جديدة.',
+                type: 'system',
+                read: false,
+                date: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days ago
+            });
+            
+            // Withdrawal notification
+            mockNotifications.push({
+                id: generateId(),
+                title: 'تمت معالجة طلب السحب',
+                message: 'تمت الموافقة على طلب سحب الأرباح الخاص بك. سيتم التواصل معك قريباً.',
+                type: 'withdrawal',
+                read: false,
+                date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
+            });
+            
+            return mockNotifications;
+        }
+        
+// تحديث دالة إنشاء عنصر الإشعار
+function createNotificationElement(notification) {
+    const div = document.createElement('div');
+    div.className = `notification-item ${notification.read ? '' : 'unread'} ${Date.now() - new Date(notification.date) < 3600000 ? 'new-notification' : ''}`;
+    
+    const icon = getNotificationIcon(notification.type);
+    
+    let statusHTML = '';
+    if (notification.status) {
+        let statusClass = notification.status;
+        let statusText = 'قيد المراجعة';
+        
+        if (notification.status === 'completed') {
+            statusText = 'مكتمل';
+        } else if (notification.status === 'rejected') {
+            statusText = 'مرفوض';
+        } else if (notification.status === 'active') {
+            statusText = 'نشط';
+        }
+        
+        statusHTML = `<div class="notification-status ${statusClass}">الحالة: ${statusText}</div>`;
+    }
+    
+    div.innerHTML = `
+        <div class="notification-icon">
+            <i class="${icon}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${notification.title}</div>
+            <div class="notification-message">${notification.message}</div>
+            ${notification.amount ? `<div class="notification-amount">${formatCurrency(notification.amount)}</div>` : ''}
+            ${statusHTML}
+            <div class="notification-date">${formatDate(notification.date)} - ${formatTime(notification.date)}</div>
+        </div>
+    `;
+    
+    // إضافة حدث النقر لتحديد حالة القراءة
+    if (!notification.read) {
+        div.addEventListener('click', () => {
+            markNotificationAsRead(notification.id);
+            div.classList.remove('unread');
+        });
+    }
+    
+    return div;
+}
+
+
+
+// دالة لتنسيق الوقت
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+        
+        // Get notification icon
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'welcome':
+                    return 'fas fa-handshake';
+                case 'profit':
+                    return 'fas fa-coins';
+                case 'system':
+                    return 'fas fa-cogs';
+                case 'withdrawal':
+                    return 'fas fa-money-check-alt';
+                default:
+                    return 'fas fa-bell';
+            }
+        }
+        
+        // Mark notification as read
+        async function markNotificationAsRead(notificationId) {
+            try {
+                // Update notification in array
+                const notificationIndex = notifications.findIndex(n => n.id === notificationId);
+                if (notificationIndex !== -1) {
+                    notifications[notificationIndex].read = true;
+                    
+                    // Update in Firebase if connected
+                    const notificationRef = database.ref(`${NOTIFICATIONS_PATH}/${notificationId}`);
+                    await notificationRef.update({ read: true });
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
 
         // Format date
         function formatDate(dateString) {
@@ -1886,6 +2445,7 @@ button:hover {
             document.getElementById('homeSection').style.display = 'none';
             document.getElementById('profileSection').style.display = 'none';
             document.getElementById('transactionsSection').style.display = 'none';
+            document.getElementById('notificationsSection').style.display = 'none';
             
             // Show the selected section
             if (section === 'home') {
@@ -1896,13 +2456,17 @@ button:hover {
                 document.getElementById('transactionsSection').style.display = 'block';
                 // Make sure transactions are loaded with current filter
                 loadFilteredTransactions(currentFilter);
+            } else if (section === 'notifications') {
+                document.getElementById('notificationsSection').style.display = 'block';
+                // Make sure notifications are loaded
+                loadNotifications();
             }
         }
 
         // Open withdraw modal
         function openWithdrawModal() {
             document.getElementById('withdrawModal').classList.add('active');
-            document.getElementById('availableBalance').value = formatCurrency(currentCard.totalInvestment || 0);
+            document.getElementById('availableBalance').value = formatCurrency(currentCard.dueProfit || 0);
             
             // Reset form
             document.getElementById('withdrawForm').reset();
@@ -1941,7 +2505,7 @@ button:hover {
                     return;
                 }
                 
-                if (amount > currentCard.totalInvestment) {
+                if (amount > currentCard.dueProfit) {
                     showWithdrawError('المبلغ المطلوب أكبر من الرصيد المتاح');
                     return;
                 }
@@ -1980,6 +2544,19 @@ button:hover {
                 }
                 
                 currentCard.recentOperations.push(withdrawTransaction);
+                
+                // Add notification for withdrawal request
+                const withdrawalNotification = {
+                    id: generateId(),
+                    title: 'تم استلام طلب السحب',
+                    message: `تم استلام طلب سحب بقيمة ${formatCurrency(amount)} وهو قيد المراجعة الآن.`,
+                    type: 'withdrawal',
+                    read: false,
+                    date: new Date().toISOString()
+                };
+                
+                // Save notification to Firebase
+                await database.ref(`${NOTIFICATIONS_PATH}/${withdrawalNotification.id}`).set(withdrawalNotification);
                 
                 // Update localStorage
                 localStorage.setItem('investorCard', JSON.stringify(currentCard));
@@ -2037,7 +2614,7 @@ button:hover {
             
             // Set investment date (use 60 days ago if not available)
             const investmentDate = currentCard.investmentDate || 
-                new Date(new Date().getTime() - 60 * 24 * 60 * 60 * 1000).toISOString();
+                new Date(new Date().getTime() - 180 * 24 * 60 * 60 * 1000).toISOString();
             document.getElementById('detailsInvestmentDate').textContent = formatDate(investmentDate);
             
             // Set maturity date (use 300 days from investment date if not available)
@@ -2101,6 +2678,19 @@ button:hover {
                 
                 // Save to Firebase
                 await database.ref(`${SUPPORT_REQUESTS_PATH}/${supportRequest.id}`).set(supportRequest);
+                
+                // Add notification for support request
+                const supportNotification = {
+                    id: generateId(),
+                    title: 'تم استلام طلب الدعم',
+                    message: 'تم استلام رسالتك وسيتم التواصل معك في أقرب وقت ممكن.',
+                    type: 'support',
+                    read: false,
+                    date: new Date().toISOString()
+                };
+                
+                // Save notification to Firebase
+                await database.ref(`${NOTIFICATIONS_PATH}/${supportNotification.id}`).set(supportNotification);
                 
                 // Show success
                 document.getElementById('supportSuccess').textContent = 'تم إرسال طلبك بنجاح وسيتم التواصل معك قريباً';
@@ -2174,49 +2764,417 @@ button:hover {
             document.getElementById('errorMessage').style.display = 'none';
         }
         
-        // Mock data for Firebase compatibility
-        if (typeof firebase !== 'object' || !firebase.database) {
-            console.warn('Firebase not available, using mock data');
-            
-            // Mock database functions
-            database.ref = function(path) {
-                return {
-                    once: function(event) {
-                        return Promise.resolve({
-                            val: function() {
-                                if (path.includes('investorCards')) {
-                                    return {
-                                        "card1": {
-                                            id: "card1",
-                                            cardNumber: "1234567890123456",
-                                            cvv: "123",
-                                            expiryDate: "2025-12-31",
-                                            investorId: "inv1",
-                                            investorName: "محمد أحمد",
-                                            investorPhone: "07701234567",
-                                            investorEmail: "mohammed@example.com",
-                                            totalInvestment: 1000000,
-                                            totalProfit: 120000,
-                                            dueProfit: 50000,
-                                            paidProfit: 70000,
-                                            investmentType: "استثمار عقاري",
-                                            investmentDate: "2024-01-15T00:00:00.000Z",
-                                            maturityDate: "2025-01-15T00:00:00.000Z",
-                                            joinDate: "2023-12-01T00:00:00.000Z"
-                                        }
-                                    };
+      // Continuación del código JavaScript para la aplicación de cartera de inversión
+
+// Mock data for Firebase compatibility
+if (typeof firebase !== 'object' || !firebase.database) {
+    console.warn('Firebase not available, using mock data');
+    
+    // Mock database functions
+    database.ref = function(path) {
+        return {
+            once: function(event) {
+                return Promise.resolve({
+                    val: function() {
+                        if (path.includes('investorCards')) {
+                            return {
+                                "card1": {
+                                    id: "card1",
+                                    cardNumber: "2750238015845063",
+                                    cvv: "123",
+                                    expiryDate: "2027-05-31",
+                                    investorId: "inv1",
+                                    investorName: "سما بابل للإستثمار",
+                                    investorPhone: "07701234567",
+                                    investorEmail: "info@samababel.com",
+                                    totalInvestment: 4000.00,
+                                    totalProfit: 51036.03,
+                                    dueProfit: 1458.333,
+                                    paidProfit: 49577.70,
+                                    investmentType: "استثمار عقاري",
+                                    investmentDate: "2024-01-15T00:00:00.000Z",
+                                    maturityDate: "2027-05-31T00:00:00.000Z",
+                                    joinDate: "2023-12-01T00:00:00.000Z",
+                                    status: "نشط"
                                 }
-                                return null;
-                            }
-                        });
-                    },
-                    set: function(data) {
-                        console.log('Mock database set:', path, data);
-                        return Promise.resolve();
+                            };
+                        } else if (path.includes('notifications')) {
+                            // Mock notifications data
+                            return generateMockNotificationsDatabase();
+                        }
+                        return null;
                     }
-                };
-            };
+                });
+            },
+            set: function(data) {
+                console.log('Mock database set:', path, data);
+                return Promise.resolve();
+            },
+            update: function(data) {
+                console.log('Mock database update:', path, data);
+                return Promise.resolve();
+            }
+        };
+    };
+}
+
+// Generate mock notifications database
+function generateMockNotificationsDatabase() {
+    const today = new Date();
+    const notificationsObj = {};
+    
+    // Welcome notification
+    const welcomeId = Date.now().toString(36) + '1';
+    notificationsObj[welcomeId] = {
+        title: 'مرحباً بك في سما بابل للاستثمار',
+        message: 'شكراً لانضمامك إلينا. نتمنى لك تجربة استثمارية ناجحة.',
+        type: 'welcome',
+        read: true,
+        date: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString() // 180 days ago
+    };
+    
+    // Profit notification
+    const profitId = Date.now().toString(36) + '2';
+    notificationsObj[profitId] = {
+        title: 'تم إضافة أرباح جديدة',
+        message: 'تم إضافة أرباح بقيمة 500 د.ع إلى حسابك.',
+        type: 'profit',
+        read: true,
+        date: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
+    };
+    
+    // System notification
+    const systemId = Date.now().toString(36) + '3';
+    notificationsObj[systemId] = {
+        title: 'تحديث النظام',
+        message: 'تم تحديث نظام المحفظة الاستثمارية بمميزات جديدة.',
+        type: 'system',
+        read: false,
+        date: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days ago
+    };
+    
+    // Withdrawal notification
+    const withdrawalId = Date.now().toString(36) + '4';
+    notificationsObj[withdrawalId] = {
+        title: 'تمت معالجة طلب السحب',
+        message: 'تمت الموافقة على طلب سحب الأرباح الخاص بك. سيتم التواصل معك قريباً.',
+        type: 'withdrawal',
+        read: false,
+        date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
+    };
+    
+    // New investment opportunity
+    const opportunityId = Date.now().toString(36) + '5';
+    notificationsObj[opportunityId] = {
+        title: 'فرصة استثمارية جديدة',
+        message: 'لديك فرصة استثمارية جديدة متاحة. تفضل بزيارة مكتبنا للمزيد من التفاصيل.',
+        type: 'investment',
+        read: false,
+        date: new Date().toISOString() // today
+    };
+    
+    return notificationsObj;
+}
+
+// Additional functions for enhanced functionality
+
+// Function to change app theme (light/dark)
+function toggleTheme() {
+    const root = document.documentElement;
+    const currentTheme = root.getAttribute('data-theme') || 'dark';
+    
+    if (currentTheme === 'dark') {
+        root.setAttribute('data-theme', 'light');
+        localStorage.setItem('appTheme', 'light');
+    } else {
+        root.setAttribute('data-theme', 'dark');
+        localStorage.setItem('appTheme', 'dark');
+    }
+}
+
+// Load saved theme from localStorage
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('appTheme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+}
+
+// Function to change app language
+function changeLanguage(lang) {
+    // This would typically load language strings from a JSON file
+    // and update all UI elements accordingly
+    console.log(`Language changed to: ${lang}`);
+    localStorage.setItem('appLanguage', lang);
+    // Would require a page reload or dynamic text replacement
+}
+
+// Function to export transaction history
+function exportTransactionHistory() {
+    if (!currentCard || !currentCard.recentOperations) {
+        showError('لا توجد معاملات للتصدير');
+        return;
+    }
+    
+    try {
+        // Get all transactions
+        const transactions = [...currentCard.recentOperations]
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Format for CSV
+        let csvContent = "نوع المعاملة,المبلغ,التاريخ,الحالة,الوصف\n";
+        
+        transactions.forEach(transaction => {
+            const type = getTransactionTypeName(transaction.type);
+            const amount = transaction.amount;
+            const date = formatDate(transaction.date);
+            const status = transaction.status === 'completed' ? 'مكتمل' : 'قيد المعالجة';
+            const description = transaction.description || '';
+            
+            csvContent += `${type},${amount},${date},${status},${description}\n`;
+        });
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `transactions_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error('Error exporting transactions:', error);
+        showError('حدث خطأ في تصدير المعاملات');
+    }
+}
+
+// Function to show investment chart in modal
+function showInvestmentChart() {
+    // This would typically use Chart.js or a similar library
+    // to create a visual representation of investment performance
+    console.log('Showing investment chart');
+    // For now, just show a placeholder message
+    alert('سيتم عرض مخطط الاستثمار قريبًا');
+}
+
+// Function to handle forgot card details
+function forgotCardDetails() {
+    // This would typically show a form to recover account
+    alert('يرجى التواصل مع خدمة العملاء لاسترداد تفاصيل البطاقة');
+}
+
+// Function to verify user identity (two-factor authentication)
+function sendVerificationCode() {
+    // This would typically send an SMS or email with a code
+    console.log('Sending verification code');
+    alert('تم إرسال رمز التحقق إلى رقم هاتفك');
+}
+
+// Function to verify the code entered by user
+function verifyCode(code) {
+    // This would typically validate the code against a backend
+    console.log(`Verifying code: ${code}`);
+    return code === '1234'; // Mock verification
+}
+
+// Function to update user profile
+function updateUserProfile(newData) {
+    // This would typically update the user profile in the database
+    console.log('Updating user profile:', newData);
+    
+    // Update current investor data
+    Object.assign(currentInvestor, newData);
+    
+    // Update localStorage
+    localStorage.setItem('investorData', JSON.stringify(currentInvestor));
+    
+    // Update UI
+    updateProfileSection();
+    
+    return true; // Mock successful update
+}
+
+// Function to register new biometric login
+function registerBiometric() {
+    // This would typically use the Web Authentication API
+    // to register a new biometric credential
+    console.log('Registering biometric login');
+    
+    if (!window.PublicKeyCredential) {
+        alert('متصفحك لا يدعم تسجيل الدخول البيومتري');
+        return false;
+    }
+    
+    // Mock success for now
+    alert('تم تسجيل بصمة الإصبع بنجاح');
+    return true;
+}
+
+// Function to handle push notification registration
+function registerForPushNotifications() {
+    // This would typically use the Push API to register for notifications
+    console.log('Registering for push notifications');
+    
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('متصفحك لا يدعم الإشعارات');
+        return false;
+    }
+    
+    // Mock success for now
+    alert('تم تسجيل الإشعارات بنجاح');
+    return true;
+}
+
+// Function to calculate investment projections
+function calculateProjections(amount, duration, rate) {
+    // Simple compound interest calculation
+    const years = duration / 12;
+    const interest = amount * Math.pow((1 + rate/100), years) - amount;
+    return {
+        finalAmount: amount + interest,
+        totalInterest: interest
+    };
+}
+
+// Function to show QR code for sharing investment details
+function showShareQR() {
+    // This would typically generate a QR code with investment info
+    console.log('Showing QR code for sharing');
+    alert('سيتم عرض رمز QR للمشاركة قريبًا');
+}
+
+// Function to handle bank account linking
+function linkBankAccount(bankInfo) {
+    // This would typically connect to a banking API
+    console.log('Linking bank account:', bankInfo);
+    
+    // Mock success for now
+    return {
+        success: true,
+        message: 'تم ربط الحساب البنكي بنجاح'
+    };
+}
+
+// Function to handle document upload for KYC
+function uploadKYCDocument(documentType, file) {
+    // This would typically upload the document to a secure storage
+    console.log(`Uploading ${documentType} document`);
+    
+    // Mock upload process
+    setTimeout(() => {
+        alert(`تم رفع مستند ${documentType} بنجاح`);
+    }, 2000);
+    
+    return true;
+}
+
+// Enhanced currency formatter with support for different currencies
+function formatCurrencyAdvanced(amount, currency = 'IQD') {
+    const currencySymbols = {
+        'IQD': 'د.ع',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£'
+    };
+    
+    const symbol = currencySymbols[currency] || currency;
+    
+    const formatted = new Intl.NumberFormat('ar-IQ', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount);
+    
+    return `${formatted} ${symbol}`;
+}
+
+// Function to handle investment calculator
+function calculateInvestmentReturns(principal, period, rate) {
+    const monthlyRate = rate / 12 / 100;
+    let futureValue = principal;
+    
+    for (let i = 0; i < period; i++) {
+        futureValue += futureValue * monthlyRate;
+    }
+    
+    return {
+        principal: principal,
+        returns: futureValue - principal,
+        total: futureValue,
+        annualRate: rate,
+        periodMonths: period
+    };
+}
+
+// Function to initialize push notifications
+function initializePushNotifications() {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+                console.log('ServiceWorker registered with scope:', registration.scope);
+                // Request notification permission
+                return Notification.requestPermission();
+            })
+            .then(permission => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted');
+                    // Subscribe to push notifications
+                    // This would typically involve getting a push subscription
+                    // and sending it to your server
+                }
+            })
+            .catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+    }
+}
+
+
+// Add these functions to window to make them globally available
+window.toggleTheme = toggleTheme;
+window.changeLanguage = changeLanguage;
+window.exportTransactionHistory = exportTransactionHistory;
+window.showInvestmentChart = showInvestmentChart;
+window.forgotCardDetails = forgotCardDetails;
+window.registerBiometric = registerBiometric;
+window.calculateProjections = calculateProjections;
+window.showShareQR = showShareQR;
+
+// Initialize additional features on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSavedTheme();
+    
+    // Add theme toggle button to profile section if needed
+    const profileSection = document.getElementById('profileSection');
+    if (profileSection) {
+        const themeToggleBtn = document.createElement('button');
+        themeToggleBtn.className = 'btn';
+        themeToggleBtn.style.marginTop = '10px';
+        themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> تبديل المظهر (فاتح/داكن)';
+        themeToggleBtn.onclick = toggleTheme;
+        
+        // Insert before logout button
+        const logoutBtn = profileSection.querySelector('.logout-btn');
+        if (logoutBtn) {
+            profileSection.insertBefore(themeToggleBtn, logoutBtn);
+        } else {
+            profileSection.appendChild(themeToggleBtn);
         }
-    </script>
+    }
+    
+    // Check for updates on page load
+    setTimeout(checkForUpdates, 5000);
+    
+    // Initialize push notifications if supported
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        // Only initialize if user is logged in
+        if (localStorage.getItem('investorCard')) {
+            initializePushNotifications();
+        }
+    }
+});
+
+</script>
 </body>
 </html>
