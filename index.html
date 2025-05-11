@@ -2984,57 +2984,73 @@ function getTransactionTypeName(type) {
 }
 
 // تحديث دالة تحميل الإشعارات لجلب البيانات الحقيقية من Firebase
+// تصحيح مشاكل عرض الإشعارات
+
+// 1. تحديث دالة تحميل الإشعارات لمعالجة البيانات الفارغة
 async function loadNotifications() {
     const notificationsList = document.getElementById('notificationsList');
     notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">جاري تحميل الإشعارات...</p>';
     
     try {
-        // مسار الإشعارات للمستثمر الحالي في Firebase
-        // مسار الإشعارات الصحيح يستخدم معرف المستخدم وبطاقة المستثمر
-        const investorId = currentInvestor?.id || '';
-        const cardId = currentCard?.id || '';
-        
-        // تحقق من صحة المعرفات قبل الاستمرار
-        if (!investorId || !cardId) {
-            console.error('معرفات المستثمر أو البطاقة غير متوفرة');
-            notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا يمكن تحميل الإشعارات، الرجاء إعادة تسجيل الدخول</p>';
-            return;
-        }
-        
-        // الحصول على الإشعارات من Firebase - استخدام المسار الصحيح
+        // مسار الإشعارات الصحيح
         const notificationsRef = database.ref(`${NOTIFICATIONS_PATH}`);
         const snapshot = await notificationsRef.orderByChild('date').once('value');
         
         // إنشاء مصفوفة من الإشعارات
         const notificationsArray = [];
         snapshot.forEach(childSnapshot => {
-            const notification = childSnapshot.val();
-            // إضافة معرف الإشعار للاستخدام لاحقًا
+            const notification = childSnapshot.val() || {};
+            
+            // إضافة معرف الإشعار
             notification.id = childSnapshot.key;
+            
+            // إضافة قيم افتراضية للعناصر المفقودة
+            notification.title = notification.title || 'إشعار جديد';
+            notification.message = notification.message || 'لا يوجد محتوى للإشعار';
+            notification.date = notification.date || new Date().toISOString();
+            notification.type = notification.type || 'system';
+            notification.read = notification.read || false;
+            
+            // التحقق من صحة التاريخ قبل الإضافة
+            const isValidDate = notification.date && !isNaN(new Date(notification.date).getTime());
+            if (!isValidDate) {
+                notification.date = new Date().toISOString();
+            }
+            
             notificationsArray.push(notification);
         });
         
-        // جلب العمليات الحالية وتحويلها إلى إشعارات
+        // جلب العمليات من الباث الصحيح
         const operationsRef = database.ref(`${OPERATIONS_PATH}`);
         const operationsSnapshot = await operationsRef.once('value');
         const operations = [];
         
         operationsSnapshot.forEach(childSnapshot => {
-            const operation = childSnapshot.val();
+            const operation = childSnapshot.val() || {};
+            
             // إضافة معرف العملية
             operation.id = childSnapshot.key;
-            operations.push(operation);
             
-            // تحويل العملية إلى إشعار وإضافته إلى مصفوفة الإشعارات
-            const notification = createNotificationFromOperation(operation);
-            if (notification) {
-                notificationsArray.push(notification);
+            // التحقق من صحة بيانات العملية
+            if (operation.type && operation.date) {
+                operations.push(operation);
+                
+                // تحويل العملية إلى إشعار
+                const notification = createNotificationFromOperation(operation);
+                if (notification) {
+                    notificationsArray.push(notification);
+                }
             }
         });
         
         // ترتيب الإشعارات حسب التاريخ (الأحدث أولاً)
         notifications = notificationsArray.sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
+            try {
+                return new Date(b.date) - new Date(a.date);
+            } catch (error) {
+                console.error('خطأ في ترتيب التاريخ:', error);
+                return 0; // الحفاظ على الترتيب الأصلي في حالة الخطأ
+            }
         });
         
         // عرض الإشعارات
@@ -3043,78 +3059,100 @@ async function loadNotifications() {
         // تحديث عدد الإشعارات غير المقروءة
         updateUnreadCount();
         
-        // الاستماع للتغييرات في الإشعارات في الوقت الفعلي
+        // الاستماع للتغييرات في الإشعارات
         listenForNotificationChanges();
     } catch (error) {
         console.error('خطأ في تحميل الإشعارات:', error);
         notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">حدث خطأ في تحميل الإشعارات</p>';
     }
-}
+}جج
 
-// دالة لعرض الإشعارات
+
+// 2. تحديث دالة عرض الإشعارات
 function displayNotifications(notificationsArray) {
     const notificationsList = document.getElementById('notificationsList');
     notificationsList.innerHTML = '';
     
-    if (notificationsArray.length === 0) {
+    if (!notificationsArray || notificationsArray.length === 0) {
         notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد إشعارات</p>';
         return;
     }
     
-    // عرض كل إشعار
+    // عرض كل إشعار مع التحقق من صحة البيانات
     notificationsArray.forEach(notification => {
-        const notificationElement = createNotificationElement(notification);
-        notificationsList.appendChild(notificationElement);
+        if (notification) {
+            const notificationElement = createNotificationElement(notification);
+            notificationsList.appendChild(notificationElement);
+        }
     });
 }
 
-// تحديث دالة تحويل العملية إلى إشعار
+/ 3. تحديث دالة تحويل العملية إلى إشعار
 function createNotificationFromOperation(operation) {
+    // التحقق من صحة بيانات العملية
     if (!operation || !operation.type) return null;
     
     // تخصيص عنوان الإشعار ونص الرسالة حسب نوع العملية
-    let title = '';
-    let message = '';
+    let title = 'إشعار جديد'; // قيمة افتراضية
+    let message = 'تم تسجيل عملية جديدة'; // رسالة افتراضية
     let notificationType = operation.type;
     
-    switch (operation.type) {
-        case 'investment':
-        case 'deposit':
-            title = 'استثمار جديد';
-            message = `تم إضافة استثمار جديد بقيمة ${formatCurrency(operation.amount)}`;
-            if (operation.notes) {
-                message += `. ${operation.notes}`;
-            }
-            break;
-        case 'withdrawal':
-            title = 'طلب سحب';
-            message = `تم تسجيل طلب سحب بقيمة ${formatCurrency(operation.amount)}`;
-            if (operation.status === 'pending') {
-                message += `. الطلب قيد المراجعة`;
-            } else if (operation.status === 'completed') {
-                message += `. تمت الموافقة على الطلب`;
-            } else if (operation.status === 'rejected') {
-                message += `. تم رفض الطلب`;
-            }
-            break;
-        case 'profit':
-            title = 'أرباح جديدة';
-            message = `تم إضافة أرباح بقيمة ${formatCurrency(operation.amount)} إلى حسابك`;
-            if (operation.notes) {
-                message += `. ${operation.notes}`;
-            }
-            break;
-        case 'system':
-            title = 'إشعار نظام';
-            message = operation.message || 'إشعار من النظام';
-            break;
-        default:
-            title = 'إشعار جديد';
-            message = operation.message || `تم تسجيل عملية جديدة بقيمة ${formatCurrency(operation.amount || 0)}`;
-            if (operation.notes) {
-                message += `. ${operation.notes}`;
-            }
-            break;
+    try {
+        const amount = operation.amount || 0;
+        const formattedAmount = formatCurrency(amount);
+        
+        switch (operation.type) {
+            case 'investment':
+            case 'deposit':
+                title = 'استثمار جديد';
+                message = `تم إضافة استثمار جديد بقيمة ${formattedAmount}`;
+                if (operation.notes) {
+                    message += `. ${operation.notes}`;
+                }
+                break;
+            case 'withdrawal':
+                title = 'طلب سحب';
+                message = `تم تسجيل طلب سحب بقيمة ${formattedAmount}`;
+                if (operation.status === 'pending') {
+                    message += `. الطلب قيد المراجعة`;
+                } else if (operation.status === 'completed') {
+                    message += `. تمت الموافقة على الطلب`;
+                } else if (operation.status === 'rejected') {
+                    message += `. تم رفض الطلب`;
+                }
+                break;
+            case 'profit':
+                title = 'أرباح جديدة';
+                message = `تم إضافة أرباح بقيمة ${formattedAmount} إلى حسابك`;
+                if (operation.notes) {
+                    message += `. ${operation.notes}`;
+                }
+                break;
+            case 'system':
+                title = 'إشعار نظام';
+                message = operation.message || 'إشعار من النظام';
+                break;
+            default:
+                title = 'إشعار جديد';
+                message = operation.message || `تم تسجيل عملية جديدة بقيمة ${formattedAmount}`;
+                if (operation.notes) {
+                    message += `. ${operation.notes}`;
+                }
+                break;
+        }
+    } catch (error) {
+        console.error('خطأ في إنشاء محتوى الإشعار:', error);
+        // استخدام القيم الافتراضية في حالة الخطأ
+    }
+    
+    // التحقق من صحة التاريخ
+    let date = new Date().toISOString();
+    try {
+        if (operation.date && !isNaN(new Date(operation.date).getTime())) {
+            date = operation.date;
+        }
+    } catch (error) {
+        console.error('خطأ في التاريخ:', error);
     }
     
     // إنشاء كائن الإشعار
@@ -3124,20 +3162,41 @@ function createNotificationFromOperation(operation) {
         message: message,
         type: notificationType,
         read: false,
-        date: operation.date || new Date().toISOString(),
+        date: date,
         amount: operation.amount,
         status: operation.status,
         operation: operation // تخزين العملية الأصلية للرجوع إليها عند الحاجة
     };
 }
 
-// تحديث دالة إنشاء عنصر الإشعار
+
+
+/
+// 4. تحسين دالة إنشاء عنصر الإشعار
 function createNotificationElement(notification) {
-    const div = document.createElement('div');
-    div.className = `notification-item ${notification.read ? '' : 'unread'} ${Date.now() - new Date(notification.date) < 3600000 ? 'new-notification' : ''}`;
-    div.dataset.id = notification.id;
+    // التحقق من صحة البيانات وإضافة قيم افتراضية
+    const title = notification.title || 'إشعار جديد';
+    const message = notification.message || 'محتوى الإشعار غير متوفر';
+    const type = notification.type || 'system';
+    const isRead = notification.read || false;
     
-    const icon = getNotificationIcon(notification.type);
+    // التعامل مع التاريخ بشكل آمن
+    let formattedDate = 'تاريخ غير معروف';
+    let formattedTime = '';
+    try {
+        if (notification.date && !isNaN(new Date(notification.date).getTime())) {
+            formattedDate = formatDate(notification.date);
+            formattedTime = formatTime(notification.date);
+        }
+    } catch (error) {
+        console.error('خطأ في تنسيق التاريخ:', error);
+    }
+    
+    const div = document.createElement('div');
+    div.className = `notification-item ${isRead ? '' : 'unread'} ${Date.now() - new Date(notification.date) < 3600000 ? 'new-notification' : ''}`;
+    div.dataset.id = notification.id || generateId();
+    
+    const icon = getNotificationIcon(type);
     
     let statusHTML = '';
     if (notification.status) {
@@ -3155,20 +3214,24 @@ function createNotificationElement(notification) {
         statusHTML = `<div class="notification-status ${statusClass}">الحالة: ${statusText}</div>`;
     }
     
+    // تنسيق المبلغ إذا كان موجودًا
+    const amountHTML = notification.amount ? 
+        `<div class="notification-amount">${formatCurrency(notification.amount)}</div>` : '';
+    
     div.innerHTML = `
         <div class="notification-icon">
             <i class="${icon}"></i>
         </div>
         <div class="notification-content">
-            <div class="notification-title">${notification.title}</div>
-            <div class="notification-message">${notification.message}</div>
-            ${notification.amount ? `<div class="notification-amount">${formatCurrency(notification.amount)}</div>` : ''}
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+            ${amountHTML}
             ${statusHTML}
-            <div class="notification-date">${formatDate(notification.date)} - ${formatTime(notification.date)}</div>
+            <div class="notification-date">${formattedDate} ${formattedTime ? '- ' + formattedTime : ''}</div>
         </div>
     `;
     
-    // إضافة حدث النقر لعرض تفاصيل الإشعار
+    // إضافة معالج حدث النقر
     div.addEventListener('click', () => {
         markNotificationAsRead(notification.id);
         div.classList.remove('unread');
@@ -3361,65 +3424,54 @@ function updateUnreadCount() {
     }
 }
 
-// تحديث دالة تنسيق الوقت
+// 5. تحسين دالة تنسيق الوقت
 function formatTime(dateString) {
-    const date = new Date(dateString);
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-}
-
-// تحديث switchSection لتحديث قراءة الإشعارات عند الانتقال إلى قسم الإشعارات
-const originalSwitchSection = window.switchSection || function(section) {
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    document.querySelector(`.nav-item[onclick="switchSection('${section}')"]`).classList.add('active');
-    
-    // Hide all sections
-    document.getElementById('homeSection').style.display = 'none';
-    document.getElementById('profileSection').style.display = 'none';
-    document.getElementById('transactionsSection').style.display = 'none';
-    document.getElementById('notificationsSection').style.display = 'none';
-    
-    // Show the selected section
-    if (section === 'home') {
-        document.getElementById('homeSection').style.display = 'block';
-    } else if (section === 'profile') {
-        document.getElementById('profileSection').style.display = 'block';
-    } else if (section === 'transactions') {
-        document.getElementById('transactionsSection').style.display = 'block';
-        // Make sure transactions are loaded with current filter
-        loadFilteredTransactions(currentFilter);
-    } else if (section === 'notifications') {
-        document.getElementById('notificationsSection').style.display = 'block';
-        // Make sure notifications are loaded
-        loadNotifications();
-    }
-};
-
-window.switchSection = function(section) {
-    originalSwitchSection(section);
-    
-    if (section === 'notifications') {
-        const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
-        const indicator = notificationNav.querySelector('.notification-indicator');
-        if (indicator) {
-            indicator.remove();
+    try {
+        const date = new Date(dateString);
+        
+        // التحقق من صحة التاريخ
+        if (isNaN(date.getTime())) {
+            return '';
         }
         
-        // تحديث حالة القراءة للإشعارات المعروضة
-        const notificationItems = document.querySelectorAll('#notificationsList .notification-item.unread');
-        notificationItems.forEach(item => {
-            const notificationId = item.dataset.id;
-            if (notificationId) {
-                markNotificationAsRead(notificationId);
-                item.classList.remove('unread');
-            }
-        });
-        
-        // تحديث عدد الإشعارات غير المقروءة
-        updateUnreadCount();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    } catch (error) {
+        console.error('خطأ في تنسيق الوقت:', error);
+        return '';
     }
-};
+}
+
+// 6. تحسين دالة تنسيق التاريخ
+function formatDate(dateString) {
+    try {
+        const date = new Date(dateString);
+        
+        // التحقق من صحة التاريخ
+        if (isNaN(date.getTime())) {
+            return 'تاريخ غير متوفر';
+        }
+        
+        // استخدام التنسيق المحلي العربي
+        return date.toLocaleDateString('ar-IQ');
+    } catch (error) {
+        console.error('خطأ في تنسيق التاريخ:', error);
+        return 'تاريخ غير متوفر';
+    }
+}
+
+// 7. دالة مساعدة للتحقق من صحة التاريخ
+function isValidDate(dateString) {
+    if (!dateString) return false;
+    
+    try {
+        const date = new Date(dateString);
+        return !isNaN(date.getTime());
+    } catch (error) {
+        return false;
+    }
+}
 
 // إضافة دالة لفتح نافذة تفاصيل الإشعار
 function openNotificationDetails(notification) {
