@@ -693,6 +693,7 @@ h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
             gap: 5px;
             color: var(--text-light);
             width: 70px;
+            position: relative; /* Added for notification badge positioning */
         }
 
         .nav-item.active {
@@ -1011,6 +1012,7 @@ h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
             display: flex;
             align-items: flex-start;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .notification-item:hover {
@@ -1020,6 +1022,16 @@ h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
 
         .notification-item.unread {
             border-right: 3px solid var(--gold);
+        }
+
+        .notification-item.new-notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--gold) 0%, transparent 50%);
         }
 
         .notification-icon {
@@ -1054,6 +1066,56 @@ h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
         .notification-date {
             font-size: 0.8rem;
             color: var(--text-light);
+        }
+
+        .notification-amount {
+            font-weight: 700;
+            color: var(--gold);
+            margin-top: 5px;
+        }
+
+        .notification-status {
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .notification-status.pending {
+            color: var(--gold);
+        }
+
+        .notification-status.completed {
+            color: var(--green);
+        }
+
+        .notification-status.rejected {
+            color: var(--red);
+        }
+
+        /* Notification Badge */
+        .notification-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 16px;
+            height: 16px;
+            background-color: var(--red);
+            border-radius: 8px;
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+
+        .notification-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--red);
+            border-radius: 50%;
         }
 
         /* ===== MODALS ===== */
@@ -1158,6 +1220,122 @@ h1, h2, h3, .section-title, .profile-name, .card-number, .card-company {
             text-align: center;
             display: none;
             font-size: 0.9rem;
+        }
+
+        /* Card display in withdraw form */
+        .card-display {
+            background-color: rgba(17, 24, 39, 0.8);
+            border: 1px solid var(--gold-medium);
+            border-radius: var(--border-radius-sm);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .card-number-display {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .form-help-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        .alert-container {
+            margin-bottom: 15px;
+        }
+
+        .form-notice {
+            background-color: rgba(255, 196, 54, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .form-notice i {
+            color: var(--gold);
+            font-size: 1.1rem;
+        }
+
+        /* Notification Toast */
+        .notification-toast-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 9999;
+            direction: rtl;
+        }
+
+        .notification-toast {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: var(--bg-card);
+            border: 1px solid;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .notification-toast.hiding {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        .notification-toast.info {
+            border-color: var(--blue);
+        }
+
+        .notification-toast.success {
+            border-color: var(--green);
+        }
+
+        .notification-toast.warning {
+            border-color: var(--gold);
+        }
+
+        .notification-toast.danger {
+            border-color: var(--red);
+        }
+
+        .notification-toast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .notification-toast-title {
+            font-weight: bold;
+            color: var(--gold);
+        }
+
+        .notification-toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            line-height: 1;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .notification-toast-body {
+            font-size: 0.9rem;
+            color: var(--text-white);
         }
 
         /* ===== RESPONSIVE STYLES ===== */
@@ -1719,7 +1897,6 @@ body {
         max-height: 300px;
     }
 }
-/* ...existing code... */
     </style>
 </head>
 <body>
@@ -1955,19 +2132,29 @@ body {
         <div class="modal" id="withdrawModal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 style="color: var(--gold);">طلب سحب</h2>
+                    <h2 style="color: var(--gold);">طلب سحب الأرباح</h2>
                     <button class="modal-close" onclick="closeWithdrawModal()">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <form id="withdrawForm" onsubmit="submitWithdrawRequest(event)">
                     <div class="form-group">
-                        <label class="form-label">المبلغ المتاح للسحب</label>
+                        <label class="form-label">البطاقة</label>
+                        <div class="card-display">
+                            <span id="withdrawCardNumber" class="card-number-display">2750 2380 1584 5063</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الرصيد المتاح للسحب</label>
                         <input type="text" class="form-control" id="availableBalance" readonly>
                     </div>
                     <div class="form-group">
                         <label class="form-label">المبلغ المطلوب سحبه</label>
-                        <input type="number" class="form-control" id="withdrawAmount" required>
+                        <input type="number" class="form-control" id="withdrawAmount" min="50" required>
+                        <div class="form-help-text">
+                            <span id="withdrawMinAmount">الحد الأدنى: 50 د.ع</span>
+                            <span id="withdrawMaxAmount">الحد الأقصى: 0 د.ع</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">طريقة الاستلام</label>
@@ -1980,17 +2167,25 @@ body {
                     <div class="form-group" id="bankDetailsGroup" style="display: none;">
                         <label class="form-label">تفاصيل الحساب البنكي</label>
                         <input type="text" class="form-control" id="bankDetails" placeholder="اسم البنك ورقم الحساب">
+                        <div class="form-help-text">يرجى إدخال اسم البنك ورقم الحساب بشكل صحيح</div>
                     </div>
                     <div class="form-group" id="walletDetailsGroup" style="display: none;">
                         <label class="form-label">تفاصيل المحفظة الإلكترونية</label>
                         <input type="text" class="form-control" id="walletDetails" placeholder="نوع المحفظة ورقم الهاتف">
+                        <div class="form-help-text">يرجى إدخال نوع المحفظة ورقم الهاتف بشكل صحيح</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">ملاحظات</label>
-                        <textarea class="form-control" id="withdrawNotes" rows="3"></textarea>
+                        <textarea class="form-control" id="withdrawNotes" rows="3" placeholder="يمكنك إضافة أي ملاحظات خاصة بطلب السحب هنا"></textarea>
                     </div>
-                    <div id="withdrawError" class="error-message"></div>
-                    <div id="withdrawSuccess" class="success-message"></div>
+                    <div class="alert-container">
+                        <div id="withdrawError" class="error-message"></div>
+                        <div id="withdrawSuccess" class="success-message"></div>
+                    </div>
+                    <div class="form-notice">
+                        <i class="fas fa-info-circle"></i>
+                        <span>سيتم مراجعة طلب السحب وقد يستغرق المعالجة من 1-3 أيام عمل.</span>
+                    </div>
                     <button type="submit" class="btn">
                         <i class="fas fa-paper-plane"></i> إرسال الطلب
                     </button>
@@ -2084,629 +2279,710 @@ body {
                 </div>
             </div>
         </div>
-    </div>
 
+        <!-- Notification Details Modal -->
+        <div class="modal" id="notificationDetailsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 style="color: var(--gold);" id="notificationDetailsTitle">تفاصيل الإشعار</h2>
+                    <button class="modal-close" onclick="closeNotificationDetailsModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="account-details" id="notificationDetailsContent">
+                    <!-- تفاصيل الإشعار ستظهر هنا -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast Container -->
+        <div id="notificationToastContainer"></div>
+  </div>
+            </div>
+        </div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
-            authDomain: "messageemeapp.firebaseapp.com",
-            databaseURL: "https://messageemeapp-default-rtdb.firebaseio.com",
-            projectId: "messageemeapp",
-            storageBucket: "messageemeapp.appspot.com",
-            messagingSenderId: "255034474844",
-            appId: "1:255034474844:web:5e3b7a6bc4b2fb94cc4199"
-        };
+     // Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
+    authDomain: "messageemeapp.firebaseapp.com",
+    databaseURL: "https://messageemeapp-default-rtdb.firebaseio.com",
+    projectId: "messageemeapp",
+    storageBucket: "messageemeapp.appspot.com",
+    messagingSenderId: "255034474844",
+    appId: "1:255034474844:web:5e3b7a6bc4b2fb94cc4199"
+};
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-        // Global variables
-        let currentInvestor = null;
-        let currentCard = null;
-        let qrScanner = null;
-        let currentFilter = 'all';
-        let notifications = [];
-        // المسار الصحيح في Firebase
-        const FIREBASE_USER_ID = '6wS4ga5v6MXUMC0yzyDnxuI2dh03';
-        const INVESTOR_CARD_ID = 'mai4v8cousf7soxqvt'; // معرف البطاقة المحدد
-        const CARDS_PATH = `users/${FIREBASE_USER_ID}/investorCards`;
-        const TRANSACTIONS_PATH = `users/${FIREBASE_USER_ID}/transactions`;
-        const WITHDRAWAL_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/withdrawRequests`;
-        const SUPPORT_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/supportRequests`;
-        const NOTIFICATIONS_PATH = `users/${FIREBASE_USER_ID}/notifications`;
-        const OPERATIONS_PATH = `users/${FIREBASE_USER_ID}/investorCards/${INVESTOR_CARD_ID}/recentOperations`;
+// Global variables
+let currentInvestor = null;
+let currentCard = null;
+let qrScanner = null;
+let currentFilter = 'all';
+let notifications = [];
+// المسار الصحيح في Firebase
+const FIREBASE_USER_ID = '6wS4ga5v6MXUMC0yzyDnxuI2dh03';
+const INVESTOR_CARD_ID = 'mai4v8cousf7soxqvt'; // معرف البطاقة المحدد
+const CARDS_PATH = `users/${FIREBASE_USER_ID}/investorCards`;
+const TRANSACTIONS_PATH = `users/${FIREBASE_USER_ID}/transactions`;
+const WITHDRAWAL_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/withdrawRequests`;
+const SUPPORT_REQUESTS_PATH = `users/${FIREBASE_USER_ID}/supportRequests`;
+const NOTIFICATIONS_PATH = `users/${FIREBASE_USER_ID}/notifications`;
+const OPERATIONS_PATH = `users/${FIREBASE_USER_ID}/investorCards/${INVESTOR_CARD_ID}/recentOperations`;
 
-        // Initialize app
-        window.onload = function() {
-            setupEventListeners();
-            checkLocalStorage();
-            hideLoading();
-        };
+// Initialize app
+window.onload = function() {
+    setupEventListeners();
+    checkLocalStorage();
+    hideLoading();
+};
+
+// Check for saved login info in localStorage
+function checkLocalStorage() {
+    const savedCard = localStorage.getItem('investorCard');
+    const savedInvestor = localStorage.getItem('investorData');
+    
+    if (savedCard && savedInvestor) {
+        try {
+            currentCard = JSON.parse(savedCard);
+            currentInvestor = JSON.parse(savedInvestor);
+            showDashboard();
+        } catch (error) {
+            console.error('Error parsing saved data:', error);
+            localStorage.removeItem('investorCard');
+            localStorage.removeItem('investorData');
+        }
+    }
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    // Card number formatting
+    document.getElementById('cardNumber').addEventListener('input', formatCardNumber);
+    
+    // Expiry date formatting
+    document.getElementById('expiryDate').addEventListener('input', formatExpiryDate);
+    
+    // CVV formatting
+    document.getElementById('cvv').addEventListener('input', formatCVV);
+    
+    // Withdraw method change
+    document.getElementById('withdrawMethod').addEventListener('change', function() {
+        const method = this.value;
+        document.getElementById('bankDetailsGroup').style.display = method === 'bank_transfer' ? 'block' : 'none';
+        document.getElementById('walletDetailsGroup').style.display = method === 'e_wallet' ? 'block' : 'none';
+    });
+}
+
+// Format card number input
+function formatCardNumber(e) {
+    let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+    e.target.value = formattedValue;
+}
+
+// Format expiry date input
+function formatExpiryDate(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+    e.target.value = value;
+}
+
+// Format CVV input
+function formatCVV(e) {
+    e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
+}
+
+// Switch between tabs
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+    document.getElementById(tabName).classList.add('active');
+}
+
+// Login with card
+async function loginWithCard(event) {
+    event.preventDefault();
+    showLoading();
+    clearErrors();
+
+    const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
+    const expiryDate = document.getElementById('expiryDate').value;
+    const cvv = document.getElementById('cvv').value;
+
+    console.log("Attempting login with:", { cardNumber, expiryDate, cvv });
+
+    try {
+        // Search for card in Firebase with correct path
+        const cardData = await findCardInDatabase(cardNumber, expiryDate, cvv);
         
-        // Check for saved login info in localStorage
-        function checkLocalStorage() {
-            const savedCard = localStorage.getItem('investorCard');
-            const savedInvestor = localStorage.getItem('investorData');
+        if (cardData) {
+            currentCard = cardData;
+            console.log("Card found:", cardData);
             
-            if (savedCard && savedInvestor) {
-                try {
-                    currentCard = JSON.parse(savedCard);
-                    currentInvestor = JSON.parse(savedInvestor);
-                    showDashboard();
-                } catch (error) {
-                    console.error('Error parsing saved data:', error);
-                    localStorage.removeItem('investorCard');
-                    localStorage.removeItem('investorData');
-                }
-            }
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Card number formatting
-            document.getElementById('cardNumber').addEventListener('input', formatCardNumber);
+            // Load investor data from the card
+            currentInvestor = {
+                id: cardData.investorId,
+                name: cardData.investorName,
+                phone: cardData.investorPhone,
+                email: cardData.investorEmail || '',
+                joinDate: cardData.joinDate || new Date().toISOString()
+            };
             
-            // Expiry date formatting
-            document.getElementById('expiryDate').addEventListener('input', formatExpiryDate);
+            // Save to localStorage for persistent login
+            localStorage.setItem('investorCard', JSON.stringify(currentCard));
+            localStorage.setItem('investorData', JSON.stringify(currentInvestor));
             
-            // CVV formatting
-            document.getElementById('cvv').addEventListener('input', formatCVV);
-            
-            // Withdraw method change
-            document.getElementById('withdrawMethod').addEventListener('change', function() {
-                const method = this.value;
-                document.getElementById('bankDetailsGroup').style.display = method === 'bank_transfer' ? 'block' : 'none';
-                document.getElementById('walletDetailsGroup').style.display = method === 'e_wallet' ? 'block' : 'none';
-            });
+            showDashboard();
+        } else {
+            showError('بيانات البطاقة غير صحيحة');
         }
+    } catch (error) {
+        console.error('Login error:', error);
+        showError('حدث خطأ في النظام');
+    } finally {
+        hideLoading();
+    }
+}
 
-        // Format card number input
-        function formatCardNumber(e) {
-            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
+// Find card in database with correct path
+async function findCardInDatabase(cardNumber, expiryDate, cvv) {
+    console.log("Searching in path:", CARDS_PATH);
+    
+    const cardsRef = database.ref(CARDS_PATH);
+    const snapshot = await cardsRef.once('value');
+    const cards = snapshot.val() || {};
+    
+    console.log("Cards found:", cards);
+
+    // Search through all cards
+    for (const cardId in cards) {
+        const card = cards[cardId];
+        console.log("Checking card:", card);
+        
+        if (card.cardNumber === cardNumber && 
+            formatCardExpiryDateFromDB(card.expiryDate) === expiryDate && 
+            card.cvv === cvv) {
+            console.log("Card match found!");
+            return card;
         }
+    }
 
-        // Format expiry date input
-        function formatExpiryDate(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
-            }
-            e.target.value = value;
-        }
+    return null;
+}
 
-        // Format CVV input
-        function formatCVV(e) {
-            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
-        }
+// Format expiry date from database format
+function formatCardExpiryDateFromDB(dateString) {
+    const date = new Date(dateString);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString().substr(-2);
+    return `${month}/${year}`;
+}
 
-        // Switch between tabs
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-        }
+// Start QR scan
+async function startQRScan() {
+    try {
+        const qrScannerElement = document.getElementById('qr-scanner');
+        qrScannerElement.style.display = 'block';
+        
+        qrScanner = new Html5QrcodeScanner(
+            "qr-scanner", 
+            { fps: 10, qrbox: 250 }
+        );
 
-        // Login with card
-        async function loginWithCard(event) {
-            event.preventDefault();
-            showLoading();
-            clearErrors();
+        qrScanner.render(onQRSuccess, onQRError);
+        document.getElementById('startScanBtn').style.display = 'none';
+    } catch (error) {
+        console.error('QR scanner error:', error);
+        showError('خطأ في تشغيل الكاميرا');
+    }
+}
 
-            const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
-            const expiryDate = document.getElementById('expiryDate').value;
-            const cvv = document.getElementById('cvv').value;
-
-            console.log("Attempting login with:", { cardNumber, expiryDate, cvv });
-
-            try {
-                // Search for card in Firebase with correct path
-                const cardData = await findCardInDatabase(cardNumber, expiryDate, cvv);
-                
-                if (cardData) {
-                    currentCard = cardData;
-                    console.log("Card found:", cardData);
-                    
-                    // Load investor data from the card
-                    currentInvestor = {
-                        id: cardData.investorId,
-                        name: cardData.investorName,
-                        phone: cardData.investorPhone,
-                        email: cardData.investorEmail || '',
-                        joinDate: cardData.joinDate || new Date().toISOString()
-                    };
-                    
-                    // Save to localStorage for persistent login
-                    localStorage.setItem('investorCard', JSON.stringify(currentCard));
-                    localStorage.setItem('investorData', JSON.stringify(currentInvestor));
-                    
-                    showDashboard();
-                } else {
-                    showError('بيانات البطاقة غير صحيحة');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showError('حدث خطأ في النظام');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // Find card in database with correct path
-        async function findCardInDatabase(cardNumber, expiryDate, cvv) {
-            console.log("Searching in path:", CARDS_PATH);
-            
-            const cardsRef = database.ref(CARDS_PATH);
-            const snapshot = await cardsRef.once('value');
-            const cards = snapshot.val() || {};
-            
-            console.log("Cards found:", cards);
-
-            // Search through all cards
-            for (const cardId in cards) {
-                const card = cards[cardId];
-                console.log("Checking card:", card);
-                
-                if (card.cardNumber === cardNumber && 
-                    formatCardExpiryDateFromDB(card.expiryDate) === expiryDate && 
-                    card.cvv === cvv) {
-                    console.log("Card match found!");
-                    return card;
-                }
-            }
-
-            return null;
-        }
-
-        // Format expiry date from database format
-        function formatCardExpiryDateFromDB(dateString) {
-            const date = new Date(dateString);
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear().toString().substr(-2);
-            return `${month}/${year}`;
-        }
-
-        // Start QR scan
-        async function startQRScan() {
-            try {
-                const qrScannerElement = document.getElementById('qr-scanner');
-                qrScannerElement.style.display = 'block';
-                
-                qrScanner = new Html5QrcodeScanner(
-                    "qr-scanner", 
-                    { fps: 10, qrbox: 250 }
-                );
-
-                qrScanner.render(onQRSuccess, onQRError);
-                document.getElementById('startScanBtn').style.display = 'none';
-            } catch (error) {
-                console.error('QR scanner error:', error);
-                showError('خطأ في تشغيل الكاميرا');
-            }
-        }
-
-        // Decode QR code from uploaded image
-        function decodeQRFromImage(file) {
-            if (!file) {
-                return;
-            }
-            
-            showLoading();
-            
-            const html5QrCode = new Html5Qrcode("qr-scanner");
-            
-            html5QrCode.scanFile(file, true)
-                .then(decodedText => {
-                    console.log(`QR Code from image: ${decodedText}`);
-                    processQRData(decodedText);
-                })
-                .catch(err => {
-                    console.error(`Error scanning uploaded QR code: ${err}`);
-                    showError('فشل في قراءة رمز QR من الصورة');
-                    hideLoading();
-                });
-        }
-
-        // Process QR data (used by both camera and uploaded image)
-        async function processQRData(decodedText) {
-            try {
-                console.log("QR Code scanned:", decodedText);
-
-                // Parse QR data
-                const qrData = JSON.parse(decodedText);
-                
-                if (qrData.type === 'investor-card' && qrData.cardNumber) {
-                    // Auto-fill card data
-                    document.getElementById('cardNumber').value = formatCardNumberDisplay(qrData.cardNumber);
-                    document.getElementById('expiryDate').value = qrData.expiryDate;
-                    
-                    // Find card in database
-                    const cardData = await findCardByQR(qrData);
-                    
-                    if (cardData) {
-                        currentCard = cardData;
-                        
-                        // Load investor data from the card
-                        currentInvestor = {
-                            id: cardData.investorId,
-                            name: cardData.investorName,
-                            phone: cardData.investorPhone,
-                            email: cardData.investorEmail || '',
-                            joinDate: cardData.joinDate || new Date().toISOString()
-                        };
-                        
-                        // Save to localStorage for persistent login
-                        localStorage.setItem('investorCard', JSON.stringify(currentCard));
-                        localStorage.setItem('investorData', JSON.stringify(currentInvestor));
-                        
-                        showDashboard();
-                    } else {
-                        showError('البطاقة غير موجودة في النظام');
-                    }
-                } else {
-                    showError('رمز QR غير صالح');
-                }
-            } catch (error) {
-                console.error('QR processing error:', error);
-                showError('خطأ في معالجة رمز QR');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // QR scan success
-        function onQRSuccess(decodedText) {
-            if (qrScanner) {
-                qrScanner.clear();
-                qrScanner = null;
-            }
-            
+// Decode QR code from uploaded image
+function decodeQRFromImage(file) {
+    if (!file) {
+        return;
+    }
+    
+    showLoading();
+    
+    const html5QrCode = new Html5Qrcode("qr-scanner");
+    
+    html5QrCode.scanFile(file, true)
+        .then(decodedText => {
+            console.log(`QR Code from image: ${decodedText}`);
             processQRData(decodedText);
-        }
+        })
+        .catch(err => {
+            console.error(`Error scanning uploaded QR code: ${err}`);
+            showError('فشل في قراءة رمز QR من الصورة');
+            hideLoading();
+        });
+}
 
-        // QR scan error
-        function onQRError(error) {
-            console.warn('QR scan error:', error);
-        }
+// Process QR data (used by both camera and uploaded image)
+async function processQRData(decodedText) {
+    try {
+        console.log("QR Code scanned:", decodedText);
 
-        // Find card by QR data
-        async function findCardByQR(qrData) {
-            const cardsRef = database.ref(CARDS_PATH);
-            const snapshot = await cardsRef.once('value');
-            const cards = snapshot.val() || {};
-
-            // Search by card ID or investor ID
-            for (const cardId in cards) {
-                const card = cards[cardId];
-                if ((card.id === qrData.id || card.investorId === qrData.investorId) &&
-                    card.cardNumber === qrData.cardNumber) {
-                    return card;
-                }
-            }
-
-            return null;
-        }
-
-        // Show dashboard
-        function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboardScreen').style.display = 'block';
-            document.getElementById('bottomNav').style.display = 'flex';
-            
-            // Make sure home section is visible and others are hidden
-            switchSection('home');
-
-            // Update dashboard with card data
-            updateDashboard();
-            
-            // Load notifications
-            loadNotifications();
-        }
-
-        // Update dashboard
-        function updateDashboard() {
-            // Update header with investor name
-            document.getElementById('headerUsername').textContent = `مرحباً، ${currentInvestor.name}`;
-            
-            // Update card display
-            document.getElementById('displayCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
-            document.getElementById('displayExpiryDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
-            document.getElementById('cardDueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
-            document.getElementById('cardCompanyName').textContent = "سما بابل للاستثمار";
-
-            // Update financial info
-            document.getElementById('totalInvestment').textContent = formatCurrency(currentCard.totalInvestment || 0);
-            document.getElementById('dueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
-            document.getElementById('maturityDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
-            document.getElementById('investmentStatus').textContent = currentCard.status || "نشط";
-
-            // Update profile section
-            updateProfileSection();
-            
-            // Load transactions
-            loadTransactions();
-            
-            // Load filtered transactions
-            loadFilteredTransactions(currentFilter);
-        }
+        // Parse QR data
+        const qrData = JSON.parse(decodedText);
         
-        // Refresh dashboard data
-        async function refreshDashboard() {
-            showLoading();
+        if (qrData.type === 'investor-card' && qrData.cardNumber) {
+            // Auto-fill card data
+            document.getElementById('cardNumber').value = formatCardNumberDisplay(qrData.cardNumber);
+            document.getElementById('expiryDate').value = qrData.expiryDate;
             
-            try {
-                // Reload card data from Firebase
-                if (currentCard && currentCard.id) {
-                    const cardRef = database.ref(`${CARDS_PATH}/${currentCard.id}`);
-                    const snapshot = await cardRef.once('value');
-                    const updatedCard = snapshot.val();
-                    
-                    if (updatedCard) {
-                        currentCard = updatedCard;
-                        
-                        // Update localStorage
-                        localStorage.setItem('investorCard', JSON.stringify(currentCard));
-                        
-                        // Update UI
-                        updateDashboard();
-                    }
-                }
-                
-                // Reload notifications
-                loadNotifications();
-            } catch (error) {
-                console.error('Error refreshing data:', error);
-            } finally {
-                hideLoading();
-            }
-        }
-        
-        // Update profile section
-        function updateProfileSection() {
-            // Set profile data
-            document.getElementById('profileName').textContent = currentInvestor.name;
-            document.getElementById('profileCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
-            document.getElementById('profileFullName').textContent = currentInvestor.name;
-            document.getElementById('profilePhone').textContent = currentInvestor.phone || '-';
-            document.getElementById('profileEmail').textContent = currentInvestor.email || '-';
-            document.getElementById('profileJoinDate').textContent = formatDate(currentInvestor.joinDate);
+            // Find card in database
+            const cardData = await findCardByQR(qrData);
             
-            // Set the first letter of the name as avatar text
-            const avatarElement = document.getElementById('profileAvatar');
-            const firstLetter = currentInvestor.name.charAt(0);
-            avatarElement.innerHTML = `<span style="font-size: 2.5rem;">${firstLetter}</span>`;
-        }
-
-        // Format card number for display
-        function formatCardNumberDisplay(cardNumber) {
-            return cardNumber.match(/.{1,4}/g).join(' ');
-        }
-
-        // Format currency
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('ar-IQ', {
-                style: 'decimal',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(amount) + " د.ع";
-        }
-
-        // Load transactions
-        function loadTransactions() {
-            const transactionsList = document.getElementById('transactionsList');
-            transactionsList.innerHTML = '';
-            
-            // If we have recent operations in the card object
-            if (currentCard.recentOperations && currentCard.recentOperations.length > 0) {
-                // Sort operations by date (newest first)
-                const sortedOperations = [...currentCard.recentOperations]
-                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (cardData) {
+                currentCard = cardData;
                 
-                // Display the 5 most recent transactions
-                const recentOperations = sortedOperations.slice(0, 5);
+                // Load investor data from the card
+                currentInvestor = {
+                    id: cardData.investorId,
+                    name: cardData.investorName,
+                    phone: cardData.investorPhone,
+                    email: cardData.investorEmail || '',
+                    joinDate: cardData.joinDate || new Date().toISOString()
+                };
                 
-                recentOperations.forEach(transaction => {
-                    const transactionElement = createTransactionElement(transaction);
-                    transactionsList.appendChild(transactionElement);
-                });
+                // Save to localStorage for persistent login
+                localStorage.setItem('investorCard', JSON.stringify(currentCard));
+                localStorage.setItem('investorData', JSON.stringify(currentInvestor));
+                
+                showDashboard();
             } else {
-                // No recent operations found, generate mock data
-                const mockTransactions = generateMockTransactions();
+                showError('البطاقة غير موجودة في النظام');
+            }
+        } else {
+            showError('رمز QR غير صالح');
+        }
+    } catch (error) {
+        console.error('QR processing error:', error);
+        showError('خطأ في معالجة رمز QR');
+    } finally {
+        hideLoading();
+    }
+}
+
+// QR scan success
+function onQRSuccess(decodedText) {
+    if (qrScanner) {
+        qrScanner.clear();
+        qrScanner = null;
+    }
+    
+    processQRData(decodedText);
+}
+
+// QR scan error
+function onQRError(error) {
+    console.warn('QR scan error:', error);
+}
+
+// Find card by QR data
+async function findCardByQR(qrData) {
+    const cardsRef = database.ref(CARDS_PATH);
+    const snapshot = await cardsRef.once('value');
+    const cards = snapshot.val() || {};
+
+    // Search by card ID or investor ID
+    for (const cardId in cards) {
+        const card = cards[cardId];
+        if ((card.id === qrData.id || card.investorId === qrData.investorId) &&
+            card.cardNumber === qrData.cardNumber) {
+            return card;
+        }
+    }
+
+    return null;
+}
+
+// Show dashboard
+function showDashboard() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboardScreen').style.display = 'block';
+    document.getElementById('bottomNav').style.display = 'flex';
+    
+    // Make sure home section is visible and others are hidden
+    switchSection('home');
+
+    // Update dashboard with card data
+    updateDashboard();
+    
+    // Load notifications
+    loadNotifications();
+    
+    // Check for withdrawal requests status
+    setTimeout(checkWithdrawalRequestsStatus, 2000);
+}
+
+// Update dashboard
+function updateDashboard() {
+    // Update header with investor name
+    document.getElementById('headerUsername').textContent = `مرحباً، ${currentInvestor.name}`;
+    
+    // Update card display
+    document.getElementById('displayCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
+    document.getElementById('displayExpiryDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
+    document.getElementById('cardDueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
+    document.getElementById('cardCompanyName').textContent = "سما بابل للاستثمار";
+
+    // Update financial info
+    document.getElementById('totalInvestment').textContent = formatCurrency(currentCard.totalInvestment || 0);
+    document.getElementById('dueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
+    document.getElementById('maturityDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
+    document.getElementById('investmentStatus').textContent = currentCard.status || "نشط";
+
+    // Update profile section
+    updateProfileSection();
+    
+    // Load transactions
+    loadTransactions();
+    
+    // Load filtered transactions
+    loadFilteredTransactions(currentFilter);
+}
+
+// Refresh dashboard data
+async function refreshDashboard() {
+    showLoading();
+    
+    try {
+        // Reload card data from Firebase
+        if (currentCard && currentCard.id) {
+            const cardRef = database.ref(`${CARDS_PATH}/${currentCard.id}`);
+            const snapshot = await cardRef.once('value');
+            const updatedCard = snapshot.val();
+            
+            if (updatedCard) {
+                currentCard = updatedCard;
                 
-                // Save mock transactions to card
-                currentCard.recentOperations = mockTransactions;
+                // Update localStorage
+                localStorage.setItem('investorCard', JSON.stringify(currentCard));
                 
-                // Display mock transactions
-                mockTransactions.forEach(transaction => {
-                    const transactionElement = createTransactionElement(transaction);
-                    transactionsList.appendChild(transactionElement);
-                });
+                // Update UI
+                updateDashboard();
             }
         }
         
-        // Generate mock transactions if none exist
-        function generateMockTransactions() {
-            const transactions = [];
-            const today = new Date();
-            
-            // Investment transaction
-            transactions.push({
-                id: generateId(),
-                type: 'investment',
-                amount: currentCard.totalInvestment || 4000,
-                date: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString(), // 180 days ago
-                status: 'completed',
-                description: 'استثمار أولي'
-            });
-            
-            // Generate multiple profit transactions for the past few months
-            for (let i = 6; i > 0; i--) {
-                transactions.push({
-                    id: generateId(),
-                    type: 'profit',
-                    amount: 500 + Math.random() * 300,
-                    date: new Date(today.getTime() - i * 30 * 24 * 60 * 60 * 1000).toISOString(), // i months ago
-                    status: 'completed',
-                    description: 'أرباح شهرية'
-                });
-            }
-            
-            // Add a withdrawal transaction
-            transactions.push({
-                id: generateId(),
-                type: 'withdrawal',
-                amount: 800,
-                date: new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
-                status: 'completed',
-                description: 'سحب أرباح'
-            });
-            
-            // Sort by date (newest first)
-            return transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-        }
+        // Reload notifications
+        loadNotifications();
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+    } finally {
+        hideLoading();
+    }
+}
 
-        // Load filtered transactions
-        function loadFilteredTransactions(filter) {
-            const transactionsList = document.getElementById('filteredTransactionsList');
-            transactionsList.innerHTML = '';
+// Update profile section
+function updateProfileSection() {
+    // Set profile data
+    document.getElementById('profileName').textContent = currentInvestor.name;
+    document.getElementById('profileCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
+    document.getElementById('profileFullName').textContent = currentInvestor.name;
+    document.getElementById('profilePhone').textContent = currentInvestor.phone || '-';
+    document.getElementById('profileEmail').textContent = currentInvestor.email || '-';
+    document.getElementById('profileJoinDate').textContent = formatDate(currentInvestor.joinDate);
+    
+    // Set the first letter of the name as avatar text
+    const avatarElement = document.getElementById('profileAvatar');
+    const firstLetter = currentInvestor.name.charAt(0);
+    avatarElement.innerHTML = `<span style="font-size: 2.5rem;">${firstLetter}</span>`;
+}
+
+// Format card number for display
+function formatCardNumberDisplay(cardNumber) {
+    return cardNumber.match(/.{1,4}/g).join(' ');
+}
+
+// Format currency
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('ar-IQ', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount) + " د.ع";
+}
+
+// Load transactions
+function loadTransactions() {
+    const transactionsList = document.getElementById('transactionsList');
+    transactionsList.innerHTML = '';
+    
+    try {
+        // If we have recent operations in the card object
+        if (currentCard.recentOperations && currentCard.recentOperations.length > 0) {
+            // Sort operations by date (newest first)
+            const sortedOperations = [...currentCard.recentOperations]
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            // Activate the selected filter button
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.filter-btn[onclick="filterTransactions('${filter}')"]`).classList.add('active');
+            // Display the 5 most recent transactions
+            const recentOperations = sortedOperations.slice(0, 5);
             
-            // If we have recent operations in the card object
-            if (currentCard.recentOperations && currentCard.recentOperations.length > 0) {
-                // Sort operations by date (newest first)
-                const sortedOperations = [...currentCard.recentOperations]
-                    .sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                // Filter transactions based on selected filter
-                let filteredOperations = sortedOperations;
-                if (filter !== 'all') {
-                    filteredOperations = sortedOperations.filter(op => op.type === filter);
-                }
-                
-                // Group transactions by date
-                const groupedTransactions = groupTransactionsByDate(filteredOperations);
-                
-                // Display grouped transactions
-                Object.keys(groupedTransactions).forEach(date => {
-                    // Add date header
-                    const dateHeader = document.createElement('div');
-                    dateHeader.className = 'transaction-date-header';
-                    dateHeader.textContent = date;
-                    transactionsList.appendChild(dateHeader);
-                    
-                    // Add transactions for this date
-                    groupedTransactions[date].forEach(transaction => {
-                        const transactionElement = createTransactionElement(transaction);
-                        transactionsList.appendChild(transactionElement);
-                    });
-                });
-                
-                // If no transactions found for this filter
-                if (filteredOperations.length === 0) {
-                    transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد معاملات لهذا النوع</p>';
-                }
-            } else {
-                transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد معاملات</p>';
+            recentOperations.forEach(transaction => {
+                const transactionElement = createTransactionElement(transaction);
+                transactionsList.appendChild(transactionElement);
+            });
+        } else {
+            // Load operations from Firebase
+            loadRecentOperationsFromFirebase(transactionsList);
+        }
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+        transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">حدث خطأ في تحميل المعاملات</p>';
+    }
+}
+
+// Load recent operations from Firebase
+async function loadRecentOperationsFromFirebase(transactionsList) {
+    try {
+        const operationsRef = database.ref(OPERATIONS_PATH);
+        const snapshot = await operationsRef.orderByChild('date').once('value');
+        
+        // Convert to array and sort by date (newest first)
+        const operations = [];
+        snapshot.forEach(childSnapshot => {
+            operations.push({
+                id: childSnapshot.key,
+                ...childSnapshot.val()
+            });
+        });
+        
+        // Sort by date (newest first)
+        operations.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Display operations
+        if (operations.length > 0) {
+            // Update currentCard with recent operations
+            if (!currentCard.recentOperations) {
+                currentCard.recentOperations = [];
             }
+            currentCard.recentOperations = operations;
+            localStorage.setItem('investorCard', JSON.stringify(currentCard));
+            
+            // Display the 5 most recent transactions
+            const recentOperations = operations.slice(0, 5);
+            recentOperations.forEach(transaction => {
+                const transactionElement = createTransactionElement(transaction);
+                transactionsList.appendChild(transactionElement);
+            });
+        } else {
+            // No operations found, generate mock data
+            const mockTransactions = generateMockTransactions();
+            
+            // Save mock transactions to card
+            currentCard.recentOperations = mockTransactions;
+            localStorage.setItem('investorCard', JSON.stringify(currentCard));
+            
+            // Display mock transactions
+            mockTransactions.forEach(transaction => {
+                const transactionElement = createTransactionElement(transaction);
+                transactionsList.appendChild(transactionElement);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading operations from Firebase:', error);
+        
+        // Use mock data as fallback
+        const mockTransactions = generateMockTransactions();
+        currentCard.recentOperations = mockTransactions;
+        localStorage.setItem('investorCard', JSON.stringify(currentCard));
+        
+        mockTransactions.forEach(transaction => {
+            const transactionElement = createTransactionElement(transaction);
+            transactionsList.appendChild(transactionElement);
+        });
+    }
+}
+
+// Generate mock transactions if none exist
+function generateMockTransactions() {
+    const transactions = [];
+    const today = new Date();
+    
+    // Investment transaction
+    transactions.push({
+        id: generateId(),
+        type: 'investment',
+        amount: currentCard.totalInvestment || 4000,
+        date: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString(), // 180 days ago
+        status: 'completed',
+        description: 'استثمار أولي'
+    });
+    
+    // Generate multiple profit transactions for the past few months
+    for (let i = 6; i > 0; i--) {
+        transactions.push({
+            id: generateId(),
+            type: 'profit',
+            amount: 500 + Math.random() * 300,
+            date: new Date(today.getTime() - i * 30 * 24 * 60 * 60 * 1000).toISOString(), // i months ago
+            status: 'completed',
+            description: 'أرباح شهرية'
+        });
+    }
+    
+    // Add a withdrawal transaction
+    transactions.push({
+        id: generateId(),
+        type: 'withdrawal',
+        amount: 800,
+        date: new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days ago
+        status: 'completed',
+        description: 'سحب أرباح'
+    });
+    
+    // Sort by date (newest first)
+    return transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+// Load filtered transactions
+function loadFilteredTransactions(filter) {
+    const transactionsList = document.getElementById('filteredTransactionsList');
+    transactionsList.innerHTML = '';
+    
+    // Activate the selected filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.filter-btn[onclick="filterTransactions('${filter}')"]`).classList.add('active');
+    
+    // If we have recent operations in the card object
+    if (currentCard.recentOperations && currentCard.recentOperations.length > 0) {
+        // Sort operations by date (newest first)
+        const sortedOperations = [...currentCard.recentOperations]
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Filter transactions based on selected filter
+        let filteredOperations = sortedOperations;
+        if (filter !== 'all') {
+            filteredOperations = sortedOperations.filter(op => op.type === filter);
         }
         
         // Group transactions by date
-        function groupTransactionsByDate(transactions) {
-            const groups = {};
+        const groupedTransactions = groupTransactionsByDate(filteredOperations);
+        
+        // Display grouped transactions
+        Object.keys(groupedTransactions).forEach(date => {
+            // Add date header
+            const dateHeader = document.createElement('div');
+            dateHeader.className = 'transaction-date-header';
+            dateHeader.textContent = date;
+            transactionsList.appendChild(dateHeader);
             
-            transactions.forEach(transaction => {
-                const dateString = formatDate(transaction.date);
-                
-                if (!groups[dateString]) {
-                    groups[dateString] = [];
-                }
-                
-                groups[dateString].push(transaction);
+            // Add transactions for this date
+            groupedTransactions[date].forEach(transaction => {
+                const transactionElement = createTransactionElement(transaction);
+                transactionsList.appendChild(transactionElement);
             });
-            
-            return groups;
+        });
+        
+        // If no transactions found for this filter
+        if (filteredOperations.length === 0) {
+            transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد معاملات لهذا النوع</p>';
+        }
+    } else {
+        transactionsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد معاملات</p>';
+    }
+}
+
+// Group transactions by date
+function groupTransactionsByDate(transactions) {
+    const groups = {};
+    
+    transactions.forEach(transaction => {
+        const dateString = formatDate(transaction.date);
+        
+        if (!groups[dateString]) {
+            groups[dateString] = [];
         }
         
-        // Filter transactions
-        function filterTransactions(filter) {
-            currentFilter = filter;
-            loadFilteredTransactions(filter);
-        }
+        groups[dateString].push(transaction);
+    });
+    
+    return groups;
+}
 
-        // Create transaction element
-        function createTransactionElement(transaction) {
-            const div = document.createElement('div');
-            div.className = 'transaction-item';
+// Filter transactions
+function filterTransactions(filter) {
+    currentFilter = filter;
+    loadFilteredTransactions(filter);
+}
 
-            const icon = getTransactionIcon(transaction.type);
-            const amount = transaction.amount;
-            const isPositive = transaction.type === 'profit' || transaction.type === 'investment';
-            
-            // Extract time from date for display
-            const transactionDate = new Date(transaction.date);
-            const hours = transactionDate.getHours().toString().padStart(2, '0');
-            const minutes = transactionDate.getMinutes().toString().padStart(2, '0');
-            const timeString = `${hours}:${minutes}`;
+// Create transaction element
+function createTransactionElement(transaction) {
+    const div = document.createElement('div');
+    div.className = 'transaction-item';
+    div.dataset.id = transaction.id || '';
 
-            div.innerHTML = `
-                <div class="transaction-icon">
-                    <i class="${icon}"></i>
-                </div>
-                <div class="transaction-info">
-                    <div class="transaction-type">${getTransactionTypeName(transaction.type)}</div>
-                    <div class="transaction-date">${formatDate(transaction.date)}</div>
-                </div>
-                <div style="text-align: left; direction: ltr;">
-                    <div class="transaction-amount ${isPositive ? 'positive' : 'negative'}">
-                        ${isPositive ? '+' : '-'} ${formatCurrency(amount)}
-                    </div>
-                    <div class="transaction-time">${timeString}</div>
-                </div>
-            `;
+    const icon = getTransactionIcon(transaction.type);
+    const amount = transaction.amount;
+    const isPositive = transaction.type === 'profit' || transaction.type === 'investment';
+    
+    // Extract time from date for display
+    const transactionDate = new Date(transaction.date);
+    const hours = transactionDate.getHours().toString().padStart(2, '0');
+    const minutes = transactionDate.getMinutes().toString().padStart(2, '0');
+    const timeString = `${hours}:${minutes}`;
 
-            return div;
-        }
+    div.innerHTML = `
+        <div class="transaction-icon">
+            <i class="${icon}"></i>
+        </div>
+        <div class="transaction-info">
+            <div class="transaction-type">${getTransactionTypeName(transaction.type)}</div>
+            <div class="transaction-date">${formatDate(transaction.date)}</div>
+        </div>
+        <div style="text-align: left; direction: ltr;">
+            <div class="transaction-amount ${isPositive ? 'positive' : 'negative'}">
+                ${isPositive ? '+' : '-'} ${formatCurrency(amount)}
+            </div>
+            <div class="transaction-time">${timeString}</div>
+        </div>
+    `;
 
-        // Get transaction icon
-        function getTransactionIcon(type) {
-            switch (type) {
-                case 'deposit':
-                case 'investment':
-                    return 'fas fa-arrow-down';
-                case 'withdrawal':
-                    return 'fas fa-arrow-up';
-                case 'profit':
-                    return 'fas fa-hand-holding-usd';
-                default:
-                    return 'fas fa-exchange-alt';
-            }
-        }
+    return div;
+}
 
-        // Get transaction type name
-        function getTransactionTypeName(type) {
-            switch (type) {
-                case 'deposit':
-                    return 'إيداع';
-                case 'investment':
-                    return 'استثمار';
-                case 'withdrawal':
-                    return 'سحب';
-                case 'profit':
-                    return 'أرباح';
-                default:
-                    return type;
-            }
-        }
-// تحديث دالة تحميل الإشعارات
+// Get transaction icon
+function getTransactionIcon(type) {
+    switch (type) {
+        case 'deposit':
+        case 'investment':
+            return 'fas fa-arrow-down';
+        case 'withdrawal':
+            return 'fas fa-arrow-up';
+        case 'profit':
+            return 'fas fa-hand-holding-usd';
+        default:
+            return 'fas fa-exchange-alt';
+    }
+}
+
+// Get transaction type name
+function getTransactionTypeName(type) {
+    switch (type) {
+        case 'deposit':
+            return 'إيداع';
+        case 'investment':
+            return 'استثمار';
+        case 'withdrawal':
+            return 'سحب';
+        case 'profit':
+            return 'أرباح';
+        default:
+            return type;
+    }
+}
+
 // تحديث دالة تحميل الإشعارات لجلب البيانات الحقيقية من Firebase
 async function loadNotifications() {
     const notificationsList = document.getElementById('notificationsList');
@@ -2774,7 +3050,6 @@ async function loadNotifications() {
         notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">حدث خطأ في تحميل الإشعارات</p>';
     }
 }
-
 
 // دالة لعرض الإشعارات
 function displayNotifications(notificationsArray) {
@@ -2856,362 +3131,11 @@ function createNotificationFromOperation(operation) {
     };
 }
 
-
-// دالة لتحويل العملية إلى إشعار
-function createNotificationFromOperation(operation) {
-    // تخصيص عنوان الإشعار ونص الرسالة حسب نوع العملية
-    let title = '';
-    let message = '';
-    let type = operation.type;
-    
-    switch (operation.type) {
-        case 'investment':
-            title = 'استثمار جديد';
-            message = `تم إضافة استثمار جديد بقيمة ${formatCurrency(operation.amount)}`;
-            if (operation.notes) {
-                message += `. ${operation.notes}`;
-            }
-            break;
-        case 'withdrawal':
-            title = 'طلب سحب جديد';
-            message = `تم تسجيل طلب سحب بقيمة ${formatCurrency(operation.amount)}`;
-            if (operation.status === 'pending') {
-                message += `. الطلب قيد المراجعة`;
-            } else if (operation.status === 'completed') {
-                message += `. تمت الموافقة على الطلب`;
-            } else if (operation.status === 'rejected') {
-                message += `. تم رفض الطلب`;
-            }
-            break;
-        case 'profit':
-            title = 'أرباح جديدة';
-            message = `تم إضافة أرباح بقيمة ${formatCurrency(operation.amount)} إلى حسابك`;
-            if (operation.notes) {
-                message += `. ${operation.notes}`;
-            }
-            break;
-        default:
-            title = 'عملية جديدة';
-            message = `تم تسجيل عملية جديدة بقيمة ${formatCurrency(operation.amount)}`;
-            if (operation.notes) {
-                message += `. ${operation.notes}`;
-            }
-            break;
-    }
-    
-    // إنشاء كائن الإشعار
-    return {
-        id: operation.id || generateId(),
-        title: title,
-        message: message,
-        type: type,
-        read: false, // افتراضياً الإشعارات غير مقروءة
-        date: operation.date,
-        amount: operation.amount,
-        status: operation.status,
-        operation: operation // تخزين العملية الأصلية للرجوع إليها عند الحاجة
-    };
-}
-
-// تحديث دالة الحصول على أيقونة الإشعار
-
-// الحصول على أيقونة الإشعار
-function getNotificationIcon(type) {
-    switch (type) {
-        case 'investment':
-        case 'deposit':
-            return 'fas fa-chart-line';
-        case 'withdrawal':
-            return 'fas fa-money-bill-wave';
-        case 'profit':
-            return 'fas fa-coins';
-        case 'welcome':
-            return 'fas fa-handshake';
-        case 'system':
-            return 'fas fa-cogs';
-        default:
-            return 'fas fa-bell';
-    }
-}
-
-
-
-// إضافة دالة لفتح نافذة تفاصيل الإشعار
-function openNotificationDetails(notification) {
-    // إنشاء مربع حوار لعرض تفاصيل الإشعار
-    const modal = document.createElement('div');
-    modal.className = 'modal active';
-    modal.id = 'notificationDetailsModal';
-    
-    // تحديد نوع المحتوى بناءً على نوع الإشعار
-    let detailsContent = '';
-    
-    if (notification.operation) {
-        const operation = notification.operation;
-        
-        switch (operation.type) {
-            case 'investment':
-            case 'deposit':
-                detailsContent = `
-                    <div class="detail-item">
-                        <div class="detail-label">المبلغ المستثمر</div>
-                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">تاريخ الاستثمار</div>
-                        <div class="detail-value">${formatDate(operation.date)}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">الحالة</div>
-                        <div class="detail-value">${operation.status === 'active' ? 'نشط' : operation.status === 'completed' ? 'مكتمل' : 'قيد المراجعة'}</div>
-                    </div>
-                `;
-                break;
-            case 'withdrawal':
-                detailsContent = `
-                    <div class="detail-item">
-                        <div class="detail-label">المبلغ المسحوب</div>
-                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">تاريخ الطلب</div>
-                        <div class="detail-value">${formatDate(operation.date)}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">طريقة الاستلام</div>
-                        <div class="detail-value">${operation.method === 'cash' ? 'نقداً' : operation.method === 'bank_transfer' ? 'حوالة بنكية' : 'محفظة إلكترونية'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">الحالة</div>
-                        <div class="detail-value">${operation.status === 'completed' ? 'مكتمل' : operation.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}</div>
-                    </div>
-                `;
-                break;
-            case 'profit':
-                detailsContent = `
-                    <div class="detail-item">
-                        <div class="detail-label">مبلغ الربح</div>
-                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">تاريخ الإضافة</div>
-                        <div class="detail-value">${formatDate(operation.date)}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">الفترة</div>
-                        <div class="detail-value">${operation.period || 'غير محدد'}</div>
-                    </div>
-                `;
-                break;
-            default:
-                detailsContent = `
-                    <div class="detail-item">
-                        <div class="detail-label">التاريخ</div>
-                        <div class="detail-value">${formatDate(operation.date)}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">الوصف</div>
-                        <div class="detail-value">${operation.description || 'غير متوفر'}</div>
-                    </div>
-                `;
-        }
-    } else {
-        detailsContent = `
-            <div class="detail-item">
-                <div class="detail-label">التاريخ</div>
-                <div class="detail-value">${formatDate(notification.date)}</div>
-            </div>
-            <div class="detail-item">
-                <div class="detail-label">الوصف</div>
-                <div class="detail-value">${notification.message}</div>
-            </div>
-        `;
-    }
-    
-    // إنشاء محتوى مربع الحوار
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 style="color: var(--gold);">${notification.title}</h2>
-                <button class="modal-close" onclick="document.getElementById('notificationDetailsModal').remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="account-details">
-                ${detailsContent}
-            </div>
-            <div class="modal-footer">
-                <button class="btn" onclick="document.getElementById('notificationDetailsModal').remove()">إغلاق</button>
-            </div>
-        </div>
-    `;
-    
-    // إضافة مربع الحوار إلى الصفحة
-    document.body.appendChild(modal);
-    
-    // وضع علامة "مقروء" على الإشعار
-    markNotificationAsRead(notification.id);
-}
-
-
-
-// إضافة الاستماع للتغييرات في الوقت الفعلي
-function listenForOperationsChanges() {
-    const operationsRef = database.ref(OPERATIONS_PATH);
-    
-    // إزالة الاستماعات السابقة إن وجدت
-    operationsRef.off();
-    
-    // إضافة استماع جديد
-    operationsRef.on('child_added', (snapshot) => {
-        const newOperation = snapshot.val();
-        if (newOperation) {
-            // إنشاء إشعار جديد من العملية
-            const newNotification = createNotificationFromOperation(newOperation);
-            
-            // إضافة الإشعار إلى المصفوفة العامة
-            notifications.unshift(newNotification);
-            
-            // إعادة تحميل واجهة الإشعارات إذا كانت مفتوحة
-            if (document.getElementById('notificationsSection').style.display === 'block') {
-                loadNotifications();
-            } else {
-                // عرض مؤشر على وجود إشعارات جديدة
-                showNotificationIndicator();
-            }
-        }
-    });
-}
-
-
-
-// دالة لإظهار مؤشر على وجود إشعارات جديدة
-function showNotificationIndicator() {
-    const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
-    if (notificationNav) {
-        // إضافة نقطة حمراء صغيرة لتنبيه المستخدم بوجود إشعارات جديدة
-        if (!notificationNav.querySelector('.notification-indicator')) {
-            const indicator = document.createElement('div');
-            indicator.className = 'notification-indicator';
-            indicator.style.cssText = `
-                position: absolute;
-                top: 5px;
-                right: 5px;
-                width: 8px;
-                height: 8px;
-                background-color: var(--red);
-                border-radius: 50%;
-            `;
-            notificationNav.appendChild(indicator);
-            notificationNav.style.position = 'relative';
-        }
-    }
-}
-
-
-
-
-// تحديث دالة تحديد عدد الإشعارات غير المقروءة
-function updateUnreadCount() {
-    const unreadCount = notifications.filter(notification => !notification.read).length;
-    
-    const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
-    const countBadge = notificationNav.querySelector('.notification-count');
-    
-    if (unreadCount > 0) {
-        if (countBadge) {
-            countBadge.textContent = unreadCount;
-        } else {
-            const badge = document.createElement('div');
-            badge.className = 'notification-count';
-            badge.textContent = unreadCount;
-            badge.style.cssText = `
-                position: absolute;
-                top: 0;
-                right: 0;
-                min-width: 16px;
-                height: 16px;
-                background-color: var(--red);
-                border-radius: 8px;
-                color: white;
-                font-size: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0 4px;
-            `;
-            notificationNav.appendChild(badge);
-            notificationNav.style.position = 'relative';
-        }
-    } else if (countBadge) {
-        countBadge.remove();
-    }
-}
-
-        
-        // Generate mock notifications
-        function generateMockNotifications() {
-            const mockNotifications = [];
-            const today = new Date();
-            
-            // Welcome notification
-            mockNotifications.push({
-                id: generateId(),
-                title: 'مرحباً بك في سما بابل للاستثمار',
-                message: 'شكراً لانضمامك إلينا. نتمنى لك تجربة استثمارية ناجحة.',
-                type: 'welcome',
-                read: true,
-                date: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString() // 180 days ago
-            });
-            
-            // Profit notification
-            mockNotifications.push({
-                id: generateId(),
-                title: 'تم إضافة أرباح جديدة',
-                message: 'تم إضافة أرباح بقيمة 500 د.ع إلى حسابك.',
-                type: 'profit',
-                read: true,
-                date: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
-            });
-            
-            // System notification
-            mockNotifications.push({
-                id: generateId(),
-                title: 'تحديث النظام',
-                message: 'تم تحديث نظام المحفظة الاستثمارية بمميزات جديدة.',
-                type: 'system',
-                read: false,
-                date: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days ago
-            });
-            
-            // Withdrawal notification
-            mockNotifications.push({
-                id: generateId(),
-                title: 'تمت معالجة طلب السحب',
-                message: 'تمت الموافقة على طلب سحب الأرباح الخاص بك. سيتم التواصل معك قريباً.',
-                type: 'withdrawal',
-                read: false,
-                date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
-            });
-            
-            // New investment opportunity
-            const opportunityId = Date.now().toString(36) + '5';
-            notificationsObj[opportunityId] = {
-                title: 'فرصة استثمارية جديدة',
-                message: 'لديك فرصة استثمارية جديدة متاحة. تفضل بزيارة مكتبنا للمزيد من التفاصيل.',
-                type: 'investment',
-                read: false,
-                date: new Date().toISOString() // today
-            };
-            
-            return mockNotifications;
-        }
-        
-
 // تحديث دالة إنشاء عنصر الإشعار
 function createNotificationElement(notification) {
     const div = document.createElement('div');
     div.className = `notification-item ${notification.read ? '' : 'unread'} ${Date.now() - new Date(notification.date) < 3600000 ? 'new-notification' : ''}`;
+    div.dataset.id = notification.id;
     
     const icon = getNotificationIcon(notification.type);
     
@@ -3244,18 +3168,15 @@ function createNotificationElement(notification) {
         </div>
     `;
     
-    // إضافة حدث النقر لتحديد حالة القراءة
-    if (!notification.read) {
-        div.addEventListener('click', () => {
-            markNotificationAsRead(notification.id);
-            div.classList.remove('unread');
-        });
-    }
+    // إضافة حدث النقر لعرض تفاصيل الإشعار
+    div.addEventListener('click', () => {
+        markNotificationAsRead(notification.id);
+        div.classList.remove('unread');
+        openNotificationDetails(notification);
+    });
     
     return div;
 }
-
-
 
 // دالة للاستماع للتغييرات في الإشعارات في الوقت الفعلي
 function listenForNotificationChanges() {
@@ -3360,38 +3281,6 @@ function listenForNotificationChanges() {
     });
 }
 
-
-
-// تحديث دالة تنسيق الوقت
-function formatTime(dateString) {
-    const date = new Date(dateString);
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-}
-
-
-
-
-        
-        // Get notification icon
-        function getNotificationIcon(type) {
-            switch (type) {
-                case 'welcome':
-                    return 'fas fa-handshake';
-                case 'profit':
-                    return 'fas fa-coins';
-                case 'system':
-                    return 'fas fa-cogs';
-                case 'withdrawal':
-                    return 'fas fa-money-check-alt';
-                default:
-                    return 'fas fa-bell';
-            }
-        }
-        
-        // Mark notification as read
-        
 // تحديث دالة وضع علامة "مقروء" على الإشعار
 async function markNotificationAsRead(notificationId) {
     // التحقق من وجود الإشعار
@@ -3412,58 +3301,302 @@ async function markNotificationAsRead(notificationId) {
     }
 }
 
-        // Format date
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('ar-IQ');
+// دالة لإظهار مؤشر على وجود إشعارات جديدة
+function showNotificationIndicator() {
+    const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
+    if (notificationNav) {
+        // إضافة نقطة حمراء صغيرة لتنبيه المستخدم بوجود إشعارات جديدة
+        if (!notificationNav.querySelector('.notification-indicator')) {
+            const indicator = document.createElement('div');
+            indicator.className = 'notification-indicator';
+            indicator.style.cssText = `
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                width: 8px;
+                height: 8px;
+                background-color: var(--red);
+                border-radius: 50%;
+            `;
+            notificationNav.appendChild(indicator);
+            notificationNav.style.position = 'relative';
+        }
+    }
+}
+
+// تحديث دالة تحديد عدد الإشعارات غير المقروءة
+function updateUnreadCount() {
+    const unreadCount = notifications.filter(notification => !notification.read).length;
+    
+    const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
+    const countBadge = notificationNav.querySelector('.notification-count');
+    
+    if (unreadCount > 0) {
+        if (countBadge) {
+            countBadge.textContent = unreadCount;
+        } else {
+            const badge = document.createElement('div');
+            badge.className = 'notification-count';
+            badge.textContent = unreadCount;
+            badge.style.cssText = `
+                position: absolute;
+                top: 0;
+                right: 0;
+                min-width: 16px;
+                height: 16px;
+                background-color: var(--red);
+                border-radius: 8px;
+                color: white;
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+            `;
+            notificationNav.appendChild(badge);
+            notificationNav.style.position = 'relative';
+        }
+    } else if (countBadge) {
+        countBadge.remove();
+    }
+}
+
+// تحديث دالة تنسيق الوقت
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
+// تحديث switchSection لتحديث قراءة الإشعارات عند الانتقال إلى قسم الإشعارات
+const originalSwitchSection = window.switchSection || function(section) {
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`.nav-item[onclick="switchSection('${section}')"]`).classList.add('active');
+    
+    // Hide all sections
+    document.getElementById('homeSection').style.display = 'none';
+    document.getElementById('profileSection').style.display = 'none';
+    document.getElementById('transactionsSection').style.display = 'none';
+    document.getElementById('notificationsSection').style.display = 'none';
+    
+    // Show the selected section
+    if (section === 'home') {
+        document.getElementById('homeSection').style.display = 'block';
+    } else if (section === 'profile') {
+        document.getElementById('profileSection').style.display = 'block';
+    } else if (section === 'transactions') {
+        document.getElementById('transactionsSection').style.display = 'block';
+        // Make sure transactions are loaded with current filter
+        loadFilteredTransactions(currentFilter);
+    } else if (section === 'notifications') {
+        document.getElementById('notificationsSection').style.display = 'block';
+        // Make sure notifications are loaded
+        loadNotifications();
+    }
+};
+
+window.switchSection = function(section) {
+    originalSwitchSection(section);
+    
+    if (section === 'notifications') {
+        const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
+        const indicator = notificationNav.querySelector('.notification-indicator');
+        if (indicator) {
+            indicator.remove();
         }
         
-        // Switch bottom navigation section
-        function switchSection(section) {
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.querySelector(`.nav-item[onclick="switchSection('${section}')"]`).classList.add('active');
+        // تحديث حالة القراءة للإشعارات المعروضة
+        const notificationItems = document.querySelectorAll('#notificationsList .notification-item.unread');
+        notificationItems.forEach(item => {
+            const notificationId = item.dataset.id;
+            if (notificationId) {
+                markNotificationAsRead(notificationId);
+                item.classList.remove('unread');
+            }
+        });
+        
+        // تحديث عدد الإشعارات غير المقروءة
+        updateUnreadCount();
+    }
+};
+
+// إضافة دالة لفتح نافذة تفاصيل الإشعار
+function openNotificationDetails(notification) {
+    // التأكد من وجود النافذة المنبثقة في الصفحة
+    const modal = document.getElementById('notificationDetailsModal');
+    const modalTitle = document.getElementById('notificationDetailsTitle');
+    const modalContent = document.getElementById('notificationDetailsContent');
+    
+    if (!modal || !modalTitle || !modalContent) {
+        console.error('عناصر نافذة تفاصيل الإشعار غير موجودة');
+        return;
+    }
+    
+    // تعيين عنوان النافذة
+    modalTitle.textContent = notification.title;
+    
+    // تحديد نوع المحتوى بناءً على نوع الإشعار
+    let detailsContent = '';
+    
+    if (notification.operation) {
+        const operation = notification.operation;
+        
+        switch (operation.type) {
+            case 'investment':
+            case 'deposit':
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">المبلغ المستثمر</div>
+                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الاستثمار</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الحالة</div>
+                        <div class="detail-value">${operation.status === 'active' ? 'نشط' : operation.status === 'completed' ? 'مكتمل' : 'قيد المراجعة'}</div>
+                    </div>
+                `;
+                break;
+            case 'withdrawal':
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">المبلغ المسحوب</div>
+                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الطلب</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">طريقة الاستلام</div>
+                        <div class="detail-value">${operation.method === 'cash' ? 'نقداً' : operation.method === 'bank_transfer' ? 'حوالة بنكية' : 'محفظة إلكترونية'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الحالة</div>
+                        <div class="detail-value">${operation.status === 'completed' ? 'مكتمل' : operation.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}</div>
+                    </div>
+                `;
+                break;
+            case 'profit':
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">مبلغ الربح</div>
+                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الإضافة</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الفترة</div>
+                        <div class="detail-value">${operation.period || 'غير محدد'}</div>
+                    </div>
+                `;
+                break;
+            default:
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">التاريخ</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الوصف</div>
+                        <div class="detail-value">${operation.description || 'غير متوفر'}</div>
+                    </div>
+                `;
+        }
+    } else {
+        detailsContent = `
+            <div class="detail-item">
+                <div class="detail-label">التاريخ</div>
+                <div class="detail-value">${formatDate(notification.date)}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">الوصف</div>
+                <div class="detail-value">${notification.message}</div>
+            </div>
+        `;
+    }
+    
+    // إضافة المحتوى إلى النافذة
+    modalContent.innerHTML = detailsContent;
+    
+    // عرض النافذة
+    modal.classList.add('active');
+}
+
+// إغلاق نافذة تفاصيل الإشعار
+function closeNotificationDetailsModal() {
+    const modal = document.getElementById('notificationDetailsModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+// تحسين وظيفة طلب السحب
+async function openWithdrawModal() {
+    document.getElementById('withdrawModal').classList.add('active');
+    
+    try {
+        // تحديث المبلغ المتاح للسحب من البيانات الحالية
+        // احصل على أحدث بيانات البطاقة من قاعدة البيانات
+        if (currentCard && currentCard.id) {
+            const cardRef = database.ref(`${CARDS_PATH}/${currentCard.id}`);
+            const snapshot = await cardRef.once('value');
+            const updatedCard = snapshot.val();
             
-            // Hide all sections
-            document.getElementById('homeSection').style.display = 'none';
-            document.getElementById('profileSection').style.display = 'none';
-            document.getElementById('transactionsSection').style.display = 'none';
-            document.getElementById('notificationsSection').style.display = 'none';
-            
-            // Show the selected section
-            if (section === 'home') {
-                document.getElementById('homeSection').style.display = 'block';
-            } else if (section === 'profile') {
-                document.getElementById('profileSection').style.display = 'block';
-            } else if (section === 'transactions') {
-                document.getElementById('transactionsSection').style.display = 'block';
-                // Make sure transactions are loaded with current filter
-                loadFilteredTransactions(currentFilter);
-            } else if (section === 'notifications') {
-                document.getElementById('notificationsSection').style.display = 'block';
-                // Make sure notifications are loaded
-                loadNotifications();
+            if (updatedCard) {
+                // تحديث البيانات المحلية
+                currentCard = updatedCard;
+                localStorage.setItem('investorCard', JSON.stringify(currentCard));
             }
         }
-
-        // Open withdraw modal
-        function openWithdrawModal() {
-            document.getElementById('withdrawModal').classList.add('active');
-            document.getElementById('availableBalance').value = formatCurrency(currentCard.dueProfit || 0);
+        
+        // عرض المبلغ المتاح للسحب
+        document.getElementById('availableBalance').value = formatCurrency(currentCard.dueProfit || 0);
+        
+        // إضافة رقم البطاقة
+        const withdrawCardNumber = document.getElementById('withdrawCardNumber');
+        if (withdrawCardNumber) {
+            withdrawCardNumber.textContent = formatCardNumberDisplay(currentCard.cardNumber);
+        }
+        
+        // إضافة الحد الأدنى والأقصى
+        const withdrawMinAmount = document.getElementById('withdrawMinAmount');
+        if (withdrawMinAmount) {
+            // تحديد الحد الأدنى (مثال: 50 دينار)
+            const minAmount = 50;
+            withdrawMinAmount.textContent = `الحد الأدنى: ${formatCurrency(minAmount)}`;
             
-            // Reset form
-            document.getElementById('withdrawForm').reset();
-            document.getElementById('withdrawError').style.display = 'none';
-            document.getElementById('withdrawSuccess').style.display = 'none';
-            document.getElementById('bankDetailsGroup').style.display = 'none';
-            document.getElementById('walletDetailsGroup').style.display = 'none';
+            // تعيين قيمة الحد الأدنى في حقل المبلغ
+            document.getElementById('withdrawAmount').min = minAmount;
         }
-
-        // Close withdraw modal
-        function closeWithdrawModal() {
-            document.getElementById('withdrawModal').classList.remove('active');
+        
+        const withdrawMaxAmount = document.getElementById('withdrawMaxAmount');
+        if (withdrawMaxAmount) {
+            // تحديد الحد الأقصى (مبلغ الأرباح المستحقة)
+            const maxAmount = currentCard.dueProfit || 0;
+            withdrawMaxAmount.textContent = `الحد الأقصى: ${formatCurrency(maxAmount)}`;
+            
+            // تعيين قيمة الحد الأقصى في حقل المبلغ
+            document.getElementById('withdrawAmount').max = maxAmount;
         }
+    } catch (error) {
+        console.error('خطأ في تحديث بيانات طلب السحب:', error);
+    }
+    
+    // إعادة ضبط النموذج
+    document.getElementById('withdrawForm').reset();
+    document.getElementById('withdrawError').style.display = 'none';
+    document.getElementById('withdrawSuccess').style.display = 'none';
+    document.getElementById('bankDetailsGroup').style.display = 'none';
+    document.getElementById('walletDetailsGroup').style.display = 'none';
+}
 
-      // تحديث submitWithdrawRequest لتحسين عملية السحب
+// تحسين وظيفة إرسال طلب السحب
 async function submitWithdrawRequest(event) {
     event.preventDefault();
     showLoading();
@@ -3476,20 +3609,63 @@ async function submitWithdrawRequest(event) {
     let details = '';
     if (method === 'bank_transfer') {
         details = document.getElementById('bankDetails').value;
+        
+        // التحقق من صحة تفاصيل البنك
+        if (!details) {
+            showWithdrawError('يرجى إدخال تفاصيل الحساب البنكي');
+            hideLoading();
+            return;
+        }
     } else if (method === 'e_wallet') {
         details = document.getElementById('walletDetails').value;
+        
+        // التحقق من صحة تفاصيل المحفظة
+        if (!details) {
+            showWithdrawError('يرجى إدخال تفاصيل المحفظة الإلكترونية');
+            hideLoading();
+            return;
+        }
     }
 
     try {
-        // التحقق من صحة المبلغ
+        // التحقق من صحة البيانات
         if (amount <= 0) {
             showWithdrawError('يرجى إدخال مبلغ صحيح');
             hideLoading();
             return;
         }
         
-        if (amount > currentCard.dueProfit) {
+        // احصل على أحدث بيانات البطاقة
+        let dueProfit = currentCard.dueProfit || 0;
+        
+        if (currentCard && currentCard.id) {
+            try {
+                const cardRef = database.ref(`${CARDS_PATH}/${currentCard.id}`);
+                const snapshot = await cardRef.once('value');
+                const updatedCard = snapshot.val();
+                
+                if (updatedCard) {
+                    dueProfit = updatedCard.dueProfit || 0;
+                    
+                    // تحديث البيانات المحلية
+                    currentCard = updatedCard;
+                    localStorage.setItem('investorCard', JSON.stringify(currentCard));
+                }
+            } catch (cardError) {
+                console.error('خطأ في تحديث بيانات البطاقة:', cardError);
+            }
+        }
+        
+        if (amount > dueProfit) {
             showWithdrawError('المبلغ المطلوب أكبر من الرصيد المتاح');
+            hideLoading();
+            return;
+        }
+        
+        // التحقق من الحد الأدنى للسحب
+        const minAmount = 50; // الحد الأدنى للسحب
+        if (amount < minAmount) {
+            showWithdrawError(`الحد الأدنى للسحب هو ${formatCurrency(minAmount)}`);
             hideLoading();
             return;
         }
@@ -3497,9 +3673,10 @@ async function submitWithdrawRequest(event) {
         // إنشاء طلب سحب
         const withdrawRequest = {
             id: generateId(),
+            type: 'withdrawal',
             investorId: currentInvestor.id,
             investorName: currentInvestor.name,
-            cardId: currentCard.id, // إضافة معرف البطاقة
+            cardId: currentCard.id,
             cardNumber: currentCard.cardNumber,
             amount: amount,
             method: method,
@@ -3507,44 +3684,63 @@ async function submitWithdrawRequest(event) {
             notes: notes,
             status: 'pending',
             requestDate: new Date().toISOString(),
-            type: 'withdrawal_request'
+            created_at: new Date().toISOString()
         };
 
-        // حفظ الطلب في Firebase
+        // حفظ طلب السحب في Firebase
         await database.ref(`${WITHDRAWAL_REQUESTS_PATH}/${withdrawRequest.id}`).set(withdrawRequest);
         
-        // إنشاء عملية سحب وإضافتها إلى العمليات
-        const withdrawOperation = {
-            id: generateId(),
+        // إضافة العملية إلى عمليات البطاقة
+        const operationId = generateId();
+        const operation = {
+            id: operationId,
             type: 'withdrawal',
             investorId: currentInvestor.id,
             investorName: currentInvestor.name,
             cardId: currentCard.id,
+            cardNumber: currentCard.cardNumber,
             amount: amount,
             date: new Date().toISOString(),
             status: 'pending',
             description: 'طلب سحب قيد المراجعة',
+            method: method,
+            details: details,
             notes: notes
         };
         
         // حفظ العملية في Firebase
-        await database.ref(`${OPERATIONS_PATH}/${withdrawOperation.id}`).set(withdrawOperation);
+        await database.ref(`${OPERATIONS_PATH}/${operationId}`).set(operation);
         
-        // إضافة إشعار للمستخدم
-        const withdrawalNotification = {
-            id: generateId(),
+        // إضافة العملية إلى مصفوفة العمليات المحلية
+        if (!currentCard.recentOperations) {
+            currentCard.recentOperations = [];
+        }
+        
+        currentCard.recentOperations.push(operation);
+        localStorage.setItem('investorCard', JSON.stringify(currentCard));
+        
+        // إنشاء إشعار للمستخدم
+        const notificationId = generateId();
+        const notification = {
+            id: notificationId,
             title: 'تم استلام طلب السحب',
-            message: `تم استلام طلب سحب بقيمة ${formatCurrency(amount)} وهو قيد المراجعة الآن.`,
+            message: `تم استلام طلب سحب بقيمة ${formatCurrency(amount)} وسيتم مراجعته في أقرب وقت.`,
             type: 'withdrawal',
             read: false,
-            date: new Date().toISOString()
+            date: new Date().toISOString(),
+            investorId: currentInvestor.id,
+            amount: amount,
+            operation: operation
         };
         
         // حفظ الإشعار في Firebase
-        await database.ref(`${NOTIFICATIONS_PATH}/${withdrawalNotification.id}`).set(withdrawalNotification);
+        await database.ref(`${NOTIFICATIONS_PATH}/${notificationId}`).set(notification);
         
-        // إظهار رسالة نجاح
-        showWithdrawSuccess('تم إرسال طلب السحب بنجاح. سيتم مراجعة طلبك قريبًا.');
+        // عرض رسالة نجاح
+        showWithdrawSuccess('تم إرسال طلب السحب بنجاح. سيتم مراجعة طلبك قريبًا وستتلقى إشعارًا عند معالجته.');
+        
+        // تحديث صفحة الرئيسية والمعاملات
+        loadTransactions();
         
         // إغلاق النافذة بعد فترة
         setTimeout(() => {
@@ -3552,603 +3748,615 @@ async function submitWithdrawRequest(event) {
         }, 3000);
     } catch (error) {
         console.error('خطأ في إرسال طلب السحب:', error);
-        showWithdrawError('حدث خطأ في إرسال الطلب');
+        showWithdrawError('حدث خطأ في إرسال الطلب. الرجاء المحاولة مرة أخرى لاحقًا.');
     } finally {
         hideLoading();
     }
 }
 
-        // Generate unique ID
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
+// دالة لعرض خطأ في نافذة السحب
+function showWithdrawError(message) {
+    const errorElement = document.getElementById('withdrawError');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    
+    // التمرير إلى رسالة الخطأ
+    errorElement.scrollIntoView({ behavior: 'smooth' });
+    
+    // إخفاء الرسالة بعد 5 ثوان
+    setTimeout(() => {
+        errorElement.style.display = 'none';
+    }, 5000);
+}
 
-        // Show withdraw error
-        function showWithdrawError(message) {
-            const errorElement = document.getElementById('withdrawError');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            setTimeout(() => errorElement.style.display = 'none', 5000);
-        }
+// دالة لعرض رسالة نجاح في نافذة السحب
+function showWithdrawSuccess(message) {
+    const successElement = document.getElementById('withdrawSuccess');
+    successElement.textContent = message;
+    successElement.style.display = 'block';
+    
+    // التمرير إلى رسالة النجاح
+    successElement.scrollIntoView({ behavior: 'smooth' });
+}
 
-        // Show withdraw success
-        function showWithdrawSuccess(message) {
-            const successElement = document.getElementById('withdrawSuccess');
-            successElement.textContent = message;
-            successElement.style.display = 'block';
-            setTimeout(() => {
-                successElement.style.display = 'none';
-                closeWithdrawModal();
-            }, 3000);
+// تحسين دالة إغلاق نافذة السحب
+function closeWithdrawModal() {
+    document.getElementById('withdrawModal').classList.remove('active');
+    
+    // إعادة تحميل البيانات المحلية للتأكد من التحديثات
+    loadTransactions();
+}
+
+// التحقق من حالة طلبات السحب
+async function checkWithdrawalRequestsStatus() {
+    try {
+        // التحقق من وجود مستثمر حالي
+        if (!currentInvestor || !currentInvestor.id) {
+            return;
         }
         
-        // Show details
-        function showDetails() {
-            // Populate the details modal
-            document.getElementById('detailsName').textContent = currentInvestor.name;
-            document.getElementById('detailsCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
-            document.getElementById('detailsExpiryDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
-            document.getElementById('detailsTotalInvestment').textContent = formatCurrency(currentCard.totalInvestment || 0);
-            document.getElementById('detailsTotalProfit').textContent = formatCurrency(currentCard.totalProfit || 0);
-            document.getElementById('detailsDueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
-            document.getElementById('detailsPaidProfit').textContent = formatCurrency(currentCard.paidProfit || 0);
+        // الحصول على طلبات السحب الحالية
+        const withdrawalsRef = database.ref(WITHDRAWAL_REQUESTS_PATH);
+        const query = withdrawalsRef.orderByChild('investorId').equalTo(currentInvestor.id);
+        const snapshot = await query.once('value');
+        
+        // المعالجة إذا كان هناك طلبات
+        if (snapshot.exists()) {
+            const withdrawals = [];
             
-            // Set investment details
-            document.getElementById('detailsInvestmentType').textContent = currentCard.investmentType || 'استثمار عام';
+            snapshot.forEach(childSnapshot => {
+                withdrawals.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
             
-            // Set investment date (use 60 days ago if not available)
-            const investmentDate = currentCard.investmentDate || 
-                new Date(new Date().getTime() - 180 * 24 * 60 * 60 * 1000).toISOString();
-            document.getElementById('detailsInvestmentDate').textContent = formatDate(investmentDate);
+            // فرز الطلبات حسب التاريخ (الأحدث أولاً)
+            withdrawals.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
             
-            // Set maturity date (use 300 days from investment date if not available)
-            const maturityDate = currentCard.maturityDate || 
-                new Date(new Date(investmentDate).getTime() + 300 * 24 * 60 * 60 * 1000).toISOString();
-            document.getElementById('detailsMaturityDate').textContent = formatDate(maturityDate);
+            // التحقق من طلبات تمت معالجتها مؤخرًا
+            const recentWithdrawals = withdrawals.filter(w => {
+                // تحقق من الحالة وما إذا تم التحديث خلال الساعة الماضية
+                const isRecent = new Date(w.requestDate) > new Date(Date.now() - 24 * 60 * 60 * 1000);
+                return isRecent && (w.status === 'completed' || w.status === 'rejected');
+            });
             
-            // Show the modal
-            document.getElementById('detailsModal').classList.add('active');
+            // عرض إشعارات للطلبات المعالجة حديثًا
+            recentWithdrawals.forEach(withdrawal => {
+                // التحقق من أنه لم يتم إنشاء إشعار مسبقًا
+                const statusText = withdrawal.status === 'completed' ? 'تمت الموافقة على' : 'تم رفض';
+                const message = `${statusText} طلب السحب بقيمة ${formatCurrency(withdrawal.amount)}`;
+                
+                createNotification(
+                    withdrawal.status === 'completed' ? 'تم الموافقة على الطلب' : 'تم رفض الطلب',
+                    message,
+                    withdrawal.status === 'completed' ? 'success' : 'danger'
+                );
+            });
+        }
+    } catch (error) {
+        console.error('خطأ في التحقق من حالة طلبات السحب:', error);
+    }
+}
+
+// تكملة من الملف السابق - يتابع تنفيذ دالة إنشاء إشعار مرئي
+
+// تكملة دالة createNotification
+function createNotification(title, message, type = 'info') {
+    // إنشاء عنصر الإشعار
+    const notification = document.createElement('div');
+    notification.className = `notification-toast ${type}`;
+    
+    // إضافة المحتوى
+    notification.innerHTML = `
+        <div class="notification-toast-header">
+            <div class="notification-toast-title">${title}</div>
+            <button class="notification-toast-close">&times;</button>
+        </div>
+        <div class="notification-toast-body">${message}</div>
+    `;
+    
+    // إضافة الإشعار إلى الصفحة
+    const container = document.getElementById('notificationToastContainer');
+    if (!container) {
+        // إنشاء حاوية الإشعارات إذا لم تكن موجودة
+        const newContainer = document.createElement('div');
+        newContainer.id = 'notificationToastContainer';
+        newContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 9999;
+            direction: rtl;
+        `;
+        document.body.appendChild(newContainer);
+        newContainer.appendChild(notification);
+    } else {
+        container.appendChild(notification);
+    }
+    
+    // إضافة سلوك زر الإغلاق
+    const closeButton = notification.querySelector('.notification-toast-close');
+    closeButton.addEventListener('click', () => {
+        notification.classList.add('hiding');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    });
+    
+    // إغلاق الإشعار تلقائيًا بعد 5 ثوان
+    setTimeout(() => {
+        notification.classList.add('hiding');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 5000);
+    
+    return notification;
+}
+
+// الحصول على أيقونة الإشعار
+function getNotificationIcon(type) {
+    switch (type) {
+        case 'investment':
+        case 'deposit':
+            return 'fas fa-chart-line';
+        case 'withdrawal':
+            return 'fas fa-money-bill-wave';
+        case 'profit':
+            return 'fas fa-coins';
+        case 'welcome':
+            return 'fas fa-handshake';
+        case 'system':
+            return 'fas fa-cogs';
+        default:
+            return 'fas fa-bell';
+    }
+}
+
+// Show contact support modal
+function showContactSupport() {
+    document.getElementById('supportModal').classList.add('active');
+    
+    // Reset form
+    document.getElementById('supportForm').reset();
+    document.getElementById('supportError').style.display = 'none';
+    document.getElementById('supportSuccess').style.display = 'none';
+}
+
+// Close support modal
+function closeSupportModal() {
+    document.getElementById('supportModal').classList.remove('active');
+}
+
+// Submit support request
+async function submitSupportRequest(event) {
+    event.preventDefault();
+    showLoading();
+    
+    const topic = document.getElementById('supportTopic').value;
+    const message = document.getElementById('supportMessage').value;
+    
+    try {
+        // Validate inputs
+        if (!topic || !message) {
+            document.getElementById('supportError').textContent = 'يرجى ملء جميع الحقول';
+            document.getElementById('supportError').style.display = 'block';
+            hideLoading();
+            return;
         }
         
-        // Close details modal
-        function closeDetailsModal() {
-            document.getElementById('detailsModal').classList.remove('active');
-        }
+        // Create support request
+        const supportRequest = {
+            id: generateId(),
+            investorId: currentInvestor.id,
+            investorName: currentInvestor.name,
+            phone: currentInvestor.phone,
+            email: currentInvestor.email,
+            topic: topic,
+            message: message,
+            status: 'new',
+            date: new Date().toISOString()
+        };
         
-        // Show contact support modal
-        function showContactSupport() {
-            // Reset form
-            document.getElementById('supportForm').reset();
-            document.getElementById('supportError').style.display = 'none';
+        // Save to Firebase
+        await database.ref(`${SUPPORT_REQUESTS_PATH}/${supportRequest.id}`).set(supportRequest);
+        
+        // Add notification for support request
+        const supportNotification = {
+            id: generateId(),
+            title: 'تم استلام طلب الدعم',
+            message: 'تم استلام رسالتك وسيتم التواصل معك في أقرب وقت ممكن.',
+            type: 'support',
+            read: false,
+            date: new Date().toISOString()
+        };
+        
+        // Save notification to Firebase
+        await database.ref(`${NOTIFICATIONS_PATH}/${supportNotification.id}`).set(supportNotification);
+        
+        // Show success
+        document.getElementById('supportSuccess').textContent = 'تم إرسال طلبك بنجاح وسيتم التواصل معك قريبًا';
+        document.getElementById('supportSuccess').style.display = 'block';
+        
+        // Clear form
+        document.getElementById('supportForm').reset();
+        
+        // Close modal after delay
+        setTimeout(() => {
             document.getElementById('supportSuccess').style.display = 'none';
-            
-            // Show modal
-            document.getElementById('supportModal').classList.add('active');
-        }
-        
-        // Close support modal
-        function closeSupportModal() {
-            document.getElementById('supportModal').classList.remove('active');
-        }
-        
-        // Submit support request
-        async function submitSupportRequest(event) {
-            event.preventDefault();
-            showLoading();
-            
-            const topic = document.getElementById('supportTopic').value;
-            const message = document.getElementById('supportMessage').value;
-            
-            try {
-                // Validate inputs
-                if (!topic || !message) {
-                    document.getElementById('supportError').textContent = 'يرجى ملء جميع الحقول';
-                    document.getElementById('supportError').style.display = 'block';
-                    return;
-                }
-                
-                // Create support request
-                const supportRequest = {
-                    id: generateId(),
-                    investorId: currentInvestor.id,
-                    investorName: currentInvestor.name,
-                    phone: currentInvestor.phone,
-                    email: currentInvestor.email,
-                    topic: topic,
-                    message: message,
-                    status: 'new',
-                    date: new Date().toISOString()
-                };
-                
-                // Save to Firebase
-                await database.ref(`${SUPPORT_REQUESTS_PATH}/${supportRequest.id}`).set(supportRequest);
-                
-                // Add notification for support request
-                const supportNotification = {
-                    id: generateId(),
-                    title: 'تم استلام طلب الدعم',
-                    message: 'تم استلام رسالتك وسيتم التواصل معك في أقرب وقت ممكن.',
-                    type: 'support',
-                    read: false,
-                    date: new Date().toISOString()
-                };
-                
-                // Save notification to Firebase
-                await database.ref(`${NOTIFICATIONS_PATH}/${supportNotification.id}`).set(supportNotification);
-                
-                // Show success
-                document.getElementById('supportSuccess').textContent = 'تم إرسال طلبك بنجاح وسيتم التواصل معك قريباً';
-                document.getElementById('supportSuccess').style.display = 'block';
-                
-                // Clear form
-                document.getElementById('supportForm').reset();
-                
-                // Close modal after delay
-                setTimeout(() => {
-                    document.getElementById('supportSuccess').style.display = 'none';
-                    closeSupportModal();
-                }, 3000);
-            } catch (error) {
-                console.error('Support request error:', error);
-                document.getElementById('supportError').textContent = 'حدث خطأ في إرسال الطلب';
-                document.getElementById('supportError').style.display = 'block';
-            } finally {
-                hideLoading();
-            }
-        }
+            closeSupportModal();
+        }, 3000);
+    } catch (error) {
+        console.error('Support request error:', error);
+        document.getElementById('supportError').textContent = 'حدث خطأ في إرسال الطلب';
+        document.getElementById('supportError').style.display = 'block';
+    } finally {
+        hideLoading();
+    }
+}
 
-        // Logout
-        function logout() {
-            // Clear localStorage
+// تحديث دالة عرض تفاصيل الحساب
+function showDetails() {
+    // Populate the details modal
+    document.getElementById('detailsName').textContent = currentInvestor.name;
+    document.getElementById('detailsCardNumber').textContent = formatCardNumberDisplay(currentCard.cardNumber);
+    document.getElementById('detailsExpiryDate').textContent = formatCardExpiryDateFromDB(currentCard.expiryDate);
+    document.getElementById('detailsTotalInvestment').textContent = formatCurrency(currentCard.totalInvestment || 0);
+    document.getElementById('detailsTotalProfit').textContent = formatCurrency(currentCard.totalProfit || 0);
+    document.getElementById('detailsDueProfit').textContent = formatCurrency(currentCard.dueProfit || 0);
+    document.getElementById('detailsPaidProfit').textContent = formatCurrency(currentCard.paidProfit || 0);
+    
+    // Set investment details
+    document.getElementById('detailsInvestmentType').textContent = currentCard.investmentType || 'استثمار عام';
+    
+    // Set investment date (use 60 days ago if not available)
+    const investmentDate = currentCard.investmentDate || 
+        new Date(new Date().getTime() - 180 * 24 * 60 * 60 * 1000).toISOString();
+    document.getElementById('detailsInvestmentDate').textContent = formatDate(investmentDate);
+    
+    // Set maturity date (use 300 days from investment date if not available)
+    const maturityDate = currentCard.maturityDate || 
+        new Date(new Date(investmentDate).getTime() + 300 * 24 * 60 * 60 * 1000).toISOString();
+    document.getElementById('detailsMaturityDate').textContent = formatDate(maturityDate);
+    
+    // Show the modal
+    document.getElementById('detailsModal').classList.add('active');
+}
+
+// Close details modal
+function closeDetailsModal() {
+    document.getElementById('detailsModal').classList.remove('active');
+}
+
+// Logout
+function logout() {
+    // Clear localStorage
+    localStorage.removeItem('investorCard');
+    localStorage.removeItem('investorData');
+    
+    currentInvestor = null;
+    currentCard = null;
+    
+    // Reset forms
+    document.getElementById('loginForm').reset();
+    
+    // Hide dashboard, show login
+    document.getElementById('dashboardScreen').style.display = 'none';
+    document.getElementById('bottomNav').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'block';
+    
+    // Clear any QR scanner
+    if (qrScanner) {
+        qrScanner.clear();
+        qrScanner = null;
+    }
+    
+    // Reset QR scanner UI
+    document.getElementById('qr-scanner').style.display = 'none';
+    document.getElementById('startScanBtn').style.display = 'block';
+}
+
+// Generate unique ID
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Format date
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-IQ');
+}
+
+// Show loading
+function showLoading() {
+    document.getElementById('loadingScreen').style.display = 'flex';
+}
+
+// Hide loading
+function hideLoading() {
+    document.getElementById('loadingScreen').style.display = 'none';
+}
+
+// Show error
+function showError(message) {
+    const errorElement = document.getElementById('errorMessage');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    setTimeout(() => errorElement.style.display = 'none', 5000);
+}
+
+// Clear errors
+function clearErrors() {
+    document.getElementById('errorMessage').style.display = 'none';
+}
+
+// تعزيز الاتصال بين الإشعارات والعمليات
+function syncNotificationsWithOperations() {
+    try {
+        if (!currentCard || !currentCard.recentOperations) {
+            return;
+        }
+        
+        // تحويل جميع العمليات إلى إشعارات إذا لم يكن لديها إشعار بالفعل
+        currentCard.recentOperations.forEach(operation => {
+            // التحقق من عدم وجود إشعار بالفعل لهذه العملية
+            const hasNotification = notifications.some(n => n.operation && n.operation.id === operation.id);
+            
+            if (!hasNotification) {
+                // إنشاء إشعار من العملية
+                const notification = createNotificationFromOperation(operation);
+                
+                if (notification) {
+                    // إضافة الإشعار إلى مصفوفة الإشعارات
+                    notifications.push(notification);
+                    
+                    // حفظ الإشعار في Firebase
+                    database.ref(`${NOTIFICATIONS_PATH}/${notification.id}`).set(notification)
+                        .catch(error => console.error('خطأ في حفظ الإشعار:', error));
+                }
+            }
+        });
+        
+        // إعادة عرض الإشعارات إذا كان قسم الإشعارات مفتوحًا
+        if (document.getElementById('notificationsSection').style.display === 'block') {
+            displayNotifications(notifications);
+        }
+        
+        // تحديث عدد الإشعارات غير المقروءة
+        updateUnreadCount();
+    } catch (error) {
+        console.error('خطأ في مزامنة الإشعارات مع العمليات:', error);
+    }
+}
+
+// دالة لاستعادة البيانات المحذوفة أو لإصلاح مشاكل التخزين المحلي
+function repairLocalStorage() {
+    try {
+        // التحقق من وجود بيانات في التخزين المحلي
+        const savedCard = localStorage.getItem('investorCard');
+        const savedInvestor = localStorage.getItem('investorData');
+        
+        if (!savedCard || !savedInvestor) {
+            console.warn('بيانات التخزين المحلي غير متوفرة');
+            return false;
+        }
+        
+        // محاولة تحليل البيانات
+        try {
+            const card = JSON.parse(savedCard);
+            const investor = JSON.parse(savedInvestor);
+            
+            // التحقق من صحة البيانات
+            if (!card.id || !card.cardNumber || !investor.id || !investor.name) {
+                console.warn('بيانات التخزين المحلي غير صالحة');
+                return false;
+            }
+            
+            // تعيين البيانات الصالحة
+            currentCard = card;
+            currentInvestor = investor;
+            
+            return true;
+        } catch (error) {
+            console.error('خطأ في تحليل بيانات التخزين المحلي:', error);
+            
+            // مسح البيانات غير الصالحة
             localStorage.removeItem('investorCard');
             localStorage.removeItem('investorData');
             
-            currentInvestor = null;
-            currentCard = null;
-            
-            // Reset forms
-            document.getElementById('loginForm').reset();
-            
-            // Hide dashboard, show login
-            document.getElementById('dashboardScreen').style.display = 'none';
-            document.getElementById('bottomNav').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'block';
-            
-            // Clear any QR scanner
-            if (qrScanner) {
-                qrScanner.clear();
-                qrScanner = null;
-            }
-            
-            // Reset QR scanner UI
-            document.getElementById('qr-scanner').style.display = 'none';
-            document.getElementById('startScanBtn').style.display = 'block';
+            return false;
         }
-
-        // Show loading
-        function showLoading() {
-            document.getElementById('loadingScreen').style.display = 'flex';
-        }
-
-        // Hide loading
-        function hideLoading() {
-            document.getElementById('loadingScreen').style.display = 'none';
-        }
-
-        // Show error
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            setTimeout(() => errorElement.style.display = 'none', 5000);
-        }
-
-        // Clear errors
-        function clearErrors() {
-            document.getElementById('errorMessage').style.display = 'none';
-        }
-        
-      // Continuación del código JavaScript para la aplicación de cartera de inversión
-
-// Mock data for Firebase compatibility
-if (typeof firebase !== 'object' || !firebase.database) {
-    console.warn('Firebase not available, using mock data');
-    
-    // Mock database functions
-    database.ref = function(path) {
-        return {
-            once: function(event) {
-                return Promise.resolve({
-                    val: function() {
-                        if (path.includes('investorCards')) {
-                            return {
-                                "card1": {
-                                    id: "card1",
-                                    cardNumber: "2750238015845063",
-                                    cvv: "123",
-                                    expiryDate: "2027-05-31",
-                                    investorId: "inv1",
-                                    investorName: "سما بابل للإستثمار",
-                                    investorPhone: "07701234567",
-                                    investorEmail: "info@samababel.com",
-                                    totalInvestment: 4000.00,
-                                    totalProfit: 51036.03,
-                                    dueProfit: 1458.333,
-                                    paidProfit: 49577.70,
-                                    investmentType: "استثمار عقاري",
-                                    investmentDate: "2024-01-15T00:00:00.000Z",
-                                    maturityDate: "2027-05-31T00:00:00.000Z",
-                                    joinDate: "2023-12-01T00:00:00.000Z",
-                                    status: "نشط"
-                                }
-                            };
-                        } else if (path.includes('notifications')) {
-                            // Mock notifications data
-                            return generateMockNotificationsDatabase();
-                        }
-                        return null;
-                    }
-                });
-            },
-            set: function(data) {
-                console.log('Mock database set:', path, data);
-                return Promise.resolve();
-            },
-            update: function(data) {
-                console.log('Mock database update:', path, data);
-                return Promise.resolve();
-            }
-        };
-    };
-}
-
-// Generate mock notifications database
-function generateMockNotificationsDatabase() {
-    const today = new Date();
-    const notificationsObj = {};
-    
-    // Welcome notification
-    const welcomeId = Date.now().toString(36) + '1';
-    notificationsObj[welcomeId] = {
-        title: 'مرحباً بك في سما بابل للاستثمار',
-        message: 'شكراً لانضمامك إلينا. نتمنى لك تجربة استثمارية ناجحة.',
-        type: 'welcome',
-        read: true,
-        date: new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString() // 180 days ago
-    };
-    
-    // Profit notification
-    const profitId = Date.now().toString(36) + '2';
-    notificationsObj[profitId] = {
-        title: 'تم إضافة أرباح جديدة',
-        message: 'تم إضافة أرباح بقيمة 500 د.ع إلى حسابك.',
-        type: 'profit',
-        read: true,
-        date: new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
-    };
-    
-    // System notification
-    const systemId = Date.now().toString(36) + '3';
-    notificationsObj[systemId] = {
-        title: 'تحديث النظام',
-        message: 'تم تحديث نظام المحفظة الاستثمارية بمميزات جديدة.',
-        type: 'system',
-        read: false,
-        date: new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days ago
-    };
-    
-    // Withdrawal notification
-    const withdrawalId = Date.now().toString(36) + '4';
-    notificationsObj[withdrawalId] = {
-        title: 'تمت معالجة طلب السحب',
-        message: 'تمت الموافقة على طلب سحب الأرباح الخاص بك. سيتم التواصل معك قريباً.',
-        type: 'withdrawal',
-        read: false,
-        date: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
-    };
-    
-    return notificationsObj;
-}
-
-// Additional functions for enhanced functionality
-
-// Function to change app theme (light/dark)
-function toggleTheme() {
-    const root = document.documentElement;
-    const currentTheme = root.getAttribute('data-theme') || 'dark';
-    
-    if (currentTheme === 'dark') {
-        root.setAttribute('data-theme', 'light');
-        localStorage.setItem('appTheme', 'light');
-    } else {
-        root.setAttribute('data-theme', 'dark');
-        localStorage.setItem('appTheme', 'dark');
+    } catch (error) {
+        console.error('خطأ في إصلاح التخزين المحلي:', error);
+        return false;
     }
 }
 
-// Load saved theme from localStorage
-function loadSavedTheme() {
-    const savedTheme = localStorage.getItem('appTheme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    }
+// تحسين الأمان بتشفير البيانات المحلية
+function secureLocalStorage() {
+    // يمكن تنفيذ هذه الدالة لاحقًا عند الحاجة لتحسين الأمان
+    // يمكن استخدام مكتبات مثل CryptoJS للتشفير
 }
 
-// Function to change app language
-function changeLanguage(lang) {
-    // This would typically load language strings from a JSON file
-    // and update all UI elements accordingly
-    console.log(`Language changed to: ${lang}`);
-    localStorage.setItem('appLanguage', lang);
-    // Would require a page reload or dynamic text replacement
-}
-
-// Function to export transaction history
-function exportTransactionHistory() {
-    if (!currentCard || !currentCard.recentOperations) {
-        showError('لا توجد معاملات للتصدير');
+// الاستماع المستمر لتغييرات بيانات البطاقة
+function listenForCardChanges() {
+    if (!currentCard || !currentCard.id) {
         return;
     }
     
-    try {
-        // Get all transactions
-        const transactions = [...currentCard.recentOperations]
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const cardRef = database.ref(`${CARDS_PATH}/${currentCard.id}`);
+    
+    // إزالة المستمعين السابقين
+    cardRef.off();
+    
+    // إضافة مستمع جديد
+    cardRef.on('value', (snapshot) => {
+        const updatedCard = snapshot.val();
         
-        // Format for CSV
-        let csvContent = "نوع المعاملة,المبلغ,التاريخ,الحالة,الوصف\n";
-        
-        transactions.forEach(transaction => {
-            const type = getTransactionTypeName(transaction.type);
-            const amount = transaction.amount;
-            const date = formatDate(transaction.date);
-            const status = transaction.status === 'completed' ? 'مكتمل' : 'قيد المعالجة';
-            const description = transaction.description || '';
+        if (updatedCard) {
+            // تحديث البيانات المحلية
+            currentCard = updatedCard;
+            localStorage.setItem('investorCard', JSON.stringify(currentCard));
             
-            csvContent += `${type},${amount},${date},${status},${description}\n`;
+            // تحديث واجهة المستخدم
+            updateDashboard();
+        }
+    });
+}
+
+// التحقق من حالة الاتصال بالإنترنت
+function checkInternetConnection() {
+    return navigator.onLine;
+}
+
+// معالجة حالة عدم الاتصال بالإنترنت
+function handleOfflineMode() {
+    if (!checkInternetConnection()) {
+        // إظهار رسالة للمستخدم
+        createNotification(
+            'انقطاع الاتصال',
+            'أنت حاليًا غير متصل بالإنترنت. سيتم استخدام البيانات المخزنة محليًا.',
+            'warning'
+        );
+        
+        // تعطيل الوظائف التي تتطلب اتصالًا بالإنترنت
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
         });
-        
-        // Create download link
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `transactions_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (error) {
-        console.error('Error exporting transactions:', error);
-        showError('حدث خطأ في تصدير المعاملات');
+    } else {
+        // إعادة تفعيل الوظائف
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        });
     }
 }
 
-// Function to show investment chart in modal
-function showInvestmentChart() {
-    // This would typically use Chart.js or a similar library
-    // to create a visual representation of investment performance
-    console.log('Showing investment chart');
-    // For now, just show a placeholder message
-    alert('سيتم عرض مخطط الاستثمار قريبًا');
-}
-
-// Function to handle forgot card details
-function forgotCardDetails() {
-    // This would typically show a form to recover account
-    alert('يرجى التواصل مع خدمة العملاء لاسترداد تفاصيل البطاقة');
-}
-
-// Function to verify user identity (two-factor authentication)
-function sendVerificationCode() {
-    // This would typically send an SMS or email with a code
-    console.log('Sending verification code');
-    alert('تم إرسال رمز التحقق إلى رقم هاتفك');
-}
-
-// Function to verify the code entered by user
-function verifyCode(code) {
-    // This would typically validate the code against a backend
-    console.log(`Verifying code: ${code}`);
-    return code === '1234'; // Mock verification
-}
-
-// Function to update user profile
-function updateUserProfile(newData) {
-    // This would typically update the user profile in the database
-    console.log('Updating user profile:', newData);
-    
-    // Update current investor data
-    Object.assign(currentInvestor, newData);
-    
-    // Update localStorage
-    localStorage.setItem('investorData', JSON.stringify(currentInvestor));
-    
-    // Update UI
-    updateProfileSection();
-    
-    return true; // Mock successful update
-}
-
-// Function to register new biometric login
-function registerBiometric() {
-    // This would typically use the Web Authentication API
-    // to register a new biometric credential
-    console.log('Registering biometric login');
-    
-    if (!window.PublicKeyCredential) {
-        alert('متصفحك لا يدعم تسجيل الدخول البيومتري');
-        return false;
-    }
-    
-    // Mock success for now
-    alert('تم تسجيل بصمة الإصبع بنجاح');
-    return true;
-}
-
-// Function to handle push notification registration
-function registerForPushNotifications() {
-    // This would typically use the Push API to register for notifications
-    console.log('Registering for push notifications');
-    
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        alert('متصفحك لا يدعم الإشعارات');
-        return false;
-    }
-    
-    // Mock success for now
-    alert('تم تسجيل الإشعارات بنجاح');
-    return true;
-}
-
-// Function to calculate investment projections
-function calculateProjections(amount, duration, rate) {
-    // Simple compound interest calculation
-    const years = duration / 12;
-    const interest = amount * Math.pow((1 + rate/100), years) - amount;
-    return {
-        finalAmount: amount + interest,
-        totalInterest: interest
-    };
-}
-
-// Function to show QR code for sharing investment details
-function showShareQR() {
-    // This would typically generate a QR code with investment info
-    console.log('Showing QR code for sharing');
-    alert('سيتم عرض رمز QR للمشاركة قريبًا');
-}
-
-// Function to handle bank account linking
-function linkBankAccount(bankInfo) {
-    // This would typically connect to a banking API
-    console.log('Linking bank account:', bankInfo);
-    
-    // Mock success for now
-    return {
-        success: true,
-        message: 'تم ربط الحساب البنكي بنجاح'
-    };
-}
-
-// Function to handle document upload for KYC
-function uploadKYCDocument(documentType, file) {
-    // This would typically upload the document to a secure storage
-    console.log(`Uploading ${documentType} document`);
-    
-    // Mock upload process
-    setTimeout(() => {
-        alert(`تم رفع مستند ${documentType} بنجاح`);
-    }, 2000);
-    
-    return true;
-}
-
-// Enhanced currency formatter with support for different currencies
-function formatCurrencyAdvanced(amount, currency = 'IQD') {
-    const currencySymbols = {
-        'IQD': 'د.ع',
-        'USD': '$',
-        'EUR': '€',
-        'GBP': '£'
-    };
-    
-    const symbol = currencySymbols[currency] || currency;
-    
-    const formatted = new Intl.NumberFormat('ar-IQ', {
-        style: 'decimal',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount);
-    
-    return `${formatted} ${symbol}`;
-}
-
-// Function to handle investment calculator
-function calculateInvestmentReturns(principal, period, rate) {
-    const monthlyRate = rate / 12 / 100;
-    let futureValue = principal;
-    
-    for (let i = 0; i < period; i++) {
-        futureValue += futureValue * monthlyRate;
-    }
-    
-    return {
-        principal: principal,
-        returns: futureValue - principal,
-        total: futureValue,
-        annualRate: rate,
-        periodMonths: period
-    };
-}
-
-// Function to initialize push notifications
-function initializePushNotifications() {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(registration => {
-                console.log('ServiceWorker registered with scope:', registration.scope);
-                // Request notification permission
-                return Notification.requestPermission();
-            })
-            .then(permission => {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted');
-                    // Subscribe to push notifications
-                    // This would typically involve getting a push subscription
-                    // and sending it to your server
-                }
-            })
-            .catch(error => {
-                console.error('Service Worker registration failed:', error);
-            });
-    }
-}
-
-
-// Add these functions to window to make them globally available
-window.toggleTheme = toggleTheme;
-window.changeLanguage = changeLanguage;
-window.exportTransactionHistory = exportTransactionHistory;
-window.showInvestmentChart = showInvestmentChart;
-window.forgotCardDetails = forgotCardDetails;
-window.registerBiometric = registerBiometric;
-window.calculateProjections = calculateProjections;
-window.showShareQR = showShareQR;
-
-// Initialize additional features on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadSavedTheme();
-    
-    // Add theme toggle button to profile section if needed
-    const profileSection = document.getElementById('profileSection');
-    if (profileSection) {
-        const themeToggleBtn = document.createElement('button');
-        themeToggleBtn.className = 'btn';
-        themeToggleBtn.style.marginTop = '10px';
-        themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> تبديل المظهر (فاتح/داكن)';
-        themeToggleBtn.onclick = toggleTheme;
-        
-        // Insert before logout button
-        const logoutBtn = profileSection.querySelector('.logout-btn');
-        if (logoutBtn) {
-            profileSection.insertBefore(themeToggleBtn, logoutBtn);
-        } else {
-            profileSection.appendChild(themeToggleBtn);
-        }
-    }
-    
-    // Check for updates on page load
-    setTimeout(checkForUpdates, 5000);
-    
-    // Initialize push notifications if supported
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-        // Only initialize if user is logged in
-        if (localStorage.getItem('investorCard')) {
-            initializePushNotifications();
-        }
-    }
+// إضافة مستمع لحالة الاتصال
+window.addEventListener('online', () => {
+    // إعادة تفعيل الوظائف وتحديث البيانات
+    createNotification('تم استعادة الاتصال', 'تم استعادة الاتصال بالإنترنت', 'success');
+    refreshDashboard();
+    handleOfflineMode();
 });
 
+window.addEventListener('offline', () => {
+    // تفعيل وضع عدم الاتصال
+    handleOfflineMode();
+});
+
+// التحقق من الجلسة منتهية الصلاحية
+function checkSessionExpiry() {
+    const loginTime = localStorage.getItem('loginTime');
+    
+    if (loginTime) {
+        const now = new Date().getTime();
+        const lastLogin = parseInt(loginTime);
+        
+        // تحقق مما إذا كانت قد مرت أكثر من 24 ساعة (مثال)
+        if (now - lastLogin > 24 * 60 * 60 * 1000) {
+            // تسجيل خروج تلقائي
+            createNotification('انتهت الجلسة', 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.', 'warning');
+            logout();
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// تحديث وقت تسجيل الدخول
+function updateLoginTime() {
+    localStorage.setItem('loginTime', new Date().getTime().toString());
+}
+
+// إضافة تحديث وقت تسجيل الدخول إلى دالة showDashboard
+const originalShowDashboard = showDashboard;
+window.showDashboard = function() {
+    originalShowDashboard();
+    updateLoginTime(); // تحديث وقت تسجيل الدخول
+    
+    // استماع لتغييرات البطاقة
+    listenForCardChanges();
+    
+    // التحقق من حالة الاتصال
+    handleOfflineMode();
+    
+    // تحديث عدد الإشعارات غير المقروءة
+    updateUnreadCount();
+    
+    // مزامنة الإشعارات والعمليات
+    syncNotificationsWithOperations();
+};
+
+// وظيفة الإعدادات المتقدمة (يمكن إضافتها في تحديث لاحق)
+function openAdvancedSettings() {
+    // عرض نافذة الإعدادات المتقدمة
+    createNotification('غير متاح', 'الإعدادات المتقدمة غير متاحة حاليًا. سيتم إضافتها في تحديث قادم.', 'info');
+}
+
+// تهيئة تلقائية عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    // التحقق من انتهاء صلاحية الجلسة
+    if (checkSessionExpiry()) {
+        return; // لا تكمل إذا كانت الجلسة منتهية الصلاحية
+    }
+    
+    // محاولة إصلاح التخزين المحلي إذا لزم الأمر
+    if (!currentInvestor && !currentCard) {
+        repairLocalStorage();
+    }
+    
+    // التحقق من حالة الاتصال
+    handleOfflineMode();
+});
+
+// تعريف السلوك العام للإغلاق عند النقر خارج النوافذ المنبثقة
+document.addEventListener('click', function(event) {
+    // إغلاق النوافذ المنبثقة عندما يتم النقر خارجها
+    const modals = document.querySelectorAll('.modal.active');
+    
+    modals.forEach(modal => {
+        // التحقق من أن النقرة كانت خارج مربع الحوار وعلى الطبقة الخلفية
+        if (event.target === modal && !modal.id.includes('loadingScreen')) {
+            // الحصول على دالة الإغلاق المناسبة للنافذة المنبثقة
+            if (modal.id === 'withdrawModal') {
+                closeWithdrawModal();
+            } else if (modal.id === 'supportModal') {
+                closeSupportModal();
+            } else if (modal.id === 'detailsModal') {
+                closeDetailsModal();
+            } else if (modal.id === 'notificationDetailsModal') {
+                closeNotificationDetailsModal();
+            }
+        }
+    });
+});
+
+// استدعاء وظائف البدء النهائية
+(function initialize() {
+    // تعيين الوظائف في النافذة العالمية للاستخدام من HTML
+    window.switchTab = switchTab;
+    window.loginWithCard = loginWithCard;
+    window.startQRScan = startQRScan;
+    window.decodeQRFromImage = decodeQRFromImage;
+    window.refreshDashboard = refreshDashboard;
+    window.switchSection = switchSection;
+    window.openWithdrawModal = openWithdrawModal;
+    window.closeWithdrawModal = closeWithdrawModal;
+    window.submitWithdrawRequest = submitWithdrawRequest;
+    window.showDetails = showDetails;
+    window.closeDetailsModal = closeDetailsModal;
+    window.showContactSupport = showContactSupport;
+    window.closeSupportModal = closeSupportModal;
+    window.submitSupportRequest = submitSupportRequest;
+    window.filterTransactions = filterTransactions;
+    window.logout = logout;
+    window.closeNotificationDetailsModal = closeNotificationDetailsModal;
+})();
 
 
 
