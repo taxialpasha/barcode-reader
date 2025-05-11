@@ -2707,52 +2707,153 @@ body {
             }
         }
 // تحديث دالة تحميل الإشعارات
+// تحديث دالة تحميل الإشعارات لجلب البيانات الحقيقية من Firebase
 async function loadNotifications() {
     const notificationsList = document.getElementById('notificationsList');
-    notificationsList.innerHTML = '';
+    notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">جاري تحميل الإشعارات...</p>';
     
     try {
-        // تحميل العمليات من المسار الجديد
-        const operationsRef = database.ref(OPERATIONS_PATH);
-        const snapshot = await operationsRef.once('value');
-        const operationsData = snapshot.val() || [];
+        // مسار الإشعارات للمستثمر الحالي في Firebase
+        // مسار الإشعارات الصحيح يستخدم معرف المستخدم وبطاقة المستثمر
+        const investorId = currentInvestor?.id || '';
+        const cardId = currentCard?.id || '';
         
-        // تحويل البيانات إلى مصفوفة
-        let operationsArray = [];
-        if (Array.isArray(operationsData)) {
-            operationsArray = operationsData;
-        } else {
-            // إذا كانت البيانات في شكل كائن وليس مصفوفة
-            for (const key in operationsData) {
-                operationsArray.push(operationsData[key]);
-            }
+        // تحقق من صحة المعرفات قبل الاستمرار
+        if (!investorId || !cardId) {
+            console.error('معرفات المستثمر أو البطاقة غير متوفرة');
+            notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا يمكن تحميل الإشعارات، الرجاء إعادة تسجيل الدخول</p>';
+            return;
         }
         
-        // تحويل العمليات إلى إشعارات
-        const notificationsArray = operationsArray.map(operation => {
-            // إنشاء كائن إشعار من بيانات العملية
-            return createNotificationFromOperation(operation);
+        // الحصول على الإشعارات من Firebase - استخدام المسار الصحيح
+        const notificationsRef = database.ref(`${NOTIFICATIONS_PATH}`);
+        const snapshot = await notificationsRef.orderByChild('date').once('value');
+        
+        // إنشاء مصفوفة من الإشعارات
+        const notificationsArray = [];
+        snapshot.forEach(childSnapshot => {
+            const notification = childSnapshot.val();
+            // إضافة معرف الإشعار للاستخدام لاحقًا
+            notification.id = childSnapshot.key;
+            notificationsArray.push(notification);
+        });
+        
+        // جلب العمليات الحالية وتحويلها إلى إشعارات
+        const operationsRef = database.ref(`${OPERATIONS_PATH}`);
+        const operationsSnapshot = await operationsRef.once('value');
+        const operations = [];
+        
+        operationsSnapshot.forEach(childSnapshot => {
+            const operation = childSnapshot.val();
+            // إضافة معرف العملية
+            operation.id = childSnapshot.key;
+            operations.push(operation);
+            
+            // تحويل العملية إلى إشعار وإضافته إلى مصفوفة الإشعارات
+            const notification = createNotificationFromOperation(operation);
+            if (notification) {
+                notificationsArray.push(notification);
+            }
         });
         
         // ترتيب الإشعارات حسب التاريخ (الأحدث أولاً)
-        notificationsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        // حفظ في المتغير العام
-        notifications = notificationsArray;
+        notifications = notificationsArray.sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
         
         // عرض الإشعارات
-        if (notifications.length > 0) {
-            notifications.forEach(notification => {
-                const notificationElement = createNotificationElement(notification);
-                notificationsList.appendChild(notificationElement);
-            });
-        } else {
-            notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد إشعارات</p>';
-        }
+        displayNotifications(notifications);
+        
+        // تحديث عدد الإشعارات غير المقروءة
+        updateUnreadCount();
+        
+        // الاستماع للتغييرات في الإشعارات في الوقت الفعلي
+        listenForNotificationChanges();
     } catch (error) {
         console.error('خطأ في تحميل الإشعارات:', error);
         notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">حدث خطأ في تحميل الإشعارات</p>';
     }
+}
+
+
+// دالة لعرض الإشعارات
+function displayNotifications(notificationsArray) {
+    const notificationsList = document.getElementById('notificationsList');
+    notificationsList.innerHTML = '';
+    
+    if (notificationsArray.length === 0) {
+        notificationsList.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 30px;">لا توجد إشعارات</p>';
+        return;
+    }
+    
+    // عرض كل إشعار
+    notificationsArray.forEach(notification => {
+        const notificationElement = createNotificationElement(notification);
+        notificationsList.appendChild(notificationElement);
+    });
+}
+
+// تحديث دالة تحويل العملية إلى إشعار
+function createNotificationFromOperation(operation) {
+    if (!operation || !operation.type) return null;
+    
+    // تخصيص عنوان الإشعار ونص الرسالة حسب نوع العملية
+    let title = '';
+    let message = '';
+    let notificationType = operation.type;
+    
+    switch (operation.type) {
+        case 'investment':
+        case 'deposit':
+            title = 'استثمار جديد';
+            message = `تم إضافة استثمار جديد بقيمة ${formatCurrency(operation.amount)}`;
+            if (operation.notes) {
+                message += `. ${operation.notes}`;
+            }
+            break;
+        case 'withdrawal':
+            title = 'طلب سحب';
+            message = `تم تسجيل طلب سحب بقيمة ${formatCurrency(operation.amount)}`;
+            if (operation.status === 'pending') {
+                message += `. الطلب قيد المراجعة`;
+            } else if (operation.status === 'completed') {
+                message += `. تمت الموافقة على الطلب`;
+            } else if (operation.status === 'rejected') {
+                message += `. تم رفض الطلب`;
+            }
+            break;
+        case 'profit':
+            title = 'أرباح جديدة';
+            message = `تم إضافة أرباح بقيمة ${formatCurrency(operation.amount)} إلى حسابك`;
+            if (operation.notes) {
+                message += `. ${operation.notes}`;
+            }
+            break;
+        case 'system':
+            title = 'إشعار نظام';
+            message = operation.message || 'إشعار من النظام';
+            break;
+        default:
+            title = 'إشعار جديد';
+            message = operation.message || `تم تسجيل عملية جديدة بقيمة ${formatCurrency(operation.amount || 0)}`;
+            if (operation.notes) {
+                message += `. ${operation.notes}`;
+            }
+            break;
+    }
+    
+    // إنشاء كائن الإشعار
+    return {
+        id: operation.id || generateId(),
+        title: title,
+        message: message,
+        type: notificationType,
+        read: false,
+        date: operation.date || new Date().toISOString(),
+        amount: operation.amount,
+        status: operation.status,
+        operation: operation // تخزين العملية الأصلية للرجوع إليها عند الحاجة
+    };
 }
 
 
@@ -2813,9 +2914,12 @@ function createNotificationFromOperation(operation) {
 }
 
 // تحديث دالة الحصول على أيقونة الإشعار
+
+// الحصول على أيقونة الإشعار
 function getNotificationIcon(type) {
     switch (type) {
         case 'investment':
+        case 'deposit':
             return 'fas fa-chart-line';
         case 'withdrawal':
             return 'fas fa-money-bill-wave';
@@ -2829,6 +2933,127 @@ function getNotificationIcon(type) {
             return 'fas fa-bell';
     }
 }
+
+
+
+// إضافة دالة لفتح نافذة تفاصيل الإشعار
+function openNotificationDetails(notification) {
+    // إنشاء مربع حوار لعرض تفاصيل الإشعار
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.id = 'notificationDetailsModal';
+    
+    // تحديد نوع المحتوى بناءً على نوع الإشعار
+    let detailsContent = '';
+    
+    if (notification.operation) {
+        const operation = notification.operation;
+        
+        switch (operation.type) {
+            case 'investment':
+            case 'deposit':
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">المبلغ المستثمر</div>
+                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الاستثمار</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الحالة</div>
+                        <div class="detail-value">${operation.status === 'active' ? 'نشط' : operation.status === 'completed' ? 'مكتمل' : 'قيد المراجعة'}</div>
+                    </div>
+                `;
+                break;
+            case 'withdrawal':
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">المبلغ المسحوب</div>
+                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الطلب</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">طريقة الاستلام</div>
+                        <div class="detail-value">${operation.method === 'cash' ? 'نقداً' : operation.method === 'bank_transfer' ? 'حوالة بنكية' : 'محفظة إلكترونية'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الحالة</div>
+                        <div class="detail-value">${operation.status === 'completed' ? 'مكتمل' : operation.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة'}</div>
+                    </div>
+                `;
+                break;
+            case 'profit':
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">مبلغ الربح</div>
+                        <div class="detail-value">${formatCurrency(operation.amount)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">تاريخ الإضافة</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الفترة</div>
+                        <div class="detail-value">${operation.period || 'غير محدد'}</div>
+                    </div>
+                `;
+                break;
+            default:
+                detailsContent = `
+                    <div class="detail-item">
+                        <div class="detail-label">التاريخ</div>
+                        <div class="detail-value">${formatDate(operation.date)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">الوصف</div>
+                        <div class="detail-value">${operation.description || 'غير متوفر'}</div>
+                    </div>
+                `;
+        }
+    } else {
+        detailsContent = `
+            <div class="detail-item">
+                <div class="detail-label">التاريخ</div>
+                <div class="detail-value">${formatDate(notification.date)}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">الوصف</div>
+                <div class="detail-value">${notification.message}</div>
+            </div>
+        `;
+    }
+    
+    // إنشاء محتوى مربع الحوار
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="color: var(--gold);">${notification.title}</h2>
+                <button class="modal-close" onclick="document.getElementById('notificationDetailsModal').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="account-details">
+                ${detailsContent}
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="document.getElementById('notificationDetailsModal').remove()">إغلاق</button>
+            </div>
+        </div>
+    `;
+    
+    // إضافة مربع الحوار إلى الصفحة
+    document.body.appendChild(modal);
+    
+    // وضع علامة "مقروء" على الإشعار
+    markNotificationAsRead(notification.id);
+}
+
+
 
 // إضافة الاستماع للتغييرات في الوقت الفعلي
 function listenForOperationsChanges() {
@@ -2858,7 +3083,9 @@ function listenForOperationsChanges() {
     });
 }
 
-// دالة لعرض مؤشر على وجود إشعارات جديدة
+
+
+// دالة لإظهار مؤشر على وجود إشعارات جديدة
 function showNotificationIndicator() {
     const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
     if (notificationNav) {
@@ -2881,7 +3108,10 @@ function showNotificationIndicator() {
     }
 }
 
-// إضافة دالة لتحديث عدد الإشعارات غير المقروءة
+
+
+
+// تحديث دالة تحديد عدد الإشعارات غير المقروءة
 function updateUnreadCount() {
     const unreadCount = notifications.filter(notification => !notification.read).length;
     
@@ -2917,84 +3147,6 @@ function updateUnreadCount() {
         countBadge.remove();
     }
 }
-
-// تحديث دالة تبديل القسم لإزالة المؤشر عند الانتقال لقسم الإشعارات
-const originalSwitchSection = switchSection;
-switchSection = function(section) {
-    originalSwitchSection(section);
-    
-    if (section === 'notifications') {
-        const notificationNav = document.querySelector('.nav-item[onclick="switchSection(\'notifications\')"]');
-        const indicator = notificationNav.querySelector('.notification-indicator');
-        if (indicator) {
-            indicator.remove();
-        }
-        
-        // تحديث حالة القراءة للإشعارات
-        notifications.forEach(notification => {
-            notification.read = true;
-        });
-        
-        // تحديث عدد الإشعارات غير المقروءة
-        updateUnreadCount();
-    }
-};
-
-// تحديث دالة إظهار لوحة المعلومات لإضافة الاستماع للتغييرات
-const originalShowDashboard = showDashboard;
-showDashboard = function() {
-    originalShowDashboard();
-    
-    // إضافة الاستماع للتغييرات في العمليات
-    listenForOperationsChanges();
-    
-    // تحديث عدد الإشعارات غير المقروءة
-    updateUnreadCount();
-};
-
-// إضافة CSS للإشعارات الجديدة
-const notificationStyle = document.createElement('style');
-notificationStyle.textContent = `
-.notification-item {
-    position: relative;
-    overflow: hidden;
-}
-
-.notification-item.new-notification::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--gold) 0%, transparent 50%);
-}
-
-.notification-amount {
-    font-weight: 700;
-    color: var(--gold);
-    margin-top: 5px;
-}
-
-.notification-status {
-    font-size: 0.8rem;
-    margin-top: 2px;
-}
-
-.notification-status.pending {
-    color: var(--gold);
-}
-
-.notification-status.completed {
-    color: var(--green);
-}
-
-.notification-status.rejected {
-    color: var(--red);
-}
-`;
-document.head.appendChild(notificationStyle);
-
 
         
         // Generate mock notifications
@@ -3055,6 +3207,7 @@ document.head.appendChild(notificationStyle);
             return mockNotifications;
         }
         
+
 // تحديث دالة إنشاء عنصر الإشعار
 function createNotificationElement(notification) {
     const div = document.createElement('div');
@@ -3104,13 +3257,122 @@ function createNotificationElement(notification) {
 
 
 
-// دالة لتنسيق الوقت
+// دالة للاستماع للتغييرات في الإشعارات في الوقت الفعلي
+function listenForNotificationChanges() {
+    // الاستماع للإشعارات الجديدة
+    const notificationsRef = database.ref(`${NOTIFICATIONS_PATH}`);
+    notificationsRef.off(); // إزالة المستمعين السابقين
+    
+    notificationsRef.on('child_added', (snapshot) => {
+        const newNotification = snapshot.val();
+        if (newNotification) {
+            newNotification.id = snapshot.key;
+            
+            // التحقق من عدم وجود الإشعار مسبقًا
+            const existingIndex = notifications.findIndex(n => n.id === newNotification.id);
+            if (existingIndex === -1) {
+                // إضافة الإشعار الجديد إلى القائمة
+                notifications.unshift(newNotification);
+                
+                // إعادة عرض الإشعارات إذا كان قسم الإشعارات مفتوحًا
+                if (document.getElementById('notificationsSection').style.display === 'block') {
+                    displayNotifications(notifications);
+                } else {
+                    // إظهار مؤشر على وجود إشعارات جديدة
+                    showNotificationIndicator();
+                }
+                
+                // تحديث عدد الإشعارات غير المقروءة
+                updateUnreadCount();
+            }
+        }
+    });
+    
+    // الاستماع لتحديثات الإشعارات
+    notificationsRef.on('child_changed', (snapshot) => {
+        const updatedNotification = snapshot.val();
+        if (updatedNotification) {
+            updatedNotification.id = snapshot.key;
+            
+            // تحديث الإشعار في القائمة
+            const existingIndex = notifications.findIndex(n => n.id === updatedNotification.id);
+            if (existingIndex !== -1) {
+                notifications[existingIndex] = updatedNotification;
+                
+                // إعادة عرض الإشعارات إذا كان قسم الإشعارات مفتوحًا
+                if (document.getElementById('notificationsSection').style.display === 'block') {
+                    displayNotifications(notifications);
+                }
+                
+                // تحديث عدد الإشعارات غير المقروءة
+                updateUnreadCount();
+            }
+        }
+    });
+    
+    // الاستماع لحذف الإشعارات
+    notificationsRef.on('child_removed', (snapshot) => {
+        const removedId = snapshot.key;
+        
+        // حذف الإشعار من القائمة
+        notifications = notifications.filter(n => n.id !== removedId);
+        
+        // إعادة عرض الإشعارات إذا كان قسم الإشعارات مفتوحًا
+        if (document.getElementById('notificationsSection').style.display === 'block') {
+            displayNotifications(notifications);
+        }
+        
+        // تحديث عدد الإشعارات غير المقروءة
+        updateUnreadCount();
+    });
+    
+    // الاستماع للعمليات الجديدة
+    const operationsRef = database.ref(`${OPERATIONS_PATH}`);
+    operationsRef.off(); // إزالة المستمعين السابقين
+    
+    operationsRef.on('child_added', (snapshot) => {
+        const newOperation = snapshot.val();
+        if (newOperation) {
+            newOperation.id = snapshot.key;
+            
+            // إنشاء إشعار من العملية
+            const newNotification = createNotificationFromOperation(newOperation);
+            if (newNotification) {
+                // التحقق من عدم وجود الإشعار مسبقًا
+                const existingIndex = notifications.findIndex(n => n.id === newNotification.id);
+                if (existingIndex === -1) {
+                    // إضافة الإشعار الجديد إلى القائمة
+                    notifications.unshift(newNotification);
+                    
+                    // إعادة عرض الإشعارات إذا كان قسم الإشعارات مفتوحًا
+                    if (document.getElementById('notificationsSection').style.display === 'block') {
+                        displayNotifications(notifications);
+                    } else {
+                        // إظهار مؤشر على وجود إشعارات جديدة
+                        showNotificationIndicator();
+                    }
+                    
+                    // تحديث عدد الإشعارات غير المقروءة
+                    updateUnreadCount();
+                }
+            }
+        }
+    });
+}
+
+
+
+// تحديث دالة تنسيق الوقت
 function formatTime(dateString) {
     const date = new Date(dateString);
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
 }
+
+
+
+
         
         // Get notification icon
         function getNotificationIcon(type) {
@@ -3129,21 +3391,26 @@ function formatTime(dateString) {
         }
         
         // Mark notification as read
-        async function markNotificationAsRead(notificationId) {
-            try {
-                // Update notification in array
-                const notificationIndex = notifications.findIndex(n => n.id === notificationId);
-                if (notificationIndex !== -1) {
-                    notifications[notificationIndex].read = true;
-                    
-                    // Update in Firebase if connected
-                    const notificationRef = database.ref(`${NOTIFICATIONS_PATH}/${notificationId}`);
-                    await notificationRef.update({ read: true });
-                }
-            } catch (error) {
-                console.error('Error marking notification as read:', error);
-            }
-        }
+        
+// تحديث دالة وضع علامة "مقروء" على الإشعار
+async function markNotificationAsRead(notificationId) {
+    // التحقق من وجود الإشعار
+    const notificationIndex = notifications.findIndex(n => n.id === notificationId);
+    if (notificationIndex === -1) return;
+    
+    // تحديث حالة الإشعار في المصفوفة
+    notifications[notificationIndex].read = true;
+    
+    try {
+        // تحديث حالة الإشعار في Firebase - استخدام المسار الصحيح
+        await database.ref(`${NOTIFICATIONS_PATH}/${notificationId}`).update({ read: true });
+        
+        // تحديث عدد الإشعارات غير المقروءة
+        updateUnreadCount();
+    } catch (error) {
+        console.error('خطأ في تحديث حالة الإشعار:', error);
+    }
+}
 
         // Format date
         function formatDate(dateString) {
@@ -3196,98 +3463,100 @@ function formatTime(dateString) {
             document.getElementById('withdrawModal').classList.remove('active');
         }
 
-        // Submit withdraw request
-        async function submitWithdrawRequest(event) {
-            event.preventDefault();
-            showLoading();
+      // تحديث submitWithdrawRequest لتحسين عملية السحب
+async function submitWithdrawRequest(event) {
+    event.preventDefault();
+    showLoading();
 
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            const method = document.getElementById('withdrawMethod').value;
-            const notes = document.getElementById('withdrawNotes').value;
-            
-            // Get additional details based on method
-            let details = '';
-            if (method === 'bank_transfer') {
-                details = document.getElementById('bankDetails').value;
-            } else if (method === 'e_wallet') {
-                details = document.getElementById('walletDetails').value;
-            }
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const method = document.getElementById('withdrawMethod').value;
+    const notes = document.getElementById('withdrawNotes').value;
+    
+    // الحصول على التفاصيل الإضافية حسب طريقة السحب
+    let details = '';
+    if (method === 'bank_transfer') {
+        details = document.getElementById('bankDetails').value;
+    } else if (method === 'e_wallet') {
+        details = document.getElementById('walletDetails').value;
+    }
 
-            try {
-                // Validate amount
-                if (amount <= 0) {
-                    showWithdrawError('يرجى إدخال مبلغ صحيح');
-                    return;
-                }
-                
-                if (amount > currentCard.dueProfit) {
-                    showWithdrawError('المبلغ المطلوب أكبر من الرصيد المتاح');
-                    return;
-                }
-
-                // Create withdraw request
-                const withdrawRequest = {
-                    id: generateId(),
-                    investorId: currentInvestor.id,
-                    investorName: currentInvestor.name,
-                    cardNumber: currentCard.cardNumber,
-                    amount: amount,
-                    method: method,
-                    details: details,
-                    notes: notes,
-                    status: 'pending',
-                    requestDate: new Date().toISOString(),
-                    type: 'withdrawal_request'
-                };
-
-                // Save to Firebase with correct path
-                await database.ref(`${WITHDRAWAL_REQUESTS_PATH}/${withdrawRequest.id}`).set(withdrawRequest);
-                
-                // Add to transactions
-                const withdrawTransaction = {
-                    id: generateId(),
-                    type: 'withdrawal',
-                    amount: amount,
-                    date: new Date().toISOString(),
-                    status: 'pending',
-                    description: 'طلب سحب قيد المراجعة'
-                };
-                
-                // Add to card's recent operations
-                if (!currentCard.recentOperations) {
-                    currentCard.recentOperations = [];
-                }
-                
-                currentCard.recentOperations.push(withdrawTransaction);
-                
-                // Add notification for withdrawal request
-                const withdrawalNotification = {
-                    id: generateId(),
-                    title: 'تم استلام طلب السحب',
-                    message: `تم استلام طلب سحب بقيمة ${formatCurrency(amount)} وهو قيد المراجعة الآن.`,
-                    type: 'withdrawal',
-                    read: false,
-                    date: new Date().toISOString()
-                };
-                
-                // Save notification to Firebase
-                await database.ref(`${NOTIFICATIONS_PATH}/${withdrawalNotification.id}`).set(withdrawalNotification);
-                
-                // Update localStorage
-                localStorage.setItem('investorCard', JSON.stringify(currentCard));
-                
-                // Update UI
-                updateDashboard();
-
-                // Show success message
-                showWithdrawSuccess('تم إرسال طلب السحب بنجاح. سيتم مراجعة طلبك قريباً.');
-            } catch (error) {
-                console.error('Withdraw request error:', error);
-                showWithdrawError('حدث خطأ في إرسال الطلب');
-            } finally {
-                hideLoading();
-            }
+    try {
+        // التحقق من صحة المبلغ
+        if (amount <= 0) {
+            showWithdrawError('يرجى إدخال مبلغ صحيح');
+            hideLoading();
+            return;
         }
+        
+        if (amount > currentCard.dueProfit) {
+            showWithdrawError('المبلغ المطلوب أكبر من الرصيد المتاح');
+            hideLoading();
+            return;
+        }
+
+        // إنشاء طلب سحب
+        const withdrawRequest = {
+            id: generateId(),
+            investorId: currentInvestor.id,
+            investorName: currentInvestor.name,
+            cardId: currentCard.id, // إضافة معرف البطاقة
+            cardNumber: currentCard.cardNumber,
+            amount: amount,
+            method: method,
+            details: details,
+            notes: notes,
+            status: 'pending',
+            requestDate: new Date().toISOString(),
+            type: 'withdrawal_request'
+        };
+
+        // حفظ الطلب في Firebase
+        await database.ref(`${WITHDRAWAL_REQUESTS_PATH}/${withdrawRequest.id}`).set(withdrawRequest);
+        
+        // إنشاء عملية سحب وإضافتها إلى العمليات
+        const withdrawOperation = {
+            id: generateId(),
+            type: 'withdrawal',
+            investorId: currentInvestor.id,
+            investorName: currentInvestor.name,
+            cardId: currentCard.id,
+            amount: amount,
+            date: new Date().toISOString(),
+            status: 'pending',
+            description: 'طلب سحب قيد المراجعة',
+            notes: notes
+        };
+        
+        // حفظ العملية في Firebase
+        await database.ref(`${OPERATIONS_PATH}/${withdrawOperation.id}`).set(withdrawOperation);
+        
+        // إضافة إشعار للمستخدم
+        const withdrawalNotification = {
+            id: generateId(),
+            title: 'تم استلام طلب السحب',
+            message: `تم استلام طلب سحب بقيمة ${formatCurrency(amount)} وهو قيد المراجعة الآن.`,
+            type: 'withdrawal',
+            read: false,
+            date: new Date().toISOString()
+        };
+        
+        // حفظ الإشعار في Firebase
+        await database.ref(`${NOTIFICATIONS_PATH}/${withdrawalNotification.id}`).set(withdrawalNotification);
+        
+        // إظهار رسالة نجاح
+        showWithdrawSuccess('تم إرسال طلب السحب بنجاح. سيتم مراجعة طلبك قريبًا.');
+        
+        // إغلاق النافذة بعد فترة
+        setTimeout(() => {
+            closeWithdrawModal();
+        }, 3000);
+    } catch (error) {
+        console.error('خطأ في إرسال طلب السحب:', error);
+        showWithdrawError('حدث خطأ في إرسال الطلب');
+    } finally {
+        hideLoading();
+    }
+}
 
         // Generate unique ID
         function generateId() {
