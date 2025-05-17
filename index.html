@@ -2292,6 +2292,78 @@
             text-align: center;
             color: var(--gold);
         }
+
+
+        /* تحسين أسلوب شريط التصنيفات */
+.categories-container {
+    margin-bottom: 20px;
+    background-color: rgba(17, 24, 39, 0.4);
+    border-radius: 15px;
+    padding: 10px;
+    border: 1px solid rgba(255, 196, 54, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.categories-wrapper {
+    padding: 3px 5px;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+    padding: 2px;
+}
+
+.filter-tab {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 196, 54, 0.2);
+    border-radius: 20px;
+    color: var(--text-light);
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    min-width: auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.filter-tab:hover {
+    background: rgba(255, 196, 54, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.filter-tab.active {
+    background: var(--gold);
+    color: var(--bg-dark);
+    border-color: var(--gold);
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(255, 196, 54, 0.3);
+}
+
+/* تعديل زر إضافة التصنيف ليتناسب مع التصميم الجديد */
+.add-category-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 196, 54, 0.2);
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 5px;
+}
+
+.add-category-btn:hover {
+    background: rgba(255, 196, 54, 0.4);
+    transform: rotate(90deg);
+}
     </style>
 </head>
 <body>
