@@ -6,6 +6,13 @@
     <title>محفظة المستثمر | سما بابل للاستثمار</title>
     
     <!-- Font Awesome Icons -->
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBTcAov7iclfvVAa52jp3AzqHtxqVnatuk" async defer></script>
+
+
+
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Google Fonts - Tajawal for Arabic UI -->
@@ -19,7 +26,8 @@
     
     <!-- QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    
+    <link href="style.css" rel="stylesheet" />
+
     <style>
         /* ===== RESET & BASE STYLES ===== */
         * {
@@ -2364,6 +2372,185 @@
     background: rgba(255, 196, 54, 0.4);
     transform: rotate(90deg);
 }
+
+
+.project-stages {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+}
+.stage-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.stage-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    color: var(--text-light);
+}
+.stage-circle.active {
+    background-color: var(--gold);
+    color: var(--bg-dark);
+}
+.stage-line {
+    flex: 1;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin: 0 5px;
+}
+.stage-line.active {
+    background-color: var(--gold);
+}
+.stage-label {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    max-width: 70px;
+}
+
+/* تنسيق مقرات الشركة */
+.office-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--gold-medium);
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.office-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 196, 54, 0.15);
+}
+
+/* تنسيق الخريطة */
+#investmentMap {
+    border: 1px solid var(--gold-medium);
+    background-color: rgba(17, 24, 39, 0.8);
+}
+
+/* تنسيق أزرار التحكم في الخريطة */
+#adminMapControls {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* تنسيق للمعلومات في نافذة الخريطة */
+.marker-info-window {
+    direction: rtl; 
+    text-align: right; 
+    padding: 10px;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.marker-info-window h3 {
+    color: #1a73e8; 
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.marker-info-window p {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+/* تنسيق للعناوين في صفحة تفاصيل المشروع */
+.section-subtitle {
+    color: var(--gold);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* تنسيق للمخاطر المحتملة */
+.risk-item {
+    margin-bottom: 8px;
+    color: var(--text-light);
+    display: flex;
+    align-items: flex-start;
+}
+
+.risk-item i {
+    color: var(--gold);
+    margin-left: 8px;
+    margin-top: 2px;
+}
+
+/* تنسيق لمراحل المشروع المتقدمة */
+.timeline-container {
+    margin: 20px 0;
+    position: relative;
+}
+
+.timeline-line {
+    position: absolute;
+    right: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: rgba(255, 196, 54, 0.3);
+}
+
+.timeline-item {
+    position: relative;
+    padding-right: 40px;
+    margin-bottom: 20px;
+}
+
+.timeline-dot {
+    position: absolute;
+    right: 11px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--gold);
+}
+
+.timeline-dot.active {
+    background-color: var(--gold);
+}
+
+.timeline-dot.inactive {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.timeline-content {
+    background-color: rgba(17, 24, 39, 0.5);
+    border: 1px solid rgba(255, 196, 54, 0.2);
+    border-radius: var(--border-radius-sm);
+    padding: 10px;
+}
+
+.timeline-date {
+    font-size: 0.8rem;
+    color: var(--gold);
+    margin-bottom: 5px;
+}
+
+.timeline-title {
+    font-weight: 600;
+    color: var(--text-white);
+    margin-bottom: 5px;
+}
+
+.timeline-description {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
     </style>
 </head>
 <body>
@@ -2902,7 +3089,59 @@
                 </button>
             </div>
         </div>
+        <!-- Office Locations and Map Modal -->
+<div class="modal" id="investmentLocationsModal">
+    <div class="modal-content" style="max-width: 90%; max-height: 90%; width: 90%; height: 90%;">
+        <div class="modal-header">
+            <h2 style="color: var(--gold);">مواقع الاستثمار والمقرات</h2>
+            <button class="modal-close" onclick="closeInvestmentLocationsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="officesAndMapContainer">
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: var(--gold); margin-bottom: 15px;">مقرات الشركة</h3>
+                <div id="officesList">
+                    <!-- المقرات ستظهر هنا -->
+                </div>
+            </div>
+            
+            <div class="form-notice" style="margin: 20px 0;">
+                <i class="fas fa-info-circle"></i>
+                <span>انقر على الموقع المناسب للاستثمار أو اتصل بأحد مقراتنا للمزيد من المعلومات</span>
+            </div>
+            
+            <h3 style="color: var(--gold); margin-bottom: 15px;">مواقع الاستثمار</h3>
+            <div id="investmentMap" style="width: 100%; height: 400px; border-radius: 12px; overflow: hidden;">
+                <!-- الخريطة ستظهر هنا -->
+            </div>
+            
+            <!-- أزرار للمشرف فقط -->
+            <div id="adminMapControls" style="margin-top: 15px; display: none;">
+                <button class="btn btn-secondary" style="margin-left: 10px;" onclick="toggleAddLocationMode()">
+                    <i class="fas fa-map-marker-alt"></i> إضافة موقع جديد
+                </button>
+                <button class="btn btn-secondary" onclick="saveLocations()">
+                    <i class="fas fa-save"></i> حفظ المواقع
+                </button>
+            </div>
+        </div>
         
+        <div class="form-notice" style="margin-top: 20px;">
+            <i class="fas fa-phone"></i>
+            <span>للاستفسار: +964 771 123 4567</span>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" onclick="confirmInvestment()">
+                <i class="fas fa-check-circle"></i> تأكيد الاستثمار
+            </button>
+            <button class="btn btn-secondary" onclick="closeInvestmentLocationsModal()">
+                <i class="fas fa-times-circle"></i> إلغاء
+            </button>
+        </div>
+    </div>
+</div>
         <!-- نوافذ إدارة المشاريع والتصنيفات -->
         
         <!-- نافذة إضافة مشروع جديد -->
@@ -3154,7 +3393,7 @@
     </div>
 
     <script>
-    // Firebase Configuration
+   // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEMiAI",
         authDomain: "messageemeapp.firebaseapp.com",
@@ -3185,6 +3424,38 @@
     let isProjectEditMode = false;
     let projectImageFile = null;
     let editImageChanged = false;
+
+    // متغيرات الخريطة والمواقع
+    let map = null;
+    let markers = [];
+    let currentInfoWindow = null;
+    let investmentLocations = [];
+    let isAddLocationMode = false;
+
+    // مقرات الشركة
+    const companyOffices = [
+        {
+            name: "المقر الرئيسي - الحلة",
+            address: "الحلة، شارع 40، بالقرب من مصرف الرافدين",
+            phone: "07801234567",
+            email: "info@samababel.com",
+            location: { lat: 32.4722, lng: 44.4134 }
+        },
+        {
+            name: "فرع بغداد",
+            address: "بغداد، المنصور، شارع 14 رمضان",
+            phone: "07711234567",
+            email: "baghdad@samababel.com",
+            location: { lat: 33.3152, lng: 44.3661 }
+        },
+        {
+            name: "فرع النجف",
+            address: "النجف، حي السلام، بالقرب من المسجد الكبير",
+            phone: "07771234567",
+            email: "najaf@samababel.com",
+            location: { lat: 31.9926, lng: 44.3512 }
+        }
+    ];
 
     // المسار الصحيح في Firebase
     const FIREBASE_USER_ID = '6wS4ga5v6MXUMC0yzyDnxuI2dh03';
@@ -5045,7 +5316,7 @@
         }
     }
     
-    // التقدم للاستثمار في المشروع
+    // التقدم للاستثمار في المشروع - تم تحديثها لعرض خريطة مواقع الاستثمار
     function applyForProject() {
         // العثور على المشروع بواسطة المعرف
         const project = projects.find(p => p.id === currentProject);
@@ -5054,15 +5325,460 @@
             return;
         }
         
+        // إغلاق نافذة تفاصيل المشروع
+        closeProjectDetailsModal();
+        
+        // تحميل مواقع الاستثمار من Firebase
+        loadInvestmentLocations().then(() => {
+            // عرض نافذة مواقع الاستثمار
+            showInvestmentLocationsModal(project);
+        });
+    }
+
+    // فتح نافذة مواقع الاستثمار
+    function showInvestmentLocationsModal(project) {
+        // عرض مقرات الشركة
+        renderOfficesList();
+        
+        // عرض خيارات المشرف إذا كان في وضع المشرف
+        const adminMapControls = document.getElementById('adminMapControls');
+        if (adminMapControls) {
+            adminMapControls.style.display = isAdminMode ? 'flex' : 'none';
+        }
+        
+        // عرض النافذة
+        document.getElementById('investmentLocationsModal').classList.add('active');
+        
+        // تهيئة الخريطة بعد ظهور النافذة (تأخير صغير لضمان تحميل العناصر)
+        setTimeout(() => {
+            initMap();
+        }, 300);
+    }
+
+    // إغلاق نافذة مواقع الاستثمار
+    function closeInvestmentLocationsModal() {
+        document.getElementById('investmentLocationsModal').classList.remove('active');
+    }
+
+    // عرض مقرات الشركة
+    function renderOfficesList() {
+        const officesList = document.getElementById('officesList');
+        if (!officesList) return;
+        
+        officesList.innerHTML = '';
+        
+        companyOffices.forEach(office => {
+            const officeCard = document.createElement('div');
+            officeCard.className = 'notification-item';
+            officeCard.style.cursor = 'pointer';
+            officeCard.innerHTML = `
+                <div class="notification-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${office.name}</div>
+                    <div class="notification-message">${office.address}</div>
+                    <div class="notification-date">
+                        <i class="fas fa-phone" style="margin-left: 5px;"></i> ${office.phone}
+                    </div>
+                </div>
+            `;
+            
+            // إضافة حدث النقر لتوجيه الخريطة إلى موقع المقر
+            officeCard.addEventListener('click', () => {
+                if (map) {
+                    map.setCenter(office.location);
+                    map.setZoom(15);
+                    
+                    // العثور على العلامة المناسبة وفتح نافذة المعلومات الخاصة بها
+                    markers.forEach(marker => {
+                        if (marker.title === office.name) {
+                            google.maps.event.trigger(marker, 'click');
+                        }
+                    });
+                }
+            });
+            
+            officesList.appendChild(officeCard);
+        });
+    }
+
+    // تهيئة الخريطة
+    function initMap() {
+        const mapContainer = document.getElementById('investmentMap');
+        if (!mapContainer) return;
+        
+        // إذا كانت واجهة برمجة خرائط Google غير محملة، قم بتحميلها
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            // إنشاء وإضافة نص في النافذة لإخبار المستخدم أنه يجب إضافة مفتاح الواجهة البرمجية
+            mapContainer.innerHTML = `
+                <div style="padding: 20px; text-align: center; background-color: rgba(17, 24, 39, 0.8); border-radius: 10px;">
+                    <h3 style="color: var(--gold); margin-bottom: 10px;">تحتاج إلى إضافة مفتاح واجهة برمجة خرائط Google</h3>
+                    <p style="color: var(--text-light);">للمشرف: قم بإضافة سكريبت الخرائط في رأس الصفحة أو استخدم خدمة خرائط بديلة</p>
+                    <div style="margin-top: 20px;">
+                        <p style="color: var(--text-light);">مقرات الشركة موجودة في:</p>
+                        <ul style="text-align: right; padding-right: 20px; margin-top: 10px;">
+                            <li style="color: var(--text-light); margin-bottom: 5px;">الحلة: شارع 40، بالقرب من مصرف الرافدين</li>
+                            <li style="color: var(--text-light); margin-bottom: 5px;">بغداد: المنصور، شارع 14 رمضان</li>
+                            <li style="color: var(--text-light); margin-bottom: 5px;">النجف: حي السلام، بالقرب من المسجد الكبير</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        // مسح العلامات الحالية
+        markers.forEach(marker => {
+            marker.setMap(null);
+        });
+        markers = [];
+        
+        // إنشاء الخريطة
+        map = new google.maps.Map(mapContainer, {
+            center: { lat: 33.3152, lng: 44.3661 }, // بغداد كمركز افتراضي
+            zoom: 7,
+            styles: [ // نمط خريطة داكن مناسب للواجهة
+                { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+                { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+                { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+                { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+                { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+                { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+                { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+                { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+                { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+                { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+                { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+                { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] }
+            ]
+        });
+        
+        // إضافة حدث النقر على الخريطة لإضافة مواقع جديدة (في وضع المشرف فقط)
+        map.addListener('click', function(event) {
+            if (isAdminMode && isAddLocationMode) {
+                addMarker(event.latLng);
+            }
+        });
+        
+        // إضافة العلامات لمقرات الشركة
+        companyOffices.forEach(office => {
+            const marker = new google.maps.Marker({
+                position: office.location,
+                map: map,
+                title: office.name,
+                icon: {
+                    url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                }
+            });
+            
+            // إضافة نافذة معلومات عند النقر على العلامة
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div class="marker-info-window">
+                        <h3>${office.name}</h3>
+                        <p>${office.address}</p>
+                        <p><strong>هاتف:</strong> ${office.phone}</p>
+                        <p><strong>بريد إلكتروني:</strong> ${office.email}</p>
+                    </div>
+                `
+            });
+            
+            marker.addListener('click', function() {
+                if (currentInfoWindow) {
+                    currentInfoWindow.close();
+                }
+                infoWindow.open(map, marker);
+                currentInfoWindow = infoWindow;
+            });
+            
+            markers.push(marker);
+        });
+        
+        // إضافة مواقع الاستثمار المحفوظة
+        investmentLocations.forEach((location, index) => {
+            addLocationMarker(location, index);
+        });
+    }
+
+    // تنفيذ إضافة علامة لموقع استثمار
+    function addLocationMarker(location, index) {
+        const marker = new google.maps.Marker({
+            position: { lat: location.lat, lng: location.lng },
+            map: map,
+            title: location.name || 'موقع استثمار',
+            icon: {
+                url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
+            },
+            draggable: isAdminMode // يمكن سحب العلامة فقط في وضع المشرف
+        });
+        
+        // إضافة نافذة معلومات
+        const infoWindow = new google.maps.InfoWindow({
+            content: isAdminMode ? 
+                `
+                    <div class="marker-info-window">
+                        <input type="text" id="marker-name-${index}" placeholder="اسم الموقع" value="${location.name || ''}" style="width: 100%; margin-bottom: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                        <textarea id="marker-description-${index}" placeholder="وصف الموقع" style="width: 100%; margin-bottom: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; height: 60px;">${location.description || ''}</textarea>
+                        <button onclick="updateMarkerInfo(${index})" style="background-color: #188038; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 5px;">حفظ</button>
+                        <button onclick="removeMarker(${index})" style="background-color: #ea4335; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">حذف</button>
+                    </div>
+                ` : 
+                `
+                    <div class="marker-info-window">
+                        <h3>${location.name || 'موقع استثمار'}</h3>
+                        <p>${location.description || 'موقع مشروع استثماري متاح'}</p>
+                    </div>
+                `
+        });
+        
+        marker.addListener('click', function() {
+            if (currentInfoWindow) {
+                currentInfoWindow.close();
+            }
+            infoWindow.open(map, marker);
+            currentInfoWindow = infoWindow;
+        });
+        
+        // مستمع لحدث تغيير الموقع
+        if (isAdminMode) {
+            marker.addListener('dragend', function() {
+                if (index < investmentLocations.length) {
+                    investmentLocations[index].lat = marker.getPosition().lat();
+                    investmentLocations[index].lng = marker.getPosition().lng();
+                }
+            });
+        }
+        
+        markers.push(marker);
+    }
+
+    // إضافة علامة جديدة على الخريطة
+    function addMarker(location) {
+        // إنشاء معلومات الموقع
+        const locationInfo = {
+            lat: location.lat(),
+            lng: location.lng(),
+            name: 'موقع استثمار جديد',
+            description: 'موقع مشروع استثماري متاح'
+        };
+        
+        // إضافة الموقع إلى المصفوفة
+        investmentLocations.push(locationInfo);
+        
+        // إضافة علامة للموقع
+        const index = investmentLocations.length - 1;
+        addLocationMarker(locationInfo, index);
+        
+        // فتح نافذة المعلومات للموقع الجديد
+        if (markers.length > 0) {
+            const newMarker = markers[markers.length - 1];
+            google.maps.event.trigger(newMarker, 'click');
+        }
+    }
+
+    // تحديث معلومات العلامة
+    function updateMarkerInfo(markerIndex) {
+        if (markerIndex >= investmentLocations.length) return;
+        
+        // الحصول على القيم المدخلة
+        const nameInput = document.getElementById(`marker-name-${markerIndex}`);
+        const descriptionInput = document.getElementById(`marker-description-${markerIndex}`);
+        
+        if (nameInput && descriptionInput) {
+            // تحديث المعلومات
+            investmentLocations[markerIndex].name = nameInput.value || 'موقع استثمار';
+            investmentLocations[markerIndex].description = descriptionInput.value || 'موقع مشروع استثماري متاح';
+            
+            // إغلاق نافذة المعلومات
+            if (currentInfoWindow) {
+                currentInfoWindow.close();
+                
+                // تحديث محتوى نافذة المعلومات
+                const marker = markers[markerIndex + companyOffices.length];
+                if (marker) {
+                    // إنشاء نافذة معلومات جديدة
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div class="marker-info-window">
+                                <input type="text" id="marker-name-${markerIndex}" placeholder="اسم الموقع" value="${investmentLocations[markerIndex].name}" style="width: 100%; margin-bottom: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                <textarea id="marker-description-${markerIndex}" placeholder="وصف الموقع" style="width: 100%; margin-bottom: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; height: 60px;">${investmentLocations[markerIndex].description}</textarea>
+                                <button onclick="updateMarkerInfo(${markerIndex})" style="background-color: #188038; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 5px;">حفظ</button>
+                                <button onclick="removeMarker(${markerIndex})" style="background-color: #ea4335; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">حذف</button>
+                            </div>
+                        `
+                    });
+                    
+                    // استبدال مستمع النقر
+                    google.maps.event.clearListeners(marker, 'click');
+                    marker.addListener('click', function() {
+                        if (currentInfoWindow) {
+                            currentInfoWindow.close();
+                        }
+                        infoWindow.open(map, marker);
+                        currentInfoWindow = infoWindow;
+                    });
+                }
+                
+                // إظهار رسالة نجاح
+                createNotification('تم التحديث', 'تم تحديث معلومات الموقع بنجاح', 'success');
+            }
+        }
+    }
+
+    // إزالة علامة
+    function removeMarker(markerIndex) {
+        // تحويل الفهرس لمراعاة مقرات الشركة
+        const actualIndex = markerIndex + companyOffices.length;
+        
+        if (actualIndex >= markers.length) return;
+        
+        // إزالة العلامة من الخريطة
+        markers[actualIndex].setMap(null);
+        
+        // إزالة الموقع من المصفوفة
+        if (markerIndex < investmentLocations.length) {
+            investmentLocations.splice(markerIndex, 1);
+        }
+        
+        // إزالة العلامة من المصفوفة
+        markers.splice(actualIndex, 1);
+        
+        // إغلاق نافذة المعلومات
+        if (currentInfoWindow) {
+            currentInfoWindow.close();
+            currentInfoWindow = null;
+        }
+        
+        // إظهار رسالة نجاح
+        createNotification('تم الحذف', 'تم حذف الموقع بنجاح', 'info');
+    }
+
+    // تبديل وضع إضافة موقع جديد
+    function toggleAddLocationMode() {
+        isAddLocationMode = !isAddLocationMode;
+        
+        // إظهار رسالة للمستخدم
+        createNotification(
+            isAddLocationMode ? 'وضع إضافة موقع مفعل' : 'تم إلغاء وضع إضافة موقع',
+            isAddLocationMode ? 'انقر على الخريطة لإضافة مواقع استثمار جديدة' : 'تم إلغاء وضع إضافة المواقع',
+            'info'
+        );
+        
+        // تغيير مؤشر الخريطة
+        if (map) {
+            map.setOptions({
+                draggableCursor: isAddLocationMode ? 'crosshair' : null
+            });
+        }
+    }
+
+    // حفظ مواقع الاستثمار
+    async function saveLocations() {
+        if (!isAdminMode) return;
+        
+        try {
+            showLoading();
+            
+            // الحصول على المشروع الحالي
+            const project = projects.find(p => p.id === currentProject);
+            if (!project) {
+                throw new Error('المشروع غير موجود');
+            }
+            
+            // حفظ المواقع في Firebase
+            await database.ref(`${PROJECTS_PATH}/${currentProject}/locations`).set(investmentLocations);
+            
+            // تحديث المشروع في المصفوفة المحلية
+            const projectIndex = projects.findIndex(p => p.id === currentProject);
+            if (projectIndex !== -1) {
+                projects[projectIndex].locations = investmentLocations;
+            }
+            
+            // عرض رسالة نجاح
+            createNotification('تم حفظ المواقع', 'تم حفظ مواقع الاستثمار بنجاح', 'success');
+        } catch (error) {
+            console.error('خطأ في حفظ المواقع:', error);
+            createNotification('خطأ في حفظ المواقع', error.message, 'danger');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // تحميل مواقع الاستثمار من Firebase
+    async function loadInvestmentLocations() {
+        try {
+            // الحصول على المشروع الحالي
+            const project = projects.find(p => p.id === currentProject);
+            if (!project) {
+                console.error('المشروع غير موجود:', currentProject);
+                return;
+            }
+            
+            // تحميل المواقع من Firebase
+            const locationsRef = database.ref(`${PROJECTS_PATH}/${currentProject}/locations`);
+            const snapshot = await locationsRef.once('value');
+            
+            if (snapshot.exists()) {
+                // تحديث المصفوفة المحلية
+                investmentLocations = snapshot.val();
+            } else {
+                // إنشاء مواقع افتراضية إذا لم تكن موجودة
+                investmentLocations = generateDefaultLocations(project);
+            }
+        } catch (error) {
+            console.error('خطأ في تحميل مواقع الاستثمار:', error);
+            // استخدام مواقع افتراضية في حالة الخطأ
+            investmentLocations = generateDefaultLocations();
+        }
+    }
+
+    // إنشاء مواقع افتراضية للمشروع
+    function generateDefaultLocations(project) {
+        // إذا كان هناك مشروع، أنشئ موقعًا افتراضيًا قرب مدينة الحلة
+        if (project) {
+            // إنشاء موقع بالقرب من مدينة الحلة مع تغيير طفيف لكل مشروع
+            const randomLat = 32.4722 + (Math.random() * 0.1 - 0.05);
+            const randomLng = 44.4134 + (Math.random() * 0.1 - 0.05);
+            
+            return [
+                {
+                    lat: randomLat,
+                    lng: randomLng,
+                    name: 'موقع مشروع ' + project.title,
+                    description: 'موقع مقترح لمشروع ' + project.title + ' - يمكنك زيارة أحد مقراتنا للحصول على تفاصيل أكثر.'
+                }
+            ];
+        }
+        
+        // إرجاع مصفوفة فارغة في حالة عدم وجود مشروع
+        return [];
+    }
+
+    // تأكيد الاستثمار
+    function confirmInvestment() {
+        // العثور على المشروع بواسطة المعرف
+        const project = projects.find(p => p.id === currentProject);
+        if (!project) {
+            console.error('المشروع غير موجود:', currentProject);
+            return;
+        }
+        
+        // إغلاق نافذة مواقع الاستثمار
+        closeInvestmentLocationsModal();
+        
         // عرض رسالة نجاح
         createNotification(
             'تم تقديم الطلب',
             'تم استلام طلب الاستثمار بنجاح وسيتم التواصل معك قريباً',
             'success'
         );
-        
-        // إغلاق النافذة المنبثقة
-        closeProjectDetailsModal();
         
         // إنشاء إشعار للمستخدم
         const notification = {
@@ -6549,6 +7265,8 @@
                     closeManageCategoriesModal();
                 } else if (modal.id === 'editProjectModal') {
                     closeEditProjectModal();
+                } else if (modal.id === 'investmentLocationsModal') {
+                    closeInvestmentLocationsModal();
                 }
             }
         });
@@ -6623,6 +7341,14 @@
         window.triggerEditImageUpload = triggerEditImageUpload;
         window.previewEditProjectImage = previewEditProjectImage;
         window.submitEditProject = submitEditProject;
+        
+        // وظائف خريطة مواقع الاستثمار
+        window.closeInvestmentLocationsModal = closeInvestmentLocationsModal;
+        window.toggleAddLocationMode = toggleAddLocationMode;
+        window.updateMarkerInfo = updateMarkerInfo;
+        window.removeMarker = removeMarker;
+        window.saveLocations = saveLocations;
+        window.confirmInvestment = confirmInvestment;
     })();
     </script>
 </body>
